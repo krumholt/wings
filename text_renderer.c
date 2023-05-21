@@ -80,7 +80,6 @@ initialise_text_renderer(void)
         &text_renderer_context.shader_program,
         text_renderer_vertex_shader_text,
         text_renderer_fragment_shader_text);
-    print_attributes(text_renderer_context.shader_program);
     if (error)
         return (error);
     text_renderer_context.view       = glGetUniformLocation(text_renderer_context.shader_program, "view");
