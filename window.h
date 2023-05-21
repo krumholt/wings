@@ -1,5 +1,5 @@
-#ifndef os_h
-#define os_h
+#ifndef window_h
+#define window_h
 #include "types.h"
 #include "wings_math.c"
 
@@ -106,6 +106,7 @@ enum keycode
 };
 
 b32    open_window         (char *title, s32 width, s32 height);
+void   update_window       (void);
 void   set_window_position (struct v2s new_position);
 
 void   console_create      (void);

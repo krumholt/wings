@@ -2,7 +2,7 @@
 #define opengl_c
 
 #include "types.h"
-#include "os_win32.c"
+#include "window_windows.c"
 #include <GL/gl.h>
 #include <assert.h>
 #include "glext.h"

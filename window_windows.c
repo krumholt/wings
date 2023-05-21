@@ -1,7 +1,7 @@
-#ifndef os_win32_c
-#define os_win32_c
+#ifndef window_windows_c
+#define window_windows_c
 
-#include "os.h"
+#include "window.h"
 #include "mouse.c"
 #pragma warning(push, 0)
 #ifndef WIN32_LEAN_AND_MEAN 

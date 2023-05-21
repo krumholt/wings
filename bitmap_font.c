@@ -6,7 +6,7 @@
 #include "geometry_2d.c"
 #include "memory.c"
 #include "wings_strings.c"
-#include "file_win32.c"
+#include "file_windows.c"
 #include "image.c"
 
 struct glyph
