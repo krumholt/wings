@@ -118,6 +118,7 @@ _allocate(struct memory *block, u64 size)
                total_memory_unit,
                memory_left,
                memory_left_unit);
+        assert(0);
         exit(-1);
     }
 
