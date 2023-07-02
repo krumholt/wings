@@ -1,5 +1,5 @@
-#ifndef __camera_cpp__
-#define __camera_cpp__
+#ifndef camera_c
+#define camera_c
 
 #include "wings_math.c"
 
