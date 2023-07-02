@@ -21,7 +21,7 @@ struct string    base_name        (struct path path);
 void             set_to_parent    (struct path *path);
 
 static b32
-is_path_seperator(char c)
+_is_path_seperator(char c)
 {
     return c == '\\' || c == '/';
 }
@@ -46,6 +46,22 @@ make_path(char *string, u64 size)
     path.string[path.used++] = 0;
 
     return(path);
+}
+
+// @TODO: this seems highly dangerous to return an internal pointer
+char *
+path_filename(struct path *path)
+{
+    s32 current_character_index = path->used - 1;
+    while(current_character_index >= 0)
+    {
+        char current_character = path->string[current_character_index];
+        if (_is_path_seperator(current_character))
+            break;
+
+        current_character_index -= 1;
+    }
+    return path->string + current_character_index + 1;
 }
 
 void
@@ -77,11 +93,11 @@ set_to_parent(struct path *path)
     int32 last_character = path->used - 1;
     assert(path->string[last_character] == 0);
     last_character -= 1;
-    if (is_path_seperator(path->string[last_character]))
+    if (_is_path_seperator(path->string[last_character]))
         last_character -= 1;
     while(last_character >= 0)
     {
-        if(is_path_seperator(path->string[last_character]))
+        if(_is_path_seperator(path->string[last_character]))
         {
             path->string[last_character + 1] = 0;
             path->used = last_character + 2;
@@ -91,37 +107,4 @@ set_to_parent(struct path *path)
     }
 }
 
-/*
-path_t
-copy_append(path_t path, string_t string, memory_t *memory)
-{
-    path_t new_path = make_path(path.c_string, memory);
-
-    new_path.used -= 1;
-    new_path.c_string[new_path.used++] = '\\';
-    for (int index = 0; index < string.size; ++index)
-    {
-        new_path.c_string[new_path.used++] = string.memory[index];
-    }
-    new_path.c_string[new_path.used++] = 0;
-    return(new_path);
-}
-
-
-path_t
-copy_append(path_t path, char *c_string, memory_t *memory)
-{
-    path_t new_path = make_path(path.c_string, memory);
-
-    new_path.used -= 1;
-    new_path.c_string[new_path.used++] = '\\';
-    while(*c_string)
-    {
-        new_path.c_string[new_path.used++] = *c_string;
-        ++c_string;
-    }
-    new_path.c_string[new_path.used++] = 0;
-    return(new_path);
-}
-*/
 #endif

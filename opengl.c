@@ -271,26 +271,26 @@ _link_program(u32 program)
 }
 
 b32
-_compile_and_attach_shader(u32 program, const char *text, u32 shader_type)
+_compile_and_attach_shader(u32 program, const char *text, u32 shader_type, u32 *shader)
 {
-    u32 shader = glCreateShader(shader_type);
-    glShaderSource(shader, 1, &text, 0);
-    glCompileShader(shader);
+    *shader = glCreateShader(shader_type);
+    glShaderSource(*shader, 1, &text, 0);
+    glCompileShader(*shader);
     GL_CHECK();
     GLint compiled;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    glGetShaderiv(*shader, GL_COMPILE_STATUS, &compiled);
     if (compiled != GL_TRUE) {
         GLsizei log_length = 0;
         char *message = (char *)calloc(1024, sizeof(char));
-        glGetShaderInfoLog(shader, 1024, &log_length, message);
+        glGetShaderInfoLog(*shader, 1024, &log_length, message);
         printf("%s\n%.30s\n", message, text);
         return 1;
     }
         
-    glAttachShader(program, shader);
+    glAttachShader(program, *shader);
     GL_CHECK();
 
-    glDeleteShader(shader);
+    glDeleteShader(*shader);
     GL_CHECK();
 
     return 0;
@@ -299,15 +299,23 @@ _compile_and_attach_shader(u32 program, const char *text, u32 shader_type)
 b32
 compile_shader_program(u32 *program, const char *vertex_shader, const char *fragment_shader)
 {
-    bool32 error = 0;
+    b32 error = 0;
     *program = glCreateProgram();
 
-    error = _compile_and_attach_shader(*program, vertex_shader, GL_VERTEX_SHADER);
+    u32 vs = 0;
+    error = _compile_and_attach_shader(*program, vertex_shader, GL_VERTEX_SHADER, &vs);
     if (error) return 1;
-    error = _compile_and_attach_shader(*program, fragment_shader, GL_FRAGMENT_SHADER);
+
+    u32 fs = 0;
+    error = _compile_and_attach_shader(*program, fragment_shader, GL_FRAGMENT_SHADER, &fs);
     if (error) return 2;
+
     error = _link_program(*program);
     if (error) return 3;
+
+    //@Todo: according to documentation we could detach here and get them deleted. But it doesn't seem to work on all drivers
+    //glDetachShader(*program, vs);
+    //glDetachShader(*program, fs);
 
     return(0);
 }
