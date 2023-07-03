@@ -1211,15 +1211,15 @@ make_look_at_matrix(struct v3 position, struct v3 target, struct v3 up)
     result.m20         = right.z;
     result.m30         = position.x * right.x + position.y * right.y + position.z * right.z;
 
-    result.m01 = forward.x;
-    result.m11 = forward.y;
-    result.m21 = forward.z;
-    result.m31 = position.x * forward.x + position.y * forward.y + position.z * forward.z;
+    result.m01 = up.x;
+    result.m11 = up.y;
+    result.m21 = up.z;
+    result.m31 = position.x * up.x + position.y * up.y + position.z * up.z;
 
-    result.m02 = up.x;
-    result.m12 = up.y;
-    result.m22 = up.z;
-    result.m32 = position.x * up.x + position.y * up.y + position.z * up.z;
+    result.m02 = forward.x;
+    result.m12 = forward.y;
+    result.m22 = forward.z;
+    result.m32 = position.x * forward.x + position.y * forward.y + position.z * forward.z;
 
     result.m03 = 0;
     result.m13 = 0;
@@ -1451,20 +1451,13 @@ make_perspective_projection_RH(f32 aspect_ratio, f32 near_plane, f32 far_plane, 
     return (result);
 }
 
-struct mat4
-make_orthographic_projection(f32 width, f32 height, f32 near_plane, f32 far_plane)
-{
-    struct mat4 result = { 0 };
-    result.m00         = 2.0f / width;
-    result.m21         = 2.0f / height;
-    result.m12         = 2.0f / (far_plane - near_plane);
+/*
+m00 m10 m20 m30
+m01 m11 m21 m31
+m02 m12 m22 m32
+m03 m13 m23 m33
+*/
 
-    result.m30 = 0.0f;
-    result.m31 = 0.0f;
-    result.m32 = -1.0f * (far_plane + near_plane) / (far_plane - near_plane);
-    result.m33 = 1.0f;
-    return (result);
-}
 
 struct mat4
 make_orthographic_projection_RH(f32 width, f32 height, f32 near_plane, f32 far_plane)
@@ -1474,10 +1467,11 @@ make_orthographic_projection_RH(f32 width, f32 height, f32 near_plane, f32 far_p
     result.m11         = 2.0f / height;
     result.m22         = 2.0f / (far_plane - near_plane);
 
-    result.m23 = -1.0f * (far_plane + near_plane) / (far_plane - near_plane);
+    result.m32 = -1.0f * (far_plane + near_plane) / (far_plane - near_plane);
     result.m33 = 1.0f;
     return (result);
 }
+
 
 b32
 _invert_mat4(struct mat4 in, struct mat4 *out)
