@@ -25,13 +25,13 @@ update_view(struct camera *camera)
 }
 
 struct camera
-make_camera(struct v3 position, struct v3 forward, struct v3 up, struct mat4 projection)
+make_camera(struct v3 position, struct v3 right, struct v3 up, struct v3 forward, struct mat4 projection)
 {
     struct camera camera = { 0 };
     camera.position      = position;
     camera.forward       = normalize_v3(forward);
     camera.up            = normalize_v3(up);
-    camera.right         = cross_v3(forward, up);
+    camera.right         = normalize_v3(forward);
     camera.projection    = projection;
     update_view(&camera);
 

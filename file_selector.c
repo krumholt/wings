@@ -125,8 +125,8 @@ update_file_selector(struct file_selector        *file_selector,
     struct v4 text_color                 = file_selector->text_color;
     struct v4 highlight_color            = file_selector->highlight_color;
     struct v4 background_color           = file_selector->background_color;
-    f32 text_layer = 1.0f;
-    f32 background_layer = 10.0f;
+    f32 text_layer = 0.8f;
+    f32 background_layer = 0.9f;
    
     struct aab2 row = {
         file_selector_position, {file_selector_position.x + file_selector_width, file_selector_position.y + row_height}
