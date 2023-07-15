@@ -258,19 +258,26 @@ make_v4(f32 x, f32 y, f32 z, f32 w)
 // ===================================
 // random functions
 // ===================================
+struct xorshiftstar_state _xorshiftstar_state = { 0x391838921 };
+
+void
+xorshiftstar_seed(u64 seed)
+{
+    _xorshiftstar_state.value = seed;
+}
 
 u64
 xorshiftstar(void)
 {
     //@TODO: Not thread safe: two threads will start at same value!
-    static struct xorshiftstar_state state = { 0x391838921 };
-    u64                              x     = state.value;
-    x                                      = x ^ (x >> 12);
-    x                                      = x ^ (x << 25);
-    x                                      = x ^ (x >> 27);
-    state.value                            = x;
+    u64 x                     = _xorshiftstar_state.value;
+    x                         = x ^ (x >> 12);
+    x                         = x ^ (x << 25);
+    x                         = x ^ (x >> 27);
+    _xorshiftstar_state.value = x;
     return x * 0x2545F4914F6CDD1DULL;
 }
+
 
 s32
 random_s32(s32 min, s32 max)
@@ -311,7 +318,7 @@ f64
 random_f64(f64 min, f64 max)
 {
     f64 diff = max - min;
-    return ((f64)(random_u64(0, ULLONG_MAX) / ULLONG_MAX) * diff + min);
+    return ((f64)(random_u64(0, ULLONG_MAX) / (f64)ULLONG_MAX) * diff + min);
 }
 
 struct v2
