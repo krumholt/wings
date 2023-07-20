@@ -94,6 +94,51 @@ compare_string_cstring(struct string a, char *b)
 }
 
 enum string_to_f32_error
+string_to_f64(char *string, s32 string_size, f64 *result)
+{
+    if (string_size == 0)
+        return string_to_f32_empty_string;
+    *result = 0.0f;
+    s32 index = 0;
+    f64 sign = 1.0;
+    if (string[0] == '+')
+    {
+        index += 1;
+    }
+    else if (string[0] == '-')
+    {
+        sign = -1.0f;
+        index += 1;
+    }
+    for (; index < string_size; ++index)
+    {
+        char c = string[index];
+        if (c == '.')
+        {
+            index += 1; // eat the dot
+            break;
+        }
+        if (!is_digit(c))
+            return string_to_f32_illegal_character;
+        *result *= 10.0;
+        *result += (c - '0');
+    }
+    f64 after_comma_result = 0.0;
+    f64 base = 0.1;
+    for (; index < string_size; ++index)
+    {
+        char c = string[index];
+        if (!is_digit(c))
+            return string_to_f32_illegal_character;
+        after_comma_result += (c - '0') * base;
+        base *= 0.1;
+    }
+    *result += after_comma_result;
+    *result *= sign;
+    return string_to_f32_no_error;
+}
+
+enum string_to_f32_error
 string_to_f32(char *string, s32 string_size, f32 *result)
 {
     if (string_size == 0)
