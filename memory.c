@@ -131,7 +131,7 @@ _allocate(struct memory *block, u64 size)
 }
 
 
-uint8 *
+u8 *
 _allocate_packed(struct memory *block, u64 size)
 {
     assert(block);
@@ -141,7 +141,7 @@ _allocate_packed(struct memory *block, u64 size)
         assert(0); // @TODO: cleanly communicate this
     }
 
-    uint8 *new_memory = block->current;
+    u8 *new_memory = block->current;
     block->current += size;
     u64 memory_in_use = memory_used(*block);
     if (memory_in_use > block->high_water_mark)
@@ -150,7 +150,7 @@ _allocate_packed(struct memory *block, u64 size)
 }
 
 
-uint8 *
+u8 *
 allocate(struct memory *block, u64 size)
 {
     return(_allocate(block, size));

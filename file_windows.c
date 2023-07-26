@@ -1,5 +1,5 @@
-#ifndef _file_win32_c_
-#define _file_win32_c_
+#ifndef FILE_WINDOWS_C
+#define FILE_WINDOWS_C
 
 #pragma warning(push, 0)
 #include <Windows.h>
@@ -252,7 +252,7 @@ list_directory(struct path path,
     do {
         char *file_name = find_data.cFileName;
         u64 file_name_length = strlen(file_name);
-        int32 is_directory = (int)(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+        s32 is_directory = (int)(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
         if ((file_name_length == 1 && file_name[0] == '.')
             || (file_name_length == 2 && file_name[0] == '.'
                 && file_name[1] == '.')
@@ -262,9 +262,9 @@ list_directory(struct path path,
         {
             copy_path(&file_list[file_count].file_path, path);
             append_path(&file_list[file_count].file_path, file_name);
-            file_list[file_count].file_size        = (int32)(find_data.nFileSizeHigh * MAXDWORD + find_data.nFileSizeLow);
+            file_list[file_count].file_size        = (s32)(find_data.nFileSizeHigh * MAXDWORD + find_data.nFileSizeLow);
             file_list[file_count].last_write_time  = 0;
-            file_list[file_count].last_write_time += (uint64)(find_data.ftLastWriteTime.dwHighDateTime)<< 32;
+            file_list[file_count].last_write_time += (u64)(find_data.ftLastWriteTime.dwHighDateTime)<< 32;
             file_list[file_count].last_write_time += find_data.ftLastWriteTime.dwLowDateTime;
             file_list[file_count].is_directory     = is_directory;
             file_count++;
@@ -287,7 +287,7 @@ get_current_directory(struct path *path)
 }
 
 void
-get_relative_path(char *base, char *target, char *result, int32 size)
+get_relative_path(char *base, char *target, char *result, s32 size)
 {
     char *base_last_backslash   = base;
     char *target_last_backslash = target;
@@ -310,20 +310,20 @@ get_relative_path(char *base, char *target, char *result, int32 size)
         target = target_last_backslash + 1;
         base   = base_last_backslash;
     }
-    int32 number_of_subdirectories = 0;
+    s32 number_of_subdirectories = 0;
     while(*base)
     {
         if (*base == '\\')
             number_of_subdirectories++;
         base += 1;
     }
-    for(int32 index = 0; index < number_of_subdirectories; ++index)
+    for(s32 index = 0; index < number_of_subdirectories; ++index)
     {
-        int num_printed = sprintf_s(result, (uint32)size, "..\\");
+        int num_printed = sprintf_s(result, (u32)size, "..\\");
         result += num_printed;
         size   -= num_printed;
     }
-    sprintf_s(result, (uint32)size, "%s", target);
+    sprintf_s(result, (u32)size, "%s", target);
 }
 
 //char *
@@ -375,13 +375,13 @@ void
 get_path_without_file_name(char *path, char *result)
 {
     char *first_char = path;
-    int32 path_size = 0;
+    s32 path_size = 0;
     while(*path) 
     {
         ++path_size;
         ++path;
     }
-    int32 file_name_size = 0;
+    s32 file_name_size = 0;
     while(path != first_char)
     {
         --path;
@@ -404,13 +404,13 @@ char *
 get_path_without_file_name(char *path, struct memory *memory)
 {
     char *first_char = path;
-    int32 path_size = 0;
+    s32 path_size = 0;
     while(*path) 
     {
         ++path_size;
         ++path;
     }
-    int32 file_name_size = 0;
+    s32 file_name_size = 0;
     while(path != first_char)
     {
         --path;
@@ -463,7 +463,7 @@ get_full_path_name(struct path *target, char *source)
     target->used = GetFullPathNameA(source, MAX_PATH_SIZE, target->string, 0) + 1;
 }
 
-uint32
+u32
 get_drives(void)
 {
     return GetLogicalDrives();

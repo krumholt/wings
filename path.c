@@ -4,6 +4,8 @@
 #include "types.h"
 #include "wings_strings.c"
 
+#include <assert.h>
+
 #ifndef MAX_PATH_SIZE
     #define MAX_PATH_SIZE 1024
 #endif
@@ -90,7 +92,7 @@ append_path(struct path *path, char *string)
 void
 set_to_parent(struct path *path)
 {
-    int32 last_character = path->used - 1;
+    s32 last_character = path->used - 1;
     assert(path->string[last_character] == 0);
     last_character -= 1;
     if (_is_path_seperator(path->string[last_character]))

@@ -426,8 +426,8 @@ struct v2s
 v2_to_v2s(struct v2 v)
 {
     struct v2s result;
-    result.x = (int32)floorf(v.x);
-    result.y = (int32)floorf(v.y);
+    result.x = (s32)floorf(v.x);
+    result.y = (s32)floorf(v.y);
     return result;
 }
 
@@ -919,13 +919,13 @@ almost_zero_f32(f32 value, f32 epsilon)
     return value * value < epsilon;
 }
 
-bool32
+b32
 almost_zero_v2(struct v2 vector, f32 epsilon)
 {
     return (length_squared_v2(vector) < epsilon);
 }
 
-bool32
+b32
 almost_zero_v3(struct v3 vector, f32 epsilon)
 {
     return (length_squared_v3(vector) < epsilon);
@@ -2318,14 +2318,14 @@ point_in_triangle(struct v3s vertex, struct v3s a, struct v3s b, struct v3s c)
     struct v3s V2 = sub_v3s(vertex, a);
 
     // Compute dot products
-    int32 Dot00 = dot_v3s(V0, V0);
-    int32 Dot01 = dot_v3s(V0, V1);
-    int32 Dot02 = dot_v3s(V0, V2);
-    int32 Dot11 = dot_v3s(V1, V1);
-    int32 Dot12 = dot_v3s(V1, V2);
+    s32 Dot00 = dot_v3s(V0, V0);
+    s32 Dot01 = dot_v3s(V0, V1);
+    s32 Dot02 = dot_v3s(V0, V2);
+    s32 Dot11 = dot_v3s(V1, V1);
+    s32 Dot12 = dot_v3s(V1, V2);
 
     // Compute barycentric coordinates
-    int32 Denom = (Dot00 * Dot11 - Dot01 * Dot01);
+    s32 Denom = (Dot00 * Dot11 - Dot01 * Dot01);
     if (Denom == 0)
     {
         return 0;
@@ -2633,7 +2633,7 @@ calculate_point_on_sphere(f32 azimuth, f32 altitude)
     return (add_v3(up, forward));
 }
 
-bool32
+b32
 is_point_in_sphere(struct v3 point, struct v3 center, f32 radius)
 {
     return fabsf(length_v3(sub_v3(center, point))) <= radius;

@@ -647,8 +647,8 @@ next_token_with_separator(struct string *context, seperator_fn is_token_separato
         }
         return(token);
     }
-    bool32 only_numbers = 1;
-    bool32 contains_dot = 0;
+    b32 only_numbers = 1;
+    b32 contains_dot = 0;
     for (int at = 0; at < context->size; ++at)
     {
         if (is_token_separator(context->base[at]) ||
