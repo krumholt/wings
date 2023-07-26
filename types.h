@@ -3,18 +3,6 @@
 
 #include <stdint.h>
 
-typedef char          int8;
-typedef unsigned char uint8;
-typedef int16_t       int16;
-typedef uint16_t      uint16;
-typedef int32_t       int32;
-typedef uint32_t      uint32;
-typedef int64_t       int64;
-typedef uint64_t      uint64;
-typedef float         float32;
-typedef double        float64;
-typedef uint32_t      bool32;
-
 typedef char          s8;
 typedef unsigned char u8;
 typedef int16_t       s16;
@@ -44,26 +32,26 @@ typedef uint32_t      b32;
     (sizeof(x)/sizeof(x[0]))
 #endif
 
-uint64 kibibyte(uint64 n)
+u64 kibibyte(u64 n)
 {
-    uint64 size = {1024 * n};
+    u64 size = {1024 * n};
     return(size);
 }
 
-uint64 mebibyte(uint64 n)
+u64 mebibyte(u64 n)
 {
-    uint64 size = {1024 * 1024 * n};
+    u64 size = {1024 * 1024 * n};
     return(size);
 }
 
-float to_mebibyte(uint64 n)
+float to_mebibyte(u64 n)
 {
     return(n / 1024.0f / 1024.0f);
 }
 
-uint64 gibibyte(uint64 n)
+u64 gibibyte(u64 n)
 {
-    uint64 size = {1024 * 1024 * 1024 * n};
+    u64 size = {1024 * 1024 * 1024 * n};
     return(size);
 }
 
@@ -95,8 +83,8 @@ set_to_closest_unit(f64 *size)
 }
 
 #ifndef max
-int32
-maxii(int32 a, int32 b)
+s32
+maxii(s32 a, s32 b)
 {
     return(a > b ? a : b);
 }
@@ -110,8 +98,8 @@ maxff(float a, float b)
 
 
 #ifndef min
-int32
-min_ii(int32 a, int32 b)
+s32
+min_ii(s32 a, s32 b)
 {
     return(a < b ? a : b);
 }
