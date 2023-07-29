@@ -110,8 +110,8 @@ _allocate(struct memory *block, u64 size)
     {
         f64 total_memory = (f64)(block->end - block->start);
         f64 memory_left  = (f64)(block->end - block->current);
-        char *total_memory_unit = set_to_closest_unit(&total_memory);
-        char *memory_left_unit = set_to_closest_unit(&memory_left);
+        char *total_memory_unit = set_to_closest_memory_unit(&total_memory);
+        char *memory_left_unit = set_to_closest_memory_unit(&memory_left);
         printf("[error] tried to allocate %zu from memory %0.2f %s but only %0.2f %s left.\n",
                size,
                total_memory,
