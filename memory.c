@@ -2,8 +2,8 @@
 #define memory_c
 
 #include "types.h"
-#include "wings_math.c"
 #include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
 #include <assert.h>
@@ -42,6 +42,14 @@ end_temporary_memory(struct temporary_memory temporary)
     }
     *memory->current = 0;
 }
+
+u64
+align_to(u64 alignment, u64 value)
+{
+    u64 range = value + alignment - 1;
+    return range - (range % alignment);
+}
+
 
 
 #define MEMORY_ALIGNMENT 8

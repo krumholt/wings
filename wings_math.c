@@ -1634,13 +1634,6 @@ to_degrees(f32 radians)
     return radians * 180.0f / PI;
 }
 
-u64
-align_to(u64 alignment, u64 value)
-{
-    u64 range = value + alignment - 1;
-    return range - (range % alignment);
-}
-
 f32
 sign_f32(f32 value)
 {
