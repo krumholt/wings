@@ -24,8 +24,8 @@ typedef uint32_t      b32;
     (void)(x)
 #endif
 
-#define STR(...)  STR_(__VA_ARGS__)
 #define STR_(...) #__VA_ARGS__
+#define STR(...)  STR_(__VA_ARGS__)
 
 #ifndef array_length
 #define array_length(x) \
