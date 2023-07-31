@@ -58,18 +58,6 @@ struct quaternion
     f32 w, x, y, z;
 };
 
-struct axis_angle3
-{
-    struct v3 axis;
-    f32       angle;
-};
-
-struct cube3
-{
-    struct v3 min;
-    struct v3 max;
-};
-
 struct ray_v2
 {
     struct v2 origin, direction;
@@ -277,7 +265,6 @@ xorshiftstar(void)
     _xorshiftstar_state.value = x;
     return x * 0x2545F4914F6CDD1DULL;
 }
-
 
 s32
 random_s32(s32 min, s32 max)
@@ -525,140 +512,140 @@ equals_v4u(struct v4u a, struct v4u b)
 struct v2
 add_v2(struct v2 a, struct v2 b)
 {
-    return (struct v2){ a.x + b.x, a.y + b.y };
+    return (struct v2) { a.x + b.x, a.y + b.y };
 }
 struct v2s
 add_v2s(struct v2s a, struct v2s b)
 {
-    return (struct v2s){ a.x + b.x, a.y + b.y };
+    return (struct v2s) { a.x + b.x, a.y + b.y };
 }
 struct v2u
 add_v2u(struct v2u a, struct v2u b)
 {
-    return (struct v2u){ a.x + b.x, a.y + b.y };
+    return (struct v2u) { a.x + b.x, a.y + b.y };
 }
 
 struct v3
 add_v3(struct v3 a, struct v3 b)
 {
-    return (struct v3){ a.x + b.x, a.y + b.y, a.z + b.z };
+    return (struct v3) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 struct v3s
 add_v3s(struct v3s a, struct v3s b)
 {
-    return (struct v3s){ a.x + b.x, a.y + b.y, a.z + b.z };
+    return (struct v3s) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 struct v3u
 add_v3u(struct v3u a, struct v3u b)
 {
-    return (struct v3u){ a.x + b.x, a.y + b.y, a.z + b.z };
+    return (struct v3u) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
 struct v4
 add_v4(struct v4 a, struct v4 b)
 {
-    return (struct v4){ a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+    return (struct v4) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 struct v4s
 add_v4s(struct v4s a, struct v4s b)
 {
-    return (struct v4s){ a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+    return (struct v4s) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 struct v4u
 add_v4u(struct v4u a, struct v4u b)
 {
-    return (struct v4u){ a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+    return (struct v4u) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
 struct v2
 sub_v2(struct v2 a, struct v2 b)
 {
-    return (struct v2){ a.x - b.x, a.y - b.y };
+    return (struct v2) { a.x - b.x, a.y - b.y };
 }
 struct v2s
 sub_v2s(struct v2s a, struct v2s b)
 {
-    return (struct v2s){ a.x - b.x, a.y - b.y };
+    return (struct v2s) { a.x - b.x, a.y - b.y };
 }
 struct v2s
 sub_v2u(struct v2u a, struct v2u b)
 {
-    return (struct v2s){ a.x - b.x, a.y - b.y };
+    return (struct v2s) { a.x - b.x, a.y - b.y };
 }
 
 struct v3
 sub_v3(struct v3 a, struct v3 b)
 {
-    return (struct v3){ a.x - b.x, a.y - b.y, a.z - b.z };
+    return (struct v3) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 struct v3s
 sub_v3s(struct v3s a, struct v3s b)
 {
-    return (struct v3s){ a.x - b.x, a.y - b.y, a.z - b.z };
+    return (struct v3s) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 struct v3s
 sub_v3s_s32(struct v3s a, s32 b)
 {
-    return (struct v3s){ a.x - b, a.y - b, a.z - b };
+    return (struct v3s) { a.x - b, a.y - b, a.z - b };
 }
 struct v3u
 sub_v3u(struct v3u a, struct v3u b)
 {
-    return (struct v3u){ a.x - b.x, a.y - b.y, a.z - b.z };
+    return (struct v3u) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
 struct v4
 sub_v4(struct v4 a, struct v4 b)
 {
-    return (struct v4){ a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+    return (struct v4) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 struct v4s
 sub_v4s(struct v4s a, struct v4s b)
 {
-    return (struct v4s){ a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+    return (struct v4s) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 struct v4u
 sub_v4u(struct v4u a, struct v4u b)
 {
-    return (struct v4u){ a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+    return (struct v4u) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
 struct v2
 mul_v2_f32(struct v2 a, f32 b)
 {
-    return (struct v2){ a.x * b, a.y * b };
+    return (struct v2) { a.x * b, a.y * b };
 }
 struct v2s
 mul_v2s_f32(struct v2s a, s32 b)
 {
-    return (struct v2s){ a.x * b, a.y * b };
+    return (struct v2s) { a.x * b, a.y * b };
 }
 struct v2u
 mul_v2u_f32(struct v2u a, u32 b)
 {
-    return (struct v2u){ a.x * b, a.y * b };
+    return (struct v2u) { a.x * b, a.y * b };
 }
 
 struct v2
 mul_f32_v2(f32 a, struct v2 b)
 {
-    return (struct v2){ a * b.x, a * b.y };
+    return (struct v2) { a * b.x, a * b.y };
 }
 
 struct v3
 mul_v3_f32(struct v3 a, f32 b)
 {
-    return (struct v3){ a.x * b, a.y * b, a.z * b };
+    return (struct v3) { a.x * b, a.y * b, a.z * b };
 }
 struct v3s
 mul_v3s_f32(struct v3s a, s32 b)
 {
-    return (struct v3s){ a.x * b, a.y * b, a.z * b };
+    return (struct v3s) { a.x * b, a.y * b, a.z * b };
 }
 struct v3u
 mul_v3u_f32(struct v3u a, u32 b)
 {
-    return (struct v3u){ a.x * b, a.y * b, a.z * b };
+    return (struct v3u) { a.x * b, a.y * b, a.z * b };
 }
 
 struct v3
@@ -686,76 +673,76 @@ mod_v3s(struct v3s a, struct v3s b)
 struct v3s
 mul_v3s(struct v3s a, struct v3s b)
 {
-    return (struct v3s){ a.x * b.x, a.y * b.y, a.z * b.z };
+    return (struct v3s) { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
 struct v3
 mul_v3(struct v3 a, struct v3 b)
 {
-    return (struct v3){ a.x * b.x, a.y * b.y, a.z * b.z };
+    return (struct v3) { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 struct v3
 mul_f32_v3(f32 a, struct v3 b)
 {
-    return (struct v3){ a * b.x, a * b.y, a * b.z };
+    return (struct v3) { a * b.x, a * b.y, a * b.z };
 }
 struct v3s
 mul_f32_v3s(f32 a, struct v3s b)
 {
-    return (struct v3s){ a * b.x, a * b.y, a * b.z };
+    return (struct v3s) { a * b.x, a * b.y, a * b.z };
 }
 struct v3u
 mul_f32_v3u(f32 a, struct v3u b)
 {
-    return (struct v3u){ a * b.x, a * b.y, a * b.z };
+    return (struct v3u) { a * b.x, a * b.y, a * b.z };
 }
 
 struct v3
 add_f32_v3(f32 a, struct v3 b)
 {
-    return (struct v3){ a + b.x, a + b.y, a + b.z };
+    return (struct v3) { a + b.x, a + b.y, a + b.z };
 }
 struct v3s
 add_s32_v3s(s32 a, struct v3s b)
 {
-    return (struct v3s){ a + b.x, a + b.y, a + b.z };
+    return (struct v3s) { a + b.x, a + b.y, a + b.z };
 }
 struct v3u
 add_f32_v3u(f32 a, struct v3u b)
 {
-    return (struct v3u){ a + b.x, a + b.y, a + b.z };
+    return (struct v3u) { a + b.x, a + b.y, a + b.z };
 }
 
 struct v4
 mul_v4_f32(struct v4 a, f32 b)
 {
-    return (struct v4){ a.x * b, a.y * b, a.z * b, a.w * b };
+    return (struct v4) { a.x * b, a.y * b, a.z * b, a.w * b };
 }
 struct v4s
 mul_v4s_f32(struct v4s a, s32 b)
 {
-    return (struct v4s){ a.x * b, a.y * b, a.z * b, a.w * b };
+    return (struct v4s) { a.x * b, a.y * b, a.z * b, a.w * b };
 }
 struct v4u
 mul_v4u_f32(struct v4u a, u32 b)
 {
-    return (struct v4u){ a.x * b, a.y * b, a.z * b, a.w * b };
+    return (struct v4u) { a.x * b, a.y * b, a.z * b, a.w * b };
 }
 
 struct v4
 mul_f32_v4(f32 a, struct v4 b)
 {
-    return (struct v4){ a * b.x, a * b.y, a * b.z, a * b.w };
+    return (struct v4) { a * b.x, a * b.y, a * b.z, a * b.w };
 }
 struct v4s
 mul_f32_v4s(f32 a, struct v4s b)
 {
-    return (struct v4s){ a * b.x, a * b.y, a * b.z, a * b.w };
+    return (struct v4s) { a * b.x, a * b.y, a * b.z, a * b.w };
 }
 struct v4u
 mul_f32_v4u(f32 a, struct v4u b)
 {
-    return (struct v4u){ a * b.x, a * b.y, a * b.z, a * b.w };
+    return (struct v4u) { a * b.x, a * b.y, a * b.z, a * b.w };
 }
 
 struct mat2
@@ -773,47 +760,47 @@ add_mat2(struct mat2 a, struct mat2 b)
 struct quaternion
 mul_quaternion_f32(struct quaternion a, f32 b)
 {
-    return (struct quaternion){ a.w * b, a.x * b, a.y * b, a.z * b };
+    return (struct quaternion) { a.w * b, a.x * b, a.y * b, a.z * b };
 }
 
 struct quaternion
 add_quaternion(struct quaternion a, struct quaternion b)
 {
-    return (struct quaternion){ a.w + b.w, a.x + b.x, a.y + b.y, a.z + b.z };
+    return (struct quaternion) { a.w + b.w, a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
 struct v2
 div_v2_f32(struct v2 a, f32 b)
 {
     f32 inv_b = 1.0f / b;
-    return (struct v2){ a.x * inv_b, a.y * inv_b };
+    return (struct v2) { a.x * inv_b, a.y * inv_b };
 }
 
 struct v2s
 div_v2s_f32(struct v2s a, f32 b)
 {
     f32 inv_b = 1.0f / b;
-    return (struct v2s){ a.x * inv_b, a.y * inv_b };
+    return (struct v2s) { a.x * inv_b, a.y * inv_b };
 }
 
 struct v2u
 div_v2u_f32(struct v2u a, f32 b)
 {
     f32 inv_b = 1.0f / b;
-    return (struct v2u){ a.x * inv_b, a.y * inv_b };
+    return (struct v2u) { a.x * inv_b, a.y * inv_b };
 }
 
 struct v3s
 div_v3s_s32(struct v3s a, s32 b)
 {
-    return (struct v3s){ a.x / b, a.y / b, a.z / b };
+    return (struct v3s) { a.x / b, a.y / b, a.z / b };
 }
 
 struct v3
 div_v3_f32(struct v3 a, f32 b)
 {
     f32 inv_b = 1.0f / b;
-    return (struct v3){ a.x * inv_b, a.y * inv_b, a.z * inv_b };
+    return (struct v3) { a.x * inv_b, a.y * inv_b, a.z * inv_b };
 }
 
 f32
@@ -936,7 +923,7 @@ normalize_v2(struct v2 v)
 {
     f32 length     = length_v2(v);
     f32 inv_length = 1.0f / length;
-    return (struct v2){ v.x * inv_length, v.y * inv_length };
+    return (struct v2) { v.x * inv_length, v.y * inv_length };
 }
 
 struct v3
@@ -975,7 +962,7 @@ normalize_v2_with_default(struct v2 v, struct v2 or_else)
     if (almost_zero_f32(length, 0.00001))
         result = or_else;
     else
-        result = (struct v2){ v.x * inv_length, v.y * inv_length };
+        result = (struct v2) { v.x * inv_length, v.y * inv_length };
     return (result);
 }
 
@@ -988,7 +975,7 @@ normalize_v3_with_default(struct v3 v, struct v3 or_else)
     if (almost_zero_f32(length, 0.00001))
         result = or_else;
     else
-        result = (struct v3){ v.x * inv_length, v.y * inv_length, v.z * inv_length };
+        result = (struct v3) { v.x * inv_length, v.y * inv_length, v.z * inv_length };
     return (result);
 }
 
@@ -1001,7 +988,7 @@ normalize_v4_with_default(struct v4 v, struct v4 or_else)
     if (almost_zero_f32(length, 0.00001))
         result = or_else;
     else
-        result = (struct v4){ v.x * inv_length, v.y * inv_length, v.z * inv_length, v.w * inv_length };
+        result = (struct v4) { v.x * inv_length, v.y * inv_length, v.z * inv_length, v.w * inv_length };
     return (result);
 }
 
@@ -1465,7 +1452,6 @@ m02 m12 m22 m32
 m03 m13 m23 m33
 */
 
-
 struct mat4
 make_orthographic_projection_RH(f32 width, f32 height, f32 near_plane, f32 far_plane)
 {
@@ -1478,7 +1464,6 @@ make_orthographic_projection_RH(f32 width, f32 height, f32 near_plane, f32 far_p
     result.m33 = 1.0f;
     return (result);
 }
-
 
 b32
 _invert_mat4(struct mat4 in, struct mat4 *out)
@@ -1643,7 +1628,7 @@ sign_f32(f32 value)
 struct v3
 sign_v3(struct v3 value)
 {
-    return ((struct v3){
+    return ((struct v3) {
         copysign(1.0f, value.x),
         copysign(1.0f, value.y),
         copysign(1.0f, value.z),
@@ -1659,7 +1644,7 @@ is_negative_v3(struct v3 value)
         u32 i;
     } x = { value.x }, y = { value.y }, z = { value.z };
 
-    return ((struct v3s){
+    return ((struct v3s) {
         x.i >> 31,
         y.i >> 31,
         z.i >> 31,
@@ -1669,7 +1654,7 @@ is_negative_v3(struct v3 value)
 struct v3
 trunc_v3(struct v3 value)
 {
-    return ((struct v3){
+    return ((struct v3) {
         truncf(value.x),
         truncf(value.y),
         truncf(value.z),
@@ -1681,10 +1666,6 @@ fractional_part(f32 value)
 {
     return value - truncf(value);
 }
-//ASSERT(fractional_part(2.1f) == 0.1f);
-//ASSERT(fractional_part(-2.1f) == -0.1f);
-//ASSERT(fractional_part(0.0f) == 0.0f);
-//ASSERT(fractional_part(1.23456789f) == 0.23456789f);
 
 f32
 inverted_truncf(f32 value)
@@ -1940,7 +1921,7 @@ rotate_ccw_90_v2(struct v2 v)
 struct v2
 rotate_cw_90_v2(struct v2 v)
 {
-    return (struct v2){ v.y, -v.x };
+    return (struct v2) { v.y, -v.x };
 }
 
 struct v2
