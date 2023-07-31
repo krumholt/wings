@@ -1681,6 +1681,10 @@ fractional_part(f32 value)
 {
     return value - truncf(value);
 }
+//ASSERT(fractional_part(2.1f) == 0.1f);
+//ASSERT(fractional_part(-2.1f) == -0.1f);
+//ASSERT(fractional_part(0.0f) == 0.0f);
+//ASSERT(fractional_part(1.23456789f) == 0.23456789f);
 
 f32
 inverted_truncf(f32 value)

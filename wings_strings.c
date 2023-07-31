@@ -490,12 +490,13 @@ empty(struct string s)
 b32
 begins_with_cstring(char *a, u64 size_a, char *b, u64 size_b)
 {
-    for(u64 index = 0; index < size_a && index < size_b; index += 1)
+	u64 index = 0;
+    for(; index < size_a && index < size_b; index += 1)
     {
         if (a[index] != b[index])
             return 0;
     }
-    return 1;
+    return index == size_b;
 }
 
 
