@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-void print_header(char *text, s32 header_width)
+void
+print_header(char *text, s32 header_width)
 {
     printf("x");
     for (s32 index = 0; index < header_width - 2; ++index)
@@ -29,23 +30,21 @@ void print_header(char *text, s32 header_width)
     printf("x\n");
 }
 
-#define init_test        \
+#define init_tests()     \
     int test_count  = 0; \
-    int error_count = 0;
+    int error_count = 0
 
 #define begin_test(text)          \
     do                            \
     {                             \
         print_header((text), 80); \
         error_count = 0;          \
-        start(&stopwatch);        \
     } while (0)
 
 #define end_test()                                                                                \
     printf("\n");                                                                                 \
     if (error_count)                                                                              \
         printf(SET_CONSOLE_RED "%d / %d tests failed.\n" RESET_CONSOLE, error_count, test_count); \
-    printf("took %f seconds.\n", time_in_seconds);                                                \
     printf("\n")
 
 #define test(f)                                                     \
