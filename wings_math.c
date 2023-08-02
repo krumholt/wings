@@ -1,7 +1,9 @@
-#ifndef wings_math_c
-#define wings_math_c
+#ifndef WINGS_MATH_C
+#define WINGS_MATH_C
 
+#include "random.c"
 #include "types.h"
+
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -23,7 +25,6 @@ struct v2u
 {
     u32 x, y;
 };
-
 struct v3
 {
     f32 x, y, z;
@@ -36,7 +37,6 @@ struct v3u
 {
     u32 x, y, z;
 };
-
 struct v4
 {
     f32 x, y, z, w;
@@ -127,7 +127,6 @@ struct mat2u
 {
     u32 m00, m01, m10, m11;
 };
-
 struct mat3
 {
     f32 m00, m01, m02, m10, m11, m12, m20, m21, m22;
@@ -140,7 +139,6 @@ struct mat3u
 {
     u32 m00, m01, m02, m10, m11, m12, m20, m21, m22;
 };
-
 struct mat4
 {
     f32 m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33;
@@ -162,11 +160,6 @@ struct aab3
 {
     struct v3 min;
     struct v3 max;
-};
-
-struct xorshiftstar_state
-{
-    u64 value;
 };
 
 // ===================================
@@ -243,69 +236,44 @@ make_v4(f32 x, f32 y, f32 z, f32 w)
     return (v);
 }
 
-// ===================================
-// random functions
-// ===================================
-struct xorshiftstar_state _xorshiftstar_state = { 0x391838921 };
-
-void
-xorshiftstar_seed(u64 seed)
+struct f32_tuple
 {
-    _xorshiftstar_state.value = seed;
+    f32 a;
+    f32 b;
+};
+
+struct f32_tuple
+calculate_mean_variance_s32(s32 *array, s32 size)
+{
+
+    f32 mean = 0, M2 = 0, variance = 0;
+
+    for (s32 index = 0; index < size; ++index)
+    {
+        f32 delta = array[index] - mean;
+        mean += delta / (f32)(index + 1);
+        M2 += delta * (array[index] - mean);
+        variance = M2 / (f32)(index + 1);
+    }
+
+    return (struct f32_tuple) { .a = mean, .b = variance };
 }
 
-u64
-xorshiftstar(void)
+struct f32_tuple
+calculate_mean_variance_f32(f32 *array, s32 size)
 {
-    //@TODO: Not thread safe: two threads will start at same value!
-    u64 x                     = _xorshiftstar_state.value;
-    x                         = x ^ (x >> 12);
-    x                         = x ^ (x << 25);
-    x                         = x ^ (x >> 27);
-    _xorshiftstar_state.value = x;
-    return x * 0x2545F4914F6CDD1DULL;
-}
 
-s32
-random_s32(s32 min, s32 max)
-{
-    s32 diff = max - min;
-    return ((u32)(xorshiftstar() >> 32) % diff + min);
-}
+    f32 mean = 0, m2 = 0, variance = 0;
 
-u32
-random_u32(u32 min, u32 max)
-{
-    u32 diff = max - min;
-    return ((u32)(xorshiftstar() >> 32) % diff + min);
-}
+    for (s32 index = 0; index < size; ++index)
+    {
+        f32 delta = array[index] - mean;
+        mean += delta / (f32)(index + 1);
+        m2 += delta * (array[index] - mean);
+        variance = m2 / (f32)(index + 1);
+    }
 
-s64
-random_s64(s64 min, s64 max)
-{
-    s64 diff = max - min;
-    return (xorshiftstar() % diff + min);
-}
-
-u64
-random_u64(u64 min, u64 max)
-{
-    u64 diff = max - min;
-    return (xorshiftstar() % diff + min);
-}
-
-f32
-random_f32(f32 min, f32 max)
-{
-    f32 diff = max - min;
-    return ((f32)(random_u64(0, ULLONG_MAX) / (f32)ULLONG_MAX) * diff + min);
-}
-
-f64
-random_f64(f64 min, f64 max)
-{
-    f64 diff = max - min;
-    return ((f64)(random_u64(0, ULLONG_MAX) / (f64)ULLONG_MAX) * diff + min);
+    return (struct f32_tuple) { .a = mean, .b = variance };
 }
 
 struct v2
