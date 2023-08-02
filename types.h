@@ -32,24 +32,28 @@ typedef uint32_t      b32;
     (sizeof(x) / sizeof(x[0]))
 #endif
 
-u64 kibibyte(u64 n)
+u64
+kibibyte(u64 n)
 {
     u64 size = { 1024 * n };
     return (size);
 }
 
-u64 mebibyte(u64 n)
+u64
+mebibyte(u64 n)
 {
     u64 size = { 1024 * 1024 * n };
     return (size);
 }
 
-float to_mebibyte(u64 n)
+float
+to_mebibyte(u64 n)
 {
     return (n / 1024.0f / 1024.0f);
 }
 
-u64 gibibyte(u64 n)
+u64
+gibibyte(u64 n)
 {
     u64 size = { 1024 * 1024 * 1024 * n };
     return (size);
@@ -113,29 +117,34 @@ set_to_closest_time_unit(f64 *time_in_ns)
     return units[unit_index];
 }
 
-f64 seconds_to_nanoseconds(f64 time)
+f64
+seconds_to_nanoseconds(f64 time)
 {
     return (time * (1000.0 * 1000.0));
 }
 
 #ifndef max
-s32 maxii(s32 a, s32 b)
+s32
+maxii(s32 a, s32 b)
 {
     return (a > b ? a : b);
 }
 
-float maxff(float a, float b)
+float
+maxff(float a, float b)
 {
     return (a > b ? a : b);
 }
 #endif
 
 #ifndef min
-s32 min_ii(s32 a, s32 b)
+s32
+min_ii(s32 a, s32 b)
 {
     return (a < b ? a : b);
 }
-float min_ff(float a, float b)
+float
+min_ff(float a, float b)
 {
     return (a < b ? a : b);
 }
