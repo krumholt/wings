@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#include <limits.h>
+
 struct xorshiftstar_state
 {
     u64 value;

@@ -1,6 +1,8 @@
 #ifndef mouse_c
 #define mouse_c
 
+#include "wings_math.c"
+
 enum mouse_button
 {
     _mouse_button_left,
