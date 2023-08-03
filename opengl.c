@@ -1,11 +1,12 @@
-#ifndef opengl_c
-#define opengl_c
+#ifndef OPENGL_C_
+#define OPENGL_C_
 
 #include "types.h"
 #include "window_windows.c"
-#include <GL/gl.h>
-#include <assert.h>
+#include "GL/gl.h"
 #include "glext.h"
+
+#include <assert.h>
 
 typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext,
                                                     const int *attribList);
@@ -38,7 +39,7 @@ debug_message_callback(GLenum source,
 
 #define GL_CHECK() \
 {\
-    uint32 error = glGetError();\
+    u32 error = glGetError();\
     if (error != GL_NO_ERROR)\
     return(error);\
 }
@@ -233,7 +234,7 @@ initialise_graphics_context(HDC device_context)
 }
 
 u32
-generate_texture_array(int32 width, int32 height, int32 depth)
+generate_texture_array(s32 width, s32 height, s32 depth)
 {
 	u32 texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -319,11 +320,6 @@ compile_shader_program(u32 *program, const char *vertex_shader, const char *frag
 
     return(0);
 }
-
-struct shader_info
-{
-    u32 number_of_attributes;
-};
 
 void
 print_attributes(u32 shader_program)
