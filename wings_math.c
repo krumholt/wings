@@ -1421,7 +1421,7 @@ m03 m13 m23 m33
 */
 
 struct mat4
-make_orthographic_projection_RH(f32 width, f32 height, f32 near_plane, f32 far_plane)
+make_orthographic_projection(f32 width, f32 height, f32 near_plane, f32 far_plane)
 {
     struct mat4 result = { 0 };
     result.m00         = 2.0f / width;

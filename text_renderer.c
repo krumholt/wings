@@ -1,5 +1,5 @@
-#ifndef text_renderer_c
-#define text_renderer_c
+#ifndef TEXT_RENDERER_C_
+#define TEXT_RENDERER_C_
 
 #include "bitmap_font.c"
 #include "image.c"
@@ -107,7 +107,6 @@ make_font_texture(struct image image)
     return (texture);
 }
 
-
 struct text_renderer_buffer
 make_text_renderer_buffer(u32 number_of_characters, struct bitmap_font *font, struct memory *memory)
 {
@@ -179,7 +178,7 @@ push_text_v2(struct text_renderer_buffer *buffer,
 {
     struct v3   position = { position_v2.x, position_v2.y, layer };
     struct aab2 outline  = {
-        {position.x, position.y                   },
+        {position.x, position.y                            },
         { 0.0f,      position.y + buffer->font->line_height}
     };
     if (buffer->used + (size * 6) > buffer->size)
@@ -242,15 +241,14 @@ push_text_v2(struct text_renderer_buffer *buffer,
 }
 struct aab2
 push_text(struct text_renderer_buffer *buffer,
-          struct bitmap_font           font,
           struct v3                    position,
           char                        *text,
           int                          size,
           struct v4                    color)
 {
     struct aab2 outline = {
-        {position.x, position.y                   },
-        { 0.0f,      position.y + font.line_height}
+        {position.x, position.y                            },
+        { 0.0f,      position.y + buffer->font->line_height}
     };
     if (buffer->used + (size * 6) > buffer->size)
     {
@@ -263,7 +261,7 @@ push_text(struct text_renderer_buffer *buffer,
     struct glyph glyph = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
-        glyph                              = get_glyph(font, *text);
+        glyph                              = get_glyph(*buffer->font, *text);
         struct text_renderer_vertex vertex = { 0 };
 
         f32       height   = glyph.size.y;
@@ -297,7 +295,7 @@ push_text(struct text_renderer_buffer *buffer,
 }
 
 struct aab2
-push_text_limited(struct text_renderer_buffer *buffer, struct bitmap_font font, struct v3 position, char *text, int size, f32 limit, struct v4 color)
+push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char *text, int size, f32 limit, struct v4 color)
 {
     assert(buffer->used + (size * 6) <= buffer->size);
     struct aab2 outline = {
@@ -308,11 +306,11 @@ push_text_limited(struct text_renderer_buffer *buffer, struct bitmap_font font, 
     struct text_renderer_vertex vertex = { 0 };
 
     f32          start_x = position.x;
-    f32          base    = font.base_line_height;
+    f32          base    = buffer->font->base_line_height;
     struct glyph glyph   = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
-        glyph                              = get_glyph(font, *text);
+        glyph                              = get_glyph(*buffer->font, *text);
         struct text_renderer_vertex vertex = { 0 };
         if (position.x + glyph.size.x > limit)
         {
@@ -350,12 +348,17 @@ push_text_limited(struct text_renderer_buffer *buffer, struct bitmap_font font, 
     }
     if (outline.max.x == 0.0f)
         outline.max.x = position.x;
-    outline.max.y = position.y + font.line_height;
+    outline.max.y = position.y + buffer->font->line_height;
     return (outline);
 }
 
 struct aab2
-push_text_limited_wrapped(struct text_renderer_buffer *buffer, struct bitmap_font font, struct v3 position, char *text, int size, f32 limit, struct v4 color)
+push_text_limited_wrapped(struct text_renderer_buffer *buffer,
+                          struct v3                    position,
+                          char                        *text,
+                          int                          size,
+                          f32                          limit,
+                          struct v4                    color)
 {
     assert(buffer->used + (size * 6) <= buffer->size);
     struct aab2 outline = {
@@ -366,7 +369,7 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer, struct bitmap_fon
     struct text_renderer_vertex vertex = { 0 };
 
     f32          start_x = position.x;
-    f32          base    = font.base_line_height;
+    f32          base    = buffer->font->base_line_height;
     struct glyph glyph   = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
@@ -376,18 +379,18 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer, struct bitmap_fon
             position.y += base;
             continue;
         }
-        glyph                                       = get_glyph(font, *text);
+        glyph                                       = get_glyph(*buffer->font, *text);
         struct text_renderer_vertex vertex          = { 0 };
         char                       *tmp             = text;
         u32                         tmp_size        = size;
         f32                         next_word_limit = position.x;
         while (*tmp && tmp_size)
         {
-            next_word_limit += get_glyph(font, *tmp).advance;
+            next_word_limit += get_glyph(*buffer->font, *tmp).advance;
             if (*tmp == ' ')
             {
-                next_word_limit -= get_glyph(font, *tmp).advance;
-                next_word_limit -= get_glyph(font, *tmp).size.x;
+                next_word_limit -= get_glyph(*buffer->font, *tmp).advance;
+                next_word_limit -= get_glyph(*buffer->font, *tmp).size.x;
                 break;
             }
             tmp += 1;
@@ -429,7 +432,7 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer, struct bitmap_fon
     }
     if (outline.max.x == 0.0f)
         outline.max.x = position.x;
-    outline.max.y = position.y + font.line_height;
+    outline.max.y = position.y + buffer->font->line_height;
     return (outline);
 }
 

@@ -88,21 +88,21 @@ deallocate_block(struct memory *block)
 }
 
 u64
-memory_used(struct memory memory)
+get_memory_used(struct memory memory)
 {
     return((u64)(memory.current - memory.start));
 }
 
 
 u64
-memory_free(struct memory memory)
+get_memory_free(struct memory memory)
 {
     return((u64)(memory.end - memory.current));
 }
 
 
 u64
-memory_total(struct memory memory)
+get_memory_total(struct memory memory)
 {
     return((u64)(memory.end - memory.start));
 }
@@ -132,7 +132,7 @@ _allocate(struct memory *block, u64 size)
 
     u8 *new_memory = block->current;
     block->current += aligned_size;
-    u64 memory_in_use = memory_used(*block);
+    u64 memory_in_use = get_memory_used(*block);
     if (memory_in_use > block->high_water_mark)
         block->high_water_mark = memory_in_use;
     return(new_memory);
@@ -145,13 +145,14 @@ _allocate_packed(struct memory *block, u64 size)
     assert(block);
     if (block->current + size > block->end)
     {
-        printf("[error] tried to allocate %zu from memory(%zu) but not enough memory was left.\n", size, memory_free(*block));
+        printf("[error] tried to allocate %zu from memory(%zu) but not enough memory was left.\n",
+				size, get_memory_free(*block));
         assert(0); // @TODO: cleanly communicate this
     }
 
     u8 *new_memory = block->current;
     block->current += size;
-    u64 memory_in_use = memory_used(*block);
+    u64 memory_in_use = get_memory_used(*block);
     if (memory_in_use > block->high_water_mark)
         block->high_water_mark = memory_in_use;
     return(new_memory);
