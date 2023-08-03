@@ -5,12 +5,12 @@
 
 struct keyboard
 {
-    s32  chars_typed;
-    s32  chars[10];
-    u16  key_state[200];
-    u16  key_state_last_frame[200];
-    b32  any_key_pressed;
-    b32  any_key_released;
+    s32 chars_typed;
+    s32 chars[10];
+    u16 key_state[200];
+    u16 key_state_last_frame[200];
+    b32 any_key_pressed;
+    b32 any_key_released;
 };
 
 struct window;
@@ -105,12 +105,11 @@ enum keycode
     keycode_Delete,
 };
 
-b32    open_window         (char *title, s32 width, s32 height);
-void   update_window       (void);
-void   set_window_position (struct v2s new_position);
+b32  open_window(char *title, s32 width, s32 height);
+void update_window(void);
+void set_window_position(struct v2s new_position);
 
-void   console_create      (void);
-void   console_destroy     (void);
-
+void console_create(void);
+void console_destroy(void);
 
 #endif

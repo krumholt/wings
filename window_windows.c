@@ -1,80 +1,83 @@
-#ifndef window_windows_c
-#define window_windows_c
+#ifndef WINDOW_WINDOWS_C
+#define WINDOW_WINDOWS_C
 
-#include "window.h"
 #include "mouse.c"
+#include "window.h"
+
 #pragma warning(push, 0)
-#ifndef WIN32_LEAN_AND_MEAN 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <windows.h>
 #include <windowsx.h>
+#include <Winuser.h>
 #include <shellapi.h>
 #pragma warning(pop)
-#include <tchar.h>
 #include <stdio.h>
+#include <tchar.h>
 
 #define MAX_DROP_FILES 10
 struct window
 {
-    HWND     handle;
-    HDC      device_context;
-    s32      width;
-    s32      height;
-    b32      resized;
-    b32      running;
-    b32      y_up;
-    b32      capture_mouse;
-    HCURSOR  cursor;
-    s32      number_of_drop_files;
-    char     drop_file[MAX_DROP_FILES][1024];
+    HWND    handle;
+    HDC     device_context;
+    s32     width;
+    s32     height;
+    b32     resized;
+    b32     running;
+    b32     y_up;
+    b32     capture_mouse;
+    HCURSOR cursor;
+    s32     number_of_drop_files;
+    char    drop_file[MAX_DROP_FILES][1024];
 
-    LRESULT (* AdditionalWndProc)(HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam);
+    LRESULT (*AdditionalWndProc)
+    (HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam);
 };
 
+struct keyboard keyboard = { 0 };
+struct window   window   = { 0 };
 
-struct keyboard keyboard = {0};
-struct window   window   = {0};
+static u32  win_Win32_KeyMapping[256]          = { 0 };
+static char win_Char_KeyMapping_LowerCase[256] = { 0 };
+static char win_Char_KeyMapping_UpperCase[256] = { 0 };
 
-static u32    win_Win32_KeyMapping         [256] = {0};
-static char   win_Char_KeyMapping_LowerCase[256] = {0};
-static char   win_Char_KeyMapping_UpperCase[256] = {0};
-
-static WPARAM _MapLeftRightKeys(WPARAM vk, LPARAM lParam)
+static WPARAM
+_MapLeftRightKeys(WPARAM vk, LPARAM lParam)
 {
-    WPARAM new_vk = vk;
-    UINT scancode = ((u32)lParam & 0x00ff0000) >> 16;
-    b32 extended  = (lParam & 0x01000000) != 0;
+    WPARAM new_vk   = vk;
+    UINT   scancode = ((u32)lParam & 0x00ff0000) >> 16;
+    b32    extended = (lParam & 0x01000000) != 0;
 
-    switch (vk) {
+    switch (vk)
+    {
     case VK_SHIFT:
-    new_vk = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
-    break;
+        new_vk = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+        break;
     case VK_CONTROL:
-    new_vk = extended ? (WPARAM)VK_RCONTROL : (WPARAM)VK_LCONTROL;
-    break;
+        new_vk = extended ? (WPARAM)VK_RCONTROL : (WPARAM)VK_LCONTROL;
+        break;
     case VK_MENU:
-    new_vk = extended ? (WPARAM)VK_RMENU : (WPARAM)VK_LMENU;
-    break;
+        new_vk = extended ? (WPARAM)VK_RMENU : (WPARAM)VK_LMENU;
+        break;
     default:
-    // not a key we map from generic to left/right specialized
-    //  just return it.
-    new_vk = vk;
-    break;    
+        // not a key we map from generic to left/right specialized
+        //  just return it.
+        new_vk = vk;
+        break;
     }
 
-    return(new_vk);
+    return (new_vk);
 }
 
 u32
 _get_key_mapping(u32 key)
 {
     if (key > 256)
-        return(keycode_F12);
+        return (keycode_F12);
     else
-        return(win_Win32_KeyMapping[key]);
+        return (win_Win32_KeyMapping[key]);
 }
-
 
 void
 set_cursor_hand(void)
@@ -83,14 +86,12 @@ set_cursor_hand(void)
     SetCursor(window.cursor);
 }
 
-
 void
 set_cursor_move(void)
 {
     window.cursor = LoadCursor(0, IDC_SIZEALL);
     SetCursor(window.cursor);
 }
-
 
 void
 set_cursor_arrow(void)
@@ -99,103 +100,114 @@ set_cursor_arrow(void)
     SetCursor(window.cursor);
 }
 
-
 void
 update_window(void)
 {
     window.number_of_drop_files = 0;
-    window.resized = 0;
-    keyboard.chars_typed = 0;
-    keyboard.any_key_released = 0;
-    keyboard.any_key_pressed = 0;
+    window.resized              = 0;
+    keyboard.chars_typed        = 0;
+    keyboard.any_key_released   = 0;
+    keyboard.any_key_pressed    = 0;
     memcpy(keyboard.key_state_last_frame, keyboard.key_state, sizeof(keyboard.key_state_last_frame));
     memcpy(mouse.button_last_frame, mouse.button, sizeof(mouse.button_last_frame));
     mouse.position_last_frame = mouse.position;
-    mouse.wheel_delta = 0;
-    mouse.position_delta.x = 0;
-    mouse.position_delta.y = 0;
-    MSG msg = {0};
+    mouse.wheel_delta         = 0;
+    mouse.position_delta.x    = 0;
+    mouse.position_delta.y    = 0;
+    MSG msg                   = { 0 };
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
-        UINT Message = msg.message;
-        WPARAM wParam = msg.wParam;
-        LPARAM lParam = msg.lParam;
+        UINT   Message = msg.message;
+        WPARAM wParam  = msg.wParam;
+        LPARAM lParam  = msg.lParam;
 
-        if(window.AdditionalWndProc) {
+        if (window.AdditionalWndProc)
+        {
             window.AdditionalWndProc(window.handle, Message, wParam, lParam);
         }
-        switch (Message) {
+        switch (Message)
+        {
         case WM_DROPFILES:
         {
-            HDROP drop = (HDROP)wParam;
-            u32 number_of_files = DragQueryFileA(drop, 0xFFFFFFFF, 0, 1024);
+            HDROP drop                  = (HDROP)wParam;
+            u32   number_of_files       = DragQueryFileA(drop, 0xFFFFFFFF, 0, 1024);
             window.number_of_drop_files = min(MAX_DROP_FILES, (s32)number_of_files);
-            for(u32 index = 0; index < (u32)window.number_of_drop_files; ++index)
+            for (u32 index = 0; index < (u32)window.number_of_drop_files; ++index)
             {
                 u32 file_name_length = DragQueryFileA(drop, index, 0, 1024);
                 if (file_name_length < 1024)
                     DragQueryFileA(drop, index, window.drop_file[index], 1024);
             }
             DragFinish(drop);
-        } break;
+        }
+        break;
         case WM_INPUT:
         {
-            UINT dwSize = sizeof(RAWINPUT);
-            RAWINPUT raw_input = {0};
+            UINT     dwSize    = sizeof(RAWINPUT);
+            RAWINPUT raw_input = { 0 };
             GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &raw_input, &dwSize, sizeof(RAWINPUTHEADER));
-            if (raw_input.header.dwType == RIM_TYPEMOUSE) 
+            if (raw_input.header.dwType == RIM_TYPEMOUSE)
             {
                 mouse.position_delta.x = raw_input.data.mouse.lLastX;
                 mouse.position_delta.y = raw_input.data.mouse.lLastY;
                 if (window.capture_mouse)
                 {
-                    POINT pos = {window.width / 2, window.height / 2};
+                    POINT pos = { window.width / 2, window.height / 2 };
                     ClientToScreen(window.handle, &pos);
                     SetCursorPos(pos.x, pos.y);
                 }
-            } 
-        } break;
+            }
+        }
+        break;
         case WM_MOUSEWHEEL:
         {
-            mouse.wheel_delta += GET_WHEEL_DELTA_WPARAM(wParam)/120; /* microsoft defines one click to be 120 */
-        } break;
+            mouse.wheel_delta += GET_WHEEL_DELTA_WPARAM(wParam) / 120; /* microsoft defines one click to be 120 */
+        }
+        break;
         case WM_MOUSEMOVE:
         {
-            s32 x = GET_X_LPARAM(lParam);
-            s32 y = GET_Y_LPARAM(lParam);
-            struct v2s position = {x, y};
+            s32        x        = GET_X_LPARAM(lParam);
+            s32        y        = GET_Y_LPARAM(lParam);
+            struct v2s position = { x, y };
             if (window.y_up)
                 position.y = window.height - position.y;
             mouse.position = position;
-        } break;
+        }
+        break;
         case WM_LBUTTONDOWN:
         {
             SetCapture(window.handle);
             mouse.button[_mouse_button_left] = 1;
-        } break;
+        }
+        break;
         case WM_LBUTTONUP:
         {
             ReleaseCapture();
             mouse.button[_mouse_button_left] = 0;
-        } break;
+        }
+        break;
         case WM_RBUTTONDOWN:
         {
             SetCapture(window.handle);
             mouse.button[_mouse_button_right] = 1;
-        } break;
+        }
+        break;
         case WM_RBUTTONUP:
         {
             ReleaseCapture();
             mouse.button[_mouse_button_right] = 0;
-        } break;
+        }
+        break;
         case WM_MBUTTONDOWN:
         {
             mouse.button[_mouse_button_middle] = 1;
-        } break;
+        }
+        break;
         case WM_MBUTTONUP:
         {
             mouse.button[_mouse_button_middle] = 0;
-        } break;
+        }
+        break;
         case WM_CHAR:
         {
             if (keyboard.chars_typed < 10)
@@ -207,30 +219,35 @@ update_window(void)
             {
                 printf("WARNING: to many chars per frame\n");
             }
-        } break;
+        }
+        break;
         case WM_SYSKEYDOWN:
         case WM_KEYDOWN:
         {
             u32 Key = (u32)_MapLeftRightKeys(wParam, lParam);
             keyboard.key_state[_get_key_mapping(Key)] += 1;
             keyboard.any_key_pressed = 1;
-        } break;
+        }
+        break;
         case WM_SYSKEYUP:
         case WM_KEYUP:
         {
-            u32 Key = (u32)_MapLeftRightKeys(wParam, lParam);
+            u32 Key                                   = (u32)_MapLeftRightKeys(wParam, lParam);
             keyboard.key_state[_get_key_mapping(Key)] = 0;
-            keyboard.any_key_released = 1;
-        } break;
+            keyboard.any_key_released                 = 1;
+        }
+        break;
         case WM_QUIT:
         {
             window.running = 0;
-        } break;
+        }
+        break;
         default:
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-        } break;
+        }
+        break;
         }
     }
 }
@@ -287,7 +304,7 @@ LRESULT CALLBACK
 win_WndProc(HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     LRESULT Result = 0;
-    switch(Message)
+    switch (Message)
     {
 
     case WM_ACTIVATE:
@@ -300,24 +317,27 @@ win_WndProc(HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam)
             }
             else
             {
-                RECT window_rect = {0, 0, window.width, window.height};
+                RECT window_rect = { 0, 0, window.width, window.height };
                 ClientToScreen(window.handle, (POINT *)&window_rect.left);
                 ClientToScreen(window.handle, (POINT *)&window_rect.right);
                 ClipCursor(&window_rect);
             }
         }
-    } break;
+    }
+    break;
     case WM_CLOSE:
     {
         window.running = 0;
-    } break;
+    }
+    break;
 
     case WM_SIZE:
     {
-        window.width = LOWORD(lParam);
-        window.height = HIWORD(lParam);
+        window.width   = LOWORD(lParam);
+        window.height  = HIWORD(lParam);
         window.resized = 1;
-    } break;
+    }
+    break;
 
     case WM_SETCURSOR:
     {
@@ -327,21 +347,24 @@ win_WndProc(HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam)
             return TRUE;
         }
         Result = DefWindowProc(WindowHandle, Message, wParam, lParam);
-    } break;
+    }
+    break;
 
     case WM_PAINT:
     {
         PAINTSTRUCT paint;
         BeginPaint(window.handle, &paint);
         EndPaint(window.handle, &paint);
-    } break;
+    }
+    break;
 
     default:
     {
         Result = DefWindowProc(WindowHandle, Message, wParam, lParam);
-    } break;
     }
-    return(Result);
+    break;
+    }
+    return (Result);
 }
 
 void
@@ -350,30 +373,33 @@ resize_window(s32 width, s32 height)
     RECT client_size, window_size;
     GetClientRect(window.handle, &client_size);
     GetWindowRect(window.handle, &window_size);
-    int BarSize = abs((window_size.bottom - window_size.top)
-                      - (client_size.bottom - client_size.top));
+    int BarSize    = abs((window_size.bottom - window_size.top)
+                         - (client_size.bottom - client_size.top));
     int BorderSize = abs((window_size.left - window_size.right)
                          - (client_size.left - client_size.right));
     SetWindowPos(window.handle, HWND_TOP, 0, 0,
                  width + BorderSize, height + BarSize, SWP_NOMOVE);
 }
 
-static void _Makewin_Char_KeyMapping_UpperCase(void) {
-    for (int i = 0; i < 256; i++) {
+static void
+_Makewin_Char_KeyMapping_UpperCase(void)
+{
+    for (int i = 0; i < 256; i++)
+    {
         win_Char_KeyMapping_UpperCase[i] = 0;
     }
-    win_Char_KeyMapping_UpperCase[keycode_Minus] = '_';
-    win_Char_KeyMapping_UpperCase[keycode_Equals] = '+';
-    win_Char_KeyMapping_UpperCase[keycode_Comma] = '<';
-    win_Char_KeyMapping_UpperCase[keycode_Period] = '>';
-    win_Char_KeyMapping_UpperCase[keycode_Space] = ' ';
-    win_Char_KeyMapping_UpperCase[keycode_Slash] = '?';
-    win_Char_KeyMapping_UpperCase[keycode_BackSlash] = '|';
-    win_Char_KeyMapping_UpperCase[keycode_LeftBracket] = '{';
+    win_Char_KeyMapping_UpperCase[keycode_Minus]        = '_';
+    win_Char_KeyMapping_UpperCase[keycode_Equals]       = '+';
+    win_Char_KeyMapping_UpperCase[keycode_Comma]        = '<';
+    win_Char_KeyMapping_UpperCase[keycode_Period]       = '>';
+    win_Char_KeyMapping_UpperCase[keycode_Space]        = ' ';
+    win_Char_KeyMapping_UpperCase[keycode_Slash]        = '?';
+    win_Char_KeyMapping_UpperCase[keycode_BackSlash]    = '|';
+    win_Char_KeyMapping_UpperCase[keycode_LeftBracket]  = '{';
     win_Char_KeyMapping_UpperCase[keycode_RightBracket] = '}';
-    win_Char_KeyMapping_UpperCase[keycode_Tick] = '"';
-    win_Char_KeyMapping_UpperCase[keycode_SemiColon] = ':';
-    win_Char_KeyMapping_UpperCase[keycode_Tilde] = '~';
+    win_Char_KeyMapping_UpperCase[keycode_Tick]         = '"';
+    win_Char_KeyMapping_UpperCase[keycode_SemiColon]    = ':';
+    win_Char_KeyMapping_UpperCase[keycode_Tilde]        = '~';
 
     win_Char_KeyMapping_UpperCase[keycode_0] = ')';
     win_Char_KeyMapping_UpperCase[keycode_1] = '!';
@@ -414,22 +440,25 @@ static void _Makewin_Char_KeyMapping_UpperCase(void) {
     win_Char_KeyMapping_UpperCase[keycode_Z] = 'Z';
 }
 
-static void _Makewin_Char_KeyMapping_LowerCase(void) {
-    for (int i = 0; i < 256; i++) {
+static void
+_Makewin_Char_KeyMapping_LowerCase(void)
+{
+    for (int i = 0; i < 256; i++)
+    {
         win_Char_KeyMapping_LowerCase[i] = 0;
     }
-    win_Char_KeyMapping_LowerCase[keycode_Minus] = '-';
-    win_Char_KeyMapping_LowerCase[keycode_Equals] = '=';
-    win_Char_KeyMapping_LowerCase[keycode_Comma] = ',';
-    win_Char_KeyMapping_LowerCase[keycode_Period] = '.';
-    win_Char_KeyMapping_LowerCase[keycode_Space] = ' ';
-    win_Char_KeyMapping_LowerCase[keycode_Slash] = '/';
-    win_Char_KeyMapping_LowerCase[keycode_BackSlash] = '\\';
-    win_Char_KeyMapping_LowerCase[keycode_LeftBracket] = '[';
+    win_Char_KeyMapping_LowerCase[keycode_Minus]        = '-';
+    win_Char_KeyMapping_LowerCase[keycode_Equals]       = '=';
+    win_Char_KeyMapping_LowerCase[keycode_Comma]        = ',';
+    win_Char_KeyMapping_LowerCase[keycode_Period]       = '.';
+    win_Char_KeyMapping_LowerCase[keycode_Space]        = ' ';
+    win_Char_KeyMapping_LowerCase[keycode_Slash]        = '/';
+    win_Char_KeyMapping_LowerCase[keycode_BackSlash]    = '\\';
+    win_Char_KeyMapping_LowerCase[keycode_LeftBracket]  = '[';
     win_Char_KeyMapping_LowerCase[keycode_RightBracket] = ']';
-    win_Char_KeyMapping_LowerCase[keycode_Tick] = '\'';
-    win_Char_KeyMapping_LowerCase[keycode_SemiColon] = ';';
-    win_Char_KeyMapping_LowerCase[keycode_Tilde] = '`';
+    win_Char_KeyMapping_LowerCase[keycode_Tick]         = '\'';
+    win_Char_KeyMapping_LowerCase[keycode_SemiColon]    = ';';
+    win_Char_KeyMapping_LowerCase[keycode_Tilde]        = '`';
 
     win_Char_KeyMapping_LowerCase[keycode_0] = '0';
     win_Char_KeyMapping_LowerCase[keycode_1] = '1';
@@ -470,36 +499,38 @@ static void _Makewin_Char_KeyMapping_LowerCase(void) {
     win_Char_KeyMapping_LowerCase[keycode_Z] = 'z';
 }
 
-
-static void _Makewin_Win32_KeyMapping(void) {
-    for (int i = 0; i < 256; i++) {
+static void
+_Makewin_Win32_KeyMapping(void)
+{
+    for (int i = 0; i < 256; i++)
+    {
         win_Win32_KeyMapping[i] = keycode_F12;
     }
-    win_Win32_KeyMapping[VK_UP] = keycode_Up;
-    win_Win32_KeyMapping[VK_LEFT] = keycode_Left;
-    win_Win32_KeyMapping[VK_DOWN] = keycode_Down;
-    win_Win32_KeyMapping[VK_RIGHT] = keycode_Right;
-    win_Win32_KeyMapping[VK_DELETE] = keycode_Delete;
-    win_Win32_KeyMapping[VK_OEM_1] = keycode_SemiColon;
-    win_Win32_KeyMapping[VK_OEM_2] = keycode_Slash;
-    win_Win32_KeyMapping[VK_OEM_3] = keycode_Tilde;
-    win_Win32_KeyMapping[VK_OEM_4] = keycode_LeftBracket;
-    win_Win32_KeyMapping[VK_OEM_5] = keycode_BackSlash;
-    win_Win32_KeyMapping[VK_OEM_6] = keycode_RightBracket;
-    win_Win32_KeyMapping[VK_OEM_7] = keycode_Tick;
-    win_Win32_KeyMapping[VK_OEM_MINUS] = keycode_Minus;
-    win_Win32_KeyMapping[VK_OEM_PLUS] = keycode_Equals;
-    win_Win32_KeyMapping[VK_OEM_COMMA] = keycode_Comma;
+    win_Win32_KeyMapping[VK_UP]         = keycode_Up;
+    win_Win32_KeyMapping[VK_LEFT]       = keycode_Left;
+    win_Win32_KeyMapping[VK_DOWN]       = keycode_Down;
+    win_Win32_KeyMapping[VK_RIGHT]      = keycode_Right;
+    win_Win32_KeyMapping[VK_DELETE]     = keycode_Delete;
+    win_Win32_KeyMapping[VK_OEM_1]      = keycode_SemiColon;
+    win_Win32_KeyMapping[VK_OEM_2]      = keycode_Slash;
+    win_Win32_KeyMapping[VK_OEM_3]      = keycode_Tilde;
+    win_Win32_KeyMapping[VK_OEM_4]      = keycode_LeftBracket;
+    win_Win32_KeyMapping[VK_OEM_5]      = keycode_BackSlash;
+    win_Win32_KeyMapping[VK_OEM_6]      = keycode_RightBracket;
+    win_Win32_KeyMapping[VK_OEM_7]      = keycode_Tick;
+    win_Win32_KeyMapping[VK_OEM_MINUS]  = keycode_Minus;
+    win_Win32_KeyMapping[VK_OEM_PLUS]   = keycode_Equals;
+    win_Win32_KeyMapping[VK_OEM_COMMA]  = keycode_Comma;
     win_Win32_KeyMapping[VK_OEM_PERIOD] = keycode_Period;
-    win_Win32_KeyMapping[VK_BACK] = keycode_Backspace;
-    win_Win32_KeyMapping[VK_TAB] = keycode_Tab;
-    win_Win32_KeyMapping[VK_RETURN] = keycode_Enter;
+    win_Win32_KeyMapping[VK_BACK]       = keycode_Backspace;
+    win_Win32_KeyMapping[VK_TAB]        = keycode_Tab;
+    win_Win32_KeyMapping[VK_RETURN]     = keycode_Enter;
 
     win_Win32_KeyMapping[VK_CAPITAL] = keycode_CapsLock;
-    win_Win32_KeyMapping[VK_ESCAPE] = keycode_Escape;
-    win_Win32_KeyMapping[VK_SPACE] = keycode_Space;
+    win_Win32_KeyMapping[VK_ESCAPE]  = keycode_Escape;
+    win_Win32_KeyMapping[VK_SPACE]   = keycode_Space;
 
-    int vk0 = 0x30;
+    int vk0                     = 0x30;
     win_Win32_KeyMapping[vk0++] = keycode_0;
     win_Win32_KeyMapping[vk0++] = keycode_1;
     win_Win32_KeyMapping[vk0++] = keycode_2;
@@ -510,7 +541,7 @@ static void _Makewin_Win32_KeyMapping(void) {
     win_Win32_KeyMapping[vk0++] = keycode_7;
     win_Win32_KeyMapping[vk0++] = keycode_8;
     win_Win32_KeyMapping[vk0++] = keycode_9;
-    int vka = 0x41;
+    int vka                     = 0x41;
     win_Win32_KeyMapping[vka++] = keycode_A;
     win_Win32_KeyMapping[vka++] = keycode_B;
     win_Win32_KeyMapping[vka++] = keycode_C;
@@ -541,25 +572,25 @@ static void _Makewin_Win32_KeyMapping(void) {
     win_Win32_KeyMapping[VK_LWIN] = keycode_LeftSuper;
     win_Win32_KeyMapping[VK_RWIN] = keycode_RightSuper;
 
-    win_Win32_KeyMapping[VK_F1] = keycode_F1;
-    win_Win32_KeyMapping[VK_F2] = keycode_F2;
-    win_Win32_KeyMapping[VK_F3] = keycode_F3;
-    win_Win32_KeyMapping[VK_F4] = keycode_F4;
-    win_Win32_KeyMapping[VK_F5] = keycode_F5;
-    win_Win32_KeyMapping[VK_F6] = keycode_F6;
-    win_Win32_KeyMapping[VK_F7] = keycode_F7;
-    win_Win32_KeyMapping[VK_F8] = keycode_F8;
-    win_Win32_KeyMapping[VK_F9] = keycode_F9;
+    win_Win32_KeyMapping[VK_F1]  = keycode_F1;
+    win_Win32_KeyMapping[VK_F2]  = keycode_F2;
+    win_Win32_KeyMapping[VK_F3]  = keycode_F3;
+    win_Win32_KeyMapping[VK_F4]  = keycode_F4;
+    win_Win32_KeyMapping[VK_F5]  = keycode_F5;
+    win_Win32_KeyMapping[VK_F6]  = keycode_F6;
+    win_Win32_KeyMapping[VK_F7]  = keycode_F7;
+    win_Win32_KeyMapping[VK_F8]  = keycode_F8;
+    win_Win32_KeyMapping[VK_F9]  = keycode_F9;
     win_Win32_KeyMapping[VK_F10] = keycode_F10;
     win_Win32_KeyMapping[VK_F11] = keycode_F11;
     win_Win32_KeyMapping[VK_F12] = keycode_F12;
 
-    win_Win32_KeyMapping[VK_LSHIFT] = keycode_LeftShift;
-    win_Win32_KeyMapping[VK_RSHIFT] = keycode_RightShift;
+    win_Win32_KeyMapping[VK_LSHIFT]   = keycode_LeftShift;
+    win_Win32_KeyMapping[VK_RSHIFT]   = keycode_RightShift;
     win_Win32_KeyMapping[VK_LCONTROL] = keycode_LeftControl;
     win_Win32_KeyMapping[VK_RCONTROL] = keycode_RightControl;
-    win_Win32_KeyMapping[VK_LMENU] = keycode_Alt;
-    win_Win32_KeyMapping[VK_RMENU] = keycode_RightAlt;
+    win_Win32_KeyMapping[VK_LMENU]    = keycode_Alt;
+    win_Win32_KeyMapping[VK_RMENU]    = keycode_RightAlt;
 }
 
 b32
@@ -570,53 +601,52 @@ open_window(char *title, s32 width, s32 height)
     _Makewin_Char_KeyMapping_UpperCase();
     LPCTSTR WindowTitle = title;
 
-    int WidthInPixel = 640;
+    int WidthInPixel  = 640;
     int HeightInPixel = 480;
 
-
     WNDCLASSEX WindowClass;
-    WindowClass.cbSize = sizeof(WNDCLASSEX);
-    WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    WindowClass.lpfnWndProc = win_WndProc;
-    WindowClass.cbClsExtra = 0;
-    WindowClass.cbWndExtra = 0;
-    WindowClass.hInstance = 0;
-    WindowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-    WindowClass.hCursor = 0;
-    window.cursor = LoadCursor(0, IDC_ARROW);
+    WindowClass.cbSize        = sizeof(WNDCLASSEX);
+    WindowClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    WindowClass.lpfnWndProc   = win_WndProc;
+    WindowClass.cbClsExtra    = 0;
+    WindowClass.cbWndExtra    = 0;
+    WindowClass.hInstance     = 0;
+    WindowClass.hIcon         = LoadIcon(0, IDI_APPLICATION);
+    WindowClass.hCursor       = 0;
+    window.cursor             = LoadCursor(0, IDC_ARROW);
     WindowClass.hbrBackground = 0;
-    WindowClass.lpszMenuName = 0;
-    LPCTSTR WindowClassName = _T("BloxWindowClass");
+    WindowClass.lpszMenuName  = 0;
+    LPCTSTR WindowClassName   = _T("BloxWindowClass");
     WindowClass.lpszClassName = WindowClassName;
-    WindowClass.hIconSm = 0;
+    WindowClass.hIconSm       = 0;
 
     RegisterClassEx(&WindowClass); //@TODO: handle error
 
     DWORD WindowStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-    window.handle = CreateWindowEx(WindowStyle,
-                                   WindowClassName,
-                                   WindowTitle,
-                                   WS_OVERLAPPEDWINDOW,
-                                   CW_USEDEFAULT, 0,
-                                   WidthInPixel+10,
-                                   HeightInPixel,
-                                   0,
-                                   0,
-                                   0,
-                                   0);
+    window.handle     = CreateWindowEx(WindowStyle,
+                                       WindowClassName,
+                                       WindowTitle,
+                                       WS_OVERLAPPEDWINDOW,
+                                       CW_USEDEFAULT, 0,
+                                       WidthInPixel + 10,
+                                       HeightInPixel,
+                                       0,
+                                       0,
+                                       0,
+                                       0);
 
     DragAcceptFiles(window.handle, TRUE);
 
     window.device_context = GetDC(window.handle);
 
-    PIXELFORMATDESCRIPTOR pfd = {0};
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 32;
-    pfd.cDepthBits = 32;
-    pfd.iLayerType = PFD_MAIN_PLANE;
+    PIXELFORMATDESCRIPTOR pfd = { 0 };
+    pfd.nSize                 = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion              = 1;
+    pfd.dwFlags               = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
+    pfd.iPixelType            = PFD_TYPE_RGBA;
+    pfd.cColorBits            = 32;
+    pfd.cDepthBits            = 32;
+    pfd.iLayerType            = PFD_MAIN_PLANE;
 
     s32 PixelFormat = ChoosePixelFormat(window.device_context, &pfd);
     if (PixelFormat == 0)
@@ -630,24 +660,23 @@ open_window(char *title, s32 width, s32 height)
     ShowWindow(window.handle, SW_SHOW);
     UpdateWindow(window.handle);
     SetForegroundWindow(window.handle);
-    window.width = width;
+    window.width  = width;
     window.height = height;
-    window.y_up = 0;
+    window.y_up   = 0;
     resize_window(width, height);
 
-
 #ifndef HID_USAGE_PAGE_GENERIC
-#define HID_USAGE_PAGE_GENERIC         ((USHORT) 0x01)
+#define HID_USAGE_PAGE_GENERIC ((USHORT)0x01)
 #endif
 #ifndef HID_USAGE_GENERIC_MOUSE
-#define HID_USAGE_GENERIC_MOUSE        ((USHORT) 0x02)
+#define HID_USAGE_GENERIC_MOUSE ((USHORT)0x02)
 #endif
 
-    RAWINPUTDEVICE mouse = {0};
-    mouse.usUsagePage = HID_USAGE_PAGE_GENERIC; 
-    mouse.usUsage     = HID_USAGE_GENERIC_MOUSE; 
-    mouse.dwFlags     = 0;//RIDEV_INPUTSINK;   
-    mouse.hwndTarget  = window.handle;
+    RAWINPUTDEVICE mouse = { 0 };
+    mouse.usUsagePage    = HID_USAGE_PAGE_GENERIC;
+    mouse.usUsage        = HID_USAGE_GENERIC_MOUSE;
+    mouse.dwFlags        = 0; // RIDEV_INPUTSINK;
+    mouse.hwndTarget     = window.handle;
     RegisterRawInputDevices(&mouse, 1, sizeof(RAWINPUTDEVICE));
     return 0;
 }
@@ -657,7 +686,7 @@ set_capture_mouse(void)
 {
     window.capture_mouse = 1;
     ShowCursor(0);
-    RECT window_rect = {0, 0, window.width, window.height};
+    RECT window_rect = { 0, 0, window.width, window.height };
     ClientToScreen(window.handle, (POINT *)&window_rect.left);
     ClientToScreen(window.handle, (POINT *)&window_rect.right);
     ClipCursor(&window_rect);
@@ -668,7 +697,6 @@ set_window_position(struct v2s new_position)
 {
     SetWindowPos(window.handle, HWND_TOP, new_position.x, new_position.y, 0, 0, SWP_NOSIZE);
 }
-
 
 void
 console_create(void)
