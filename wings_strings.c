@@ -50,7 +50,7 @@ is_whitespace(char c)
 }
 
 char *
-end_of_cstring(char *s)
+cstring_end_pointer(char *s)
 {
     char *tmp = s;
     while(*tmp) ++tmp;
@@ -213,235 +213,18 @@ string_to_s32(char *string, s32 string_size, s32 *result)
     return string_to_s32_no_error;
 }
 
-/*
 void
-replace(struct string target, char old_char, char new_char)
+cstring_replace(char *target, s32 size, char old_char, char new_char)
 {
-    for (s32 index = 0; index < target.size; ++index)
+    for (s32 index = 0; index < size; ++index)
     {
-        if (target.memory[index] == old_char)
-            target.memory[index] = new_char;
+        if (target[index] == old_char)
+            target[index] = new_char;
     }
 }
-
-
-*/
-
-
-
-
-/*
-// @Todo: this whole method does not work!
-// it does strange allocations and generally hopes for the best
-// it should not allocate at first and then allocate as needed
-// from the block. only failing if the block is full
-struct string
-_string_print(struct string format, va_list list, int zero_terminated, struct memory *block)
-{
-    memory_save_state_t save = save_memory_state(block);
-    uint64 max_result_size = memory_free(*block); // allocate everything left because we don't know how much we need
-    char *result = allocate_array(block, max_result_size, char);
-    uint64 result_size = 0;
-    for (int i = 0; i < format.size; ++i)
-    {
-        while(i < format.size && format.memory[i] != '%')
-        {
-            result[result_size++] = format.memory[i];
-            if (result_size == max_result_size)
-            {
-                break;
-            }
-            ++i;
-        }
-        if (i == format.size) // there was no % in the whole string
-        {
-            break;
-        }
-        ++i;
-        if (i == format.size)
-            log_and_exit("[error] illegal format string");
-        switch(format.memory[i])
-        {
-        case '-': {
-            ++i;
-        } break;
-        case '+': {
-            ++i;
-        } break;
-        case ' ': {
-            ++i;
-        } break;
-        case '#': {
-            ++i;
-        } break;
-        case '0': {
-            ++i;
-        } break;
-        default: {
-            // no flag
-        }
-        }
-        if (i == format.size)
-            log_and_exit("[error] illegal format string");
-        int output_length = 10;
-        if (format.memory[i] >= '0' && format.memory[i] <= '9')
-        { // number of characters to be printed @Todo: think about supporting *
-            int start = i;
-            while(format.memory[i] >= '0' && format.memory[i] <= '9')
-            {
-                ++i;
-            }
-            struct string s = {format.memory+start, i-start};
-            string_to_s32(s, &output_length);
-        }
-        int precision = 10;
-        if(format.memory[i] == '.')
-        {
-            ++i;
-            int start = i;
-            while(format.memory[i] >= '0' && format.memory[i] <= '9')
-            {
-                ++i;
-            }
-            struct string s = {format.memory+start, i-start};
-            string_to_s32(s, &precision);
-        }
-            
-        switch(format.memory[i])
-        {
-        case 'f':{
-            double f = va_arg(list, double);
-            int chars_written = snprintf(result+result_size, max_result_size - result_size, "%*.*f", output_length, precision, f);
-            result_size += chars_written;
-            if (result_size == max_result_size)
-                break;
-        } break;
-        case 'g':{
-            double f = va_arg(list, double);
-            int chars_written = snprintf(result+result_size, max_result_size - result_size, "%g", f);
-            result_size += chars_written;
-            if (result_size == max_result_size)
-                break;
-        } break;
-        case 'd': {
-            int d = va_arg(list, int);
-            int chars_written = snprintf(result+result_size, max_result_size - result_size, "%d", d);
-            result_size += chars_written;
-            if (result_size == max_result_size)
-                break;
-        } break;
-        case 's': {
-            char *s = va_arg(list, char *);
-            int chars_written = snprintf(result+result_size, max_result_size - result_size, "%s", s);
-            result_size += chars_written;
-            if (result_size == max_result_size)
-                break;
-        } break;
-        case 'c': {
-            int c = va_arg(list, int);
-            int chars_written = snprintf(result+result_size, max_result_size - result_size, "%c", c);
-            result_size += chars_written;
-            if (result_size == max_result_size)
-                break;
-        } break;
-        case 'w': {
-            struct string w = va_arg(list, struct string);
-            for (int w_index = 0; w_index < w.size; ++w_index)
-            {
-                result[result_size++] = w.memory[w_index];
-                if (result_size == max_result_size)
-                    break;
-            }
-        } break;
-        default: {
-            log_and_exit("[error] illegal format specifier");
-        }
-        }
-    }
-    if (zero_terminated)
-    {
-        result[result_size++] = 0;
-    }
-    reset_to_save_state_dont_zero(save);
-    allocate_array(block, result_size, char); // allocate only what was acutally used
-    struct string s = {result, (s32)result_size - (zero_terminated?1:0)};
-    return(s);
-}
-
-struct string
-string_print(struct memory *block, struct string format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    struct string result = _string_print(format, list, 0, block);
-    va_end(list);
-    return(result);
-}
-
-struct string
-string_print(struct memory *block, char *format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    struct string format_as_string = string(format, block);
-    struct string result = _string_print(format_as_string, list, 0, block);
-    va_end(list);
-    return(result);
-}
-
-struct string
-string_print_z(struct memory *block, char *format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    struct string format_as_string = string(format, block);
-    struct string result = _string_print(format_as_string, list, 1, block);
-    va_end(list);
-    return(result);
-}
-
-struct string
-string_print_z(struct memory *block, struct string format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    struct string result = _string_print(format, list, 1, block);
-    va_end(list);
-    return(result);
-}
-*/
-
-/*
-int
-compare_strings(struct string a, struct string b)
-{
-    if (a.size != b.size) return 1;
-    for (int index = 0; index < a.size; ++index)
-    {
-        if (a.memory[index] != b.memory[index])
-            return 1;
-    }
-    return 0;
-}
-
-
-
-int
-compare_cstring_string(char *b, struct string a)
-{
-    return(compare_string_cstring(a, b));
-}
-
-bool32
-compare_cstring_cstring(char *a, char  *b)
-{
-    while(*a && *b && *a++ == *b++);
-    return *a != *b;
-}
-*/
 
 char
-is_one_of(char c, char *c_string)
+cstring_is_one_of(char c, char *c_string)
 {
     if (!c_string) return 0;
     while(*c_string)
@@ -466,27 +249,6 @@ cstring_ends_with(char *haystack, s32 haystack_size, char *needle, s32 needle_si
     return 1;
 }
 
-/*
-
-int
-begins_with_string_string(struct string a, struct string b)
-{
-    if (a.size < b.size) return 0;
-    for (int index = 0; index < b.size; ++index)
-    {
-        if (a.memory[index] != b.memory[index])
-            return 0;
-    }
-    return 1;
-}
-
-int
-empty(struct string s)
-{
-    return s.size == 0;
-}
-*/
-
 b32
 begins_with_cstring(char *a, u64 size_a, char *b, u64 size_b)
 {
@@ -498,9 +260,6 @@ begins_with_cstring(char *a, u64 size_a, char *b, u64 size_b)
     }
     return index == size_b;
 }
-
-
-
 
 struct string
 next_word(struct string *context)
