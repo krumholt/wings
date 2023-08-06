@@ -90,7 +90,18 @@ compare_string_cstring(struct string a, char *b)
         if (a.base[index] != *b)
             return 1;
     }
-    return 0;
+    return(0);
+}
+
+void
+move_forward_to_string(struct string *haystack, char *needle)
+{
+    while (haystack->size
+           && compare_string_cstring(*haystack, needle) != 0)
+    {
+        haystack->base++;
+        haystack->size--;
+    }
 }
 
 enum string_to_f32_error
