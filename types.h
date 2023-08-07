@@ -123,21 +123,18 @@ seconds_to_nanoseconds(f64 time)
     return (time * (1000.0 * 1000.0));
 }
 
-#ifndef max
 s32
-maxii(s32 a, s32 b)
+max_ii(s32 a, s32 b)
 {
     return (a > b ? a : b);
 }
 
 float
-maxff(float a, float b)
+max_ff(float a, float b)
 {
     return (a > b ? a : b);
 }
-#endif
 
-#ifndef min
 s32
 min_ii(s32 a, s32 b)
 {
@@ -148,6 +145,5 @@ min_ff(float a, float b)
 {
     return (a < b ? a : b);
 }
-#endif
 
 #endif

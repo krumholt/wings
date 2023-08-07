@@ -1,7 +1,8 @@
-#ifndef memory_c
-#define memory_c
+#ifndef MEMORY_C
+#define MEMORY_C
 
 #include "types.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
