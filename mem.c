@@ -15,10 +15,20 @@ struct buffer
     u64 size;
 };
 
+struct memory_block_stack
+{
+    struct memory_block_stack *previous;
+
+    u8 *base;
+    u64 size;
+    u64 used;
+};
+
 struct stack_allocator
 {
-    u64           used;
-    struct buffer buffer;
+    struct memory_block_stack *memory_block;
+
+    u64 min_block_size;
 };
 
 enum allocator_type
@@ -28,18 +38,48 @@ enum allocator_type
 
 struct allocator
 {
-    enum allocator_type    type;
-	union
-	{
-		struct stack_allocator stack_allocator;
-	};
+    enum allocator_type type;
+    s32                 alignment;
+    union
+    {
+        struct stack_allocator stack_allocator;
+    } allocator;
 };
 
-u8 *
-stack_allocator_allocate(struct stack_allocator *allocator, u64 size)
+struct allocator
+make_stack_allocator(void)
 {
-    u8 *memory = allocator->buffer.base + allocator->used;
-    allocator->used += size;
+    struct allocator allocator = {
+        .type            = allocator_type_stack_allocator,
+        .alignment       = 8,
+        .allocator.stack_allocator = {
+			.memory_block = 0,
+			.min_block_size = 1024 * 1024,
+		},
+    };
+    return (allocator);
+}
+
+u8 *
+stack_allocator_allocate(struct stack_allocator *allocator, u64 alignment, u64 size)
+{
+    size = (size + alignment - 1) & ~(alignment - 1);
+    if (!allocator->memory_block
+        || (allocator->memory_block->size - allocator->memory_block->used < size))
+    {
+        u64 new_block_size = max(size, allocator->min_block_size);
+
+        struct memory_block_stack *new_block
+            = calloc(1, sizeof(struct memory_block_stack));
+		new_block->size = new_block_size;
+		new_block->base = calloc(new_block_size, sizeof(u8));
+
+		new_block->previous = allocator->memory_block;
+		allocator->memory_block = new_block;
+    }
+
+    u8 *memory       = allocator->memory_block->base + allocator->memory_block->used;
+    allocator->memory_block->used += size;
     return (memory);
 }
 
@@ -50,11 +90,11 @@ allocate(struct allocator *allocator, u64 size)
     {
     case allocator_type_stack_allocator:
     {
-		return stack_allocator_allocate(&allocator->stack_allocator, size);
+        return stack_allocator_allocate(&allocator->allocator.stack_allocator,
+                                        allocator->alignment, size);
     }
     break;
     }
 }
-
 
 #endif
