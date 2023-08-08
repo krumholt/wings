@@ -28,6 +28,7 @@ struct stack_allocator
 {
     struct memory_block_stack *memory_block;
 
+	u64 number_of_blocks;
     u64 min_block_size;
 };
 
@@ -76,6 +77,7 @@ stack_allocator_allocate(struct stack_allocator *allocator, u64 alignment, u64 s
 
 		new_block->previous = allocator->memory_block;
 		allocator->memory_block = new_block;
+		allocator->number_of_blocks +=  1;
     }
 
     u8 *memory       = allocator->memory_block->base + allocator->memory_block->used;
@@ -92,6 +94,38 @@ allocate(struct allocator *allocator, u64 size)
     {
         return stack_allocator_allocate(&allocator->allocator.stack_allocator,
                                         allocator->alignment, size);
+    }
+    break;
+    }
+}
+
+inline void
+stack_allocator_free_top_block(struct stack_allocator *allocator)
+{
+	struct memory_block_stack *top = allocator->memory_block;
+	allocator->memory_block = top->previous;
+	allocator->number_of_blocks -= 1;
+	free(top);
+}
+
+void
+stack_allocator_clear(struct stack_allocator *allocator)
+{
+	while(allocator->memory_block)
+	{
+		stack_allocator_free_top_block(allocator);
+	}
+
+}
+
+void
+allocator_clear(struct allocator *allocator)
+{
+    switch (allocator->type)
+    {
+    case allocator_type_stack_allocator:
+    {
+        stack_allocator_clear(&allocator->allocator.stack_allocator);
     }
     break;
     }
