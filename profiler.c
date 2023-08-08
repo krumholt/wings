@@ -54,7 +54,8 @@ struct profiler
 };
 
 #if PROFILING == 1
-void start_profiling_zone(char *zone_id)
+void
+start_profiling_zone(char *zone_id)
 {
     u64 current_tick = GET_CPU_TICK();
 
@@ -68,7 +69,8 @@ void start_profiling_zone(char *zone_id)
     profiler.open_block_id = id;
 }
 
-void end_profiling_zone(void)
+void
+end_profiling_zone(void)
 {
     u64 current_tick = GET_CPU_TICK();
 
@@ -79,7 +81,8 @@ void end_profiling_zone(void)
     profiler.open_block_id = block->parent_id;
 }
 
-void start_profiling(void)
+void
+start_profiling(void)
 {
     profiler.blocks     = calloc(1024 * 1024, sizeof(struct profiler_block));
     profiler.start_time = get_os_timer_in_seconds();
@@ -98,7 +101,8 @@ struct profiler_block_queue
     struct profiler_block_queue_node *back;
 };
 
-void _pbs_push(struct profiler_block_queue *queue, u32 id)
+void
+_pbs_push(struct profiler_block_queue *queue, u32 id)
 {
     struct profiler_block_queue_node *new = calloc(1, sizeof(struct profiler_block_queue_node));
 
@@ -115,7 +119,8 @@ void _pbs_push(struct profiler_block_queue *queue, u32 id)
     }
 }
 
-u32 _pbs_pop(struct profiler_block_queue *queue)
+u32
+_pbs_pop(struct profiler_block_queue *queue)
 {
     struct profiler_block_queue_node *top = queue->front;
 
@@ -129,12 +134,14 @@ u32 _pbs_pop(struct profiler_block_queue *queue)
     return (id);
 }
 
-b32 _pbs_empty(struct profiler_block_queue *queue)
+b32
+_pbs_empty(struct profiler_block_queue *queue)
 {
     return queue->front == 0;
 }
 
-void end_profiling(void)
+void
+end_profiling(void)
 {
     end_profiling_zone();
     f64 total_time  = seconds_to_nanoseconds(get_os_timer_in_seconds() - profiler.start_time);
@@ -254,20 +261,24 @@ void end_profiling(void)
 }
 #else
 
-void start_profiling_zone(char *zone_id)
+void
+start_profiling_zone(char *zone_id)
 {
 }
 
-void end_profiling_zone(void)
+void
+end_profiling_zone(void)
 {
 }
 
-void start_profiling(void)
+void
+start_profiling(void)
 {
     profiler.start_time = get_os_timer_in_seconds();
 }
 
-void end_profiling(void)
+void
+end_profiling(void)
 {
     f64   total_time = seconds_to_nanoseconds(get_os_timer_in_seconds() - profiler.start_time);
     char *time_unit  = set_to_closest_time_unit(&total_time);

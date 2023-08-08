@@ -43,7 +43,7 @@ enum allocator_type
 {
     allocator_type_growing_linear,
     allocator_type_fixed_size_linear,
-//    allocator_type_fixed_size_stack,
+    //    allocator_type_fixed_size_stack,
 };
 
 struct allocator
@@ -69,14 +69,14 @@ make_memory_partition(u64 size)
 }
 
 struct allocator
-make_linear_growing_allocator(void)
+make_growing_linear_allocator(u64 block_size)
 {
     struct allocator allocator = {
         .type                     = allocator_type_growing_linear,
         .alignment                = 8,
         .growing_linear_allocator = {
                                      .stack          = 0,
-                                     .min_block_size = 1024 * 1024,
+                                     .min_block_size = block_size,
                                      },
     };
     return (allocator);
@@ -109,7 +109,7 @@ linear_growing_allocator_allocate(struct growing_linear_allocator *allocator, u6
 }
 
 struct allocator
-make_linear_fixed_size_allocator(u64 size)
+make_fixed_size_linear_allocator(u64 size)
 {
     struct memory_partition memory    = make_memory_partition(size);
     struct allocator        allocator = {
@@ -124,8 +124,10 @@ u8 *
 linear_fixed_size_allocator_allocate(struct fixed_size_linear_allocator *allocator, u64 alignment, u64 size)
 {
     size            = (size + alignment - 1) & ~(alignment - 1);
-    u64 memory_left = allocator->stack.partition.to - allocator->stack.partition.from;
-    assert(memory_left >= size);
+    u64 memory_left = allocator->stack.partition.to
+                      - allocator->stack.partition.current;
+    if (memory_left < size)
+        assert(0);
 
     u8 *memory = allocator->stack.partition.current;
     allocator->stack.partition.current += size;
