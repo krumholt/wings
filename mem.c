@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include "profiler.c"
 
 struct memory_interval
 {
@@ -137,6 +138,7 @@ linear_fixed_size_allocator_allocate(struct fixed_size_linear_allocator *allocat
 u8 *
 allocate(struct allocator *allocator, u64 size)
 {
+	start_profiling_zone("allocate");
     switch (allocator->type)
     {
     case allocator_type_growing_linear:
@@ -148,6 +150,7 @@ allocate(struct allocator *allocator, u64 size)
             &allocator->fixed_size_linear_allocator,
             allocator->alignment, size);
     }
+	end_profiling_zone();
 }
 
 inline void
@@ -183,6 +186,7 @@ linear_fixed_size_allocator_clear(struct fixed_size_linear_allocator *allocator)
 void
 allocator_clear(struct allocator *allocator)
 {
+	start_profiling_zone("clear");
     switch (allocator->type)
     {
     case allocator_type_growing_linear:
@@ -196,6 +200,7 @@ allocator_clear(struct allocator *allocator)
     }
     break;
     }
+	end_profiling_zone();
 }
 
 #endif
