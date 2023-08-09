@@ -12,7 +12,7 @@
 #define GET_CPU_TICK get_cpu_timer
 #endif
 
-struct profile_anchor
+struct profiler_anchor
 {
     u64   ticks_total;
     u64   ticks_self;
@@ -23,144 +23,125 @@ struct profile_anchor
 struct profiler_block
 {
     char *zone_id;
-    u64   old_elapsed_inclusive;
+    u64   old_ticks_total;
     u64   start_tick;
-    u32   parent_id;
-    u32   anchor_id;
+    u32   parent_index;
+    u32   anchor_index;
 };
 
 struct profiler
 {
-    struct profile_anchor anchors[1024];
-    f64                   start_tick;
-    f64                   end_tick;
-    f64                   start_time;
-    f64                   end_time;
-    u32                   global_parent_id;
+    struct profiler_anchor anchors[1024];
+    f64                    start_tick;
+    f64                    end_tick;
+    f64                    start_time;
+    f64                    end_time;
+    u32                    parent_index;
 } profiler = {
-    .anchors          = { 0 },
-    .start_tick       = 0,
-    .end_tick         = 0,
-    .global_parent_id = 0,
+    .anchors      = { 0 },
+    .start_tick   = 0,
+    .end_tick     = 0,
+    .start_time   = 0,
+    .end_time     = 0,
+    .parent_index = 0,
 };
 
 #if PROFILING == 1
-void
-start_profiling_zone(char *zone_id, u32 anchor_id, struct profiler_block block)
+
+#define start_profiling_zone(name)      \
+    struct profiler_block name = { 0 }; \
+    _start_profiling_zone(#name, __COUNTER__ + 1, &name)
+
+void _start_profiling_zone(char                  *zone_id,
+                           u32                    anchor_index,
+                           struct profiler_block *block)
 {
-    block.parent_id = profiler.global_parent_id;
-    block.anchor_id = anchor_id;
-    block.zone_id   = zone_id;
+    block->parent_index = profiler.parent_index;
+    block->anchor_index = anchor_index;
+    block->zone_id      = zone_id;
 
-	struct profile_anchor *anchor = profiler.anchors+anchor_id;
-    u64 current_tick
-        = GET_CPU_TICK();
-
-    struct profiler_block *entry = profiler.blocks + id;
-    entry->parent_id             = profiler.open_block_id;
-    entry->zone_id               = zone_id;
-    entry->start_tick            = current_tick;
-
-    profiler.open_block_id = id;
+    struct profile_anchor *anchor = profiler.anchors + anchor_index;
+    block->old_ticks_total        = anchor->ticks_total;
+    profiler.parent_index         = anchor_index;
+    block->start_tick             = GET_CPU_TICK();
+    anchor->zone_id               = zone_id;
 }
 
-void
-end_profiling_zone(struct profile_block block)
+#define end_profiling_zone(name) \
+    _end_profiling_zone(&name)
+
+void _end_profiling_zone(struct profiler_block *block)
 {
-    u64 current_tick = GET_CPU_TICK();
-    u64 elapsed      = current_tick
+    u64 current_tick      = GET_CPU_TICK();
+    u64 elapsed           = current_tick - block->start_tick;
+    profiler.parent_index = block->parent_index;
 
-        struct profiler_block *block
-        = profiler.blocks + profiler.open_block_id;
-    block->end_tick          = current_tick;
-    block->last_sub_block_id = profiler.next_id - 1;
-
-    profiler.open_block_id = block->parent_id;
+    struct profile_anchor *parent = profiler.anchors
+                                    + block->parent_index;
+    struct profile_anchor *anchor = profiler.anchors
+                                    + block->anchor_index;
+    parent->ticks_self -= elapsed;
+    anchor->ticks_self += elapsed;
+    anchor->ticks_total = block->old_ticks_total + elapsed;
+    anchor->hit_count += 1;
 }
 
-void
-start_profiling(void)
+void start_profiling(void)
 {
-    profiler.blocks     = calloc(1024 * 1024 * 1024, sizeof(struct profiler_block));
     profiler.start_time = get_os_timer_in_seconds();
-    start_profiling_zone("Root");
+    profiler.start_tick = GET_CPU_TICK();
 }
 
-struct profiler_block_queue_node
+void profiler_print_anchor(struct profile_anchor *anchor)
 {
-    struct profiler_block_queue_node *next;
-    u32                               id;
-};
-
-struct profiler_block_queue
-{
-    struct profiler_block_queue_node *front;
-    struct profiler_block_queue_node *back;
-};
-
-void
-_pbs_push(struct profiler_block_queue *queue, u32 id)
-{
-    struct profiler_block_queue_node *new = calloc(1, sizeof(struct profiler_block_queue_node));
-
-    new->id   = id;
-    new->next = 0;
-    if (!queue->front)
+    u64 total_ticks   = profiler.end_tick - profiler.start_tick;
+    f64 percent_self  = 100.0 * (f64)anchor->ticks_self / (f64)total_ticks;
+    f64 percent_total = 100.0 * (f64)anchor->ticks_total / (f64)total_ticks;
+    printf("%6.2f%% %s(%zu)",
+           percent_self,
+           anchor->zone_id,
+           anchor->ticks_self);
+    if (anchor->ticks_total != anchor->ticks_self)
     {
-        queue->front = queue->back = new;
+        printf(" %6.2f%%(%zu)",
+               percent_total, anchor->ticks_total);
     }
-    else
+    printf("\n");
+}
+
+void end_profiling(void)
+{
+    profiler.end_tick = GET_CPU_TICK();
+    f64 total_time    = seconds_to_nanoseconds(get_os_timer_in_seconds() - profiler.start_time);
+    for (u32 index = 0;
+         index < array_length(profiler.anchors);
+         ++index)
     {
-        queue->back->next = new;
-        queue->back       = new;
+        struct profile_anchor *anchor = profiler.anchors + index;
+        if (anchor->ticks_total)
+        {
+            profiler_print_anchor(anchor);
+        }
     }
-}
-
-u32
-_pbs_pop(struct profiler_block_queue *queue)
-{
-    struct profiler_block_queue_node *top = queue->front;
-
-    u32 id = 0;
-    if (top)
-    {
-        id           = top->id;
-        queue->front = top->next;
-        free(top);
-    }
-    return (id);
-}
-
-b32
-_pbs_empty(struct profiler_block_queue *queue)
-{
-    return queue->front == 0;
-}
-
-void
-end_profiling(void)
-{
+    char *time_unit = set_to_closest_time_unit(&total_time);
+    printf("Total time(%s): %f\n", time_unit, total_time);
 }
 #else
 
-void
-start_profiling_zone(char *zone_id)
+void start_profiling_zone(char *zone_id)
 {
 }
 
-void
-end_profiling_zone(void)
+void end_profiling_zone(void)
 {
 }
 
-void
-start_profiling(void)
+void start_profiling(void)
 {
     profiler.start_time = get_os_timer_in_seconds();
 }
 
-void
-end_profiling(void)
+void end_profiling(void)
 {
     f64   total_time = seconds_to_nanoseconds(get_os_timer_in_seconds() - profiler.start_time);
     char *time_unit  = set_to_closest_time_unit(&total_time);
