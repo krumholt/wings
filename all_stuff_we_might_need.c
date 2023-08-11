@@ -1,37 +1,4 @@
-#ifndef types_h
-#define types_h
-
-#include <stdint.h>
-
-typedef char          s8;
-typedef unsigned char u8;
-typedef int16_t       s16;
-typedef uint16_t      u16;
-typedef int32_t       s32;
-typedef uint32_t      u32;
-typedef int64_t       s64;
-typedef uint64_t      u64;
-typedef float         f32;
-typedef double        f64;
-typedef uint32_t      b32;
-
-#define SET_CONSOLE_RED   "\x1b[31m"
-#define SET_CONSOLE_GREEN "\x1b[32m"
-#define RESET_CONSOLE     "\x1b[m"
-
-#ifndef unused
-#define unused(x) \
-    (void)(x)
-#endif
-
-#define STR_(...) #__VA_ARGS__
-#define STR(...)  STR_(__VA_ARGS__)
-
-#ifndef array_length
-#define array_length(x) \
-    (sizeof(x) / sizeof(x[0]))
-#endif
-
+#include "base/types.h"
 u64
 kibibyte(u64 n)
 {
@@ -145,5 +112,3 @@ min_ff(float a, float b)
 {
     return (a < b ? a : b);
 }
-
-#endif
