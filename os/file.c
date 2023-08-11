@@ -2,7 +2,8 @@
 #define OS_FILE_C_
 
 #include "base/types.h"
-#include "base/memory.c"
+#include "os/memory.c"
+
 
 error read_file(u8           **data,
                u32           *size,

@@ -1,7 +1,7 @@
 #ifndef TEST_C_
 #define TEST_C_
 
-#include "types.h"
+#include "base/types.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -41,27 +41,27 @@ print_header(char *text, s32 header_width)
         error_count = 0;          \
     } while (0)
 
-#define end_test()                                                      \
-    printf("\n");                                                       \
-    if (error_count)                                                    \
-        printf(SET_CONSOLE_RED "%d / %d tests failed.\n" RESET_CONSOLE, \
-               error_count, test_count);                                \
+#define end_test()                        \
+    printf("\n");                         \
+    if (error_count)                      \
+        printf("%d / %d tests failed.\n", \
+               error_count, test_count);  \
     printf("\n")
 
-#define test(f)                                                     \
-    test_count++;                                                   \
-    printf("%d: %s", test_count, #f);                               \
-    if ((f))                                                        \
-    {                                                               \
-        printf(SET_CONSOLE_GREEN " => SUCCESS" RESET_CONSOLE "\n"); \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        error_count++;                                              \
-        printf(SET_CONSOLE_RED " => FAILED\n" RESET_CONSOLE);       \
+#define test(f)                                               \
+    test_count++;                                             \
+    printf("%d: %s", test_count, #f);                         \
+    if ((f))                                                  \
+    {                                                         \
+        printf(" => SUCCESS\n");                              \
+    }                                                         \
+    else                                                      \
+    {                                                         \
+        error_count++;                                        \
+        printf(" => FAILED\n"); \
     }
 
-#define summary()\
-	printf("Ran %d tests with %d failed\n", test_count, error_count)
+#define summary() \
+    printf("Ran %d tests with %d failed\n", test_count, error_count)
 
 #endif
