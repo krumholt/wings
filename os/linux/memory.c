@@ -1,13 +1,13 @@
 #ifndef OS_LINUX_MEMORY_C_
 #define OS_LINUX_MEMORY_C_
 
-#include "base/types.h"
-#include "base/macros.c"
+#include "wings/base/types.h"
+#include "wings/base/macros.c"
 
 #include <stdio.h>
 #include <sys/mman.h>
 
-#ifndef OS_MEMORY_C_
+#ifndef WINGS_OS_MEMORY_C_
 enum memory_state
 {
     memory_state_commited,
