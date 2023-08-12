@@ -1,5 +1,5 @@
-#ifndef MACROS_C_
-#define MACROS_C_
+#ifndef WINGS_BASE_MACROS_C_
+#define WINGS_BASE_MACROS_C_
 
 #ifndef ARRAY_LENGTH
 #define ARRAY_LENGTH(x) \

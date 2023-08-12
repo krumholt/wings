@@ -1,39 +1,40 @@
-#ifndef RANDOM_C_
-#define RANDOM_C_
+#ifndef WINGS_BASE_RANDOM_C_
+#define WINGS_BASE_RANDOM_C_
 
-#include "types.h"
+#include "wings/base/macros.c"
+#include "wings/base/types.h"
 
 #include <limits.h>
 
-struct xorshiftstar_state
+struct wings_base_random_xorshiftstar_state
 {
     u64 value;
 };
 
-
-struct xorshiftstar_state _xorshiftstar_state = { 0x391838921 };
+struct wings_base_random_xorshiftstar_state _wings_base_random_xorshiftstar_state = { 0x391838921 };
 
 void
 xorshiftstar_seed(u64 seed)
 {
-    _xorshiftstar_state.value = seed;
+    _wings_base_random_xorshiftstar_state.value = seed;
 }
 
 u64
 xorshiftstar(void)
 {
     //@TODO: Not thread safe: two threads will start at same value!
-    u64 x                     = _xorshiftstar_state.value;
-    x                         = x ^ (x >> 12);
-    x                         = x ^ (x << 25);
-    x                         = x ^ (x >> 27);
-    _xorshiftstar_state.value = x;
+    u64 x                                       = _wings_base_random_xorshiftstar_state.value;
+    x                                           = x ^ (x >> 12);
+    x                                           = x ^ (x << 25);
+    x                                           = x ^ (x >> 27);
+    _wings_base_random_xorshiftstar_state.value = x;
     return x * 0x2545F4914F6CDD1DULL;
 }
 
 s32
 random_s32(s32 min, s32 max)
 {
+    ASSERT(min < max);
     s32 diff = max - min;
     return ((u32)(xorshiftstar() >> 32) % diff + min);
 }
@@ -71,6 +72,5 @@ random_f64(f64 min, f64 max)
     f64 diff = max - min;
     return ((f64)(random_u64(0, ULLONG_MAX) / (f64)ULLONG_MAX) * diff + min);
 }
-
 
 #endif

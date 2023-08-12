@@ -1,8 +1,8 @@
-#ifndef OS_FILE_C_
-#define OS_FILE_C_
+#ifndef WINGS_OS_FILE_C_
+#define WINGS_OS_FILE_C_
 
-#include "base/types.h"
-#include "os/memory.c"
+#include "wings/base/types.h"
+#include "wings/os/memory.c"
 
 
 error read_file(u8           **data,
