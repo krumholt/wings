@@ -1,5 +1,5 @@
-#ifndef OS_MEMORY_C
-#define OS_MEMORY_C
+#ifndef OS_MEMORY_C_
+#define OS_MEMORY_C_
 
 #include "base/types.h"
 
@@ -8,6 +8,12 @@ enum memory_state
     memory_state_commited,
     memory_state_reserved,
     memory_state_free,
+};
+
+struct os_memory_block
+{
+	u8 *base;
+	u64 size;
 };
 
 struct memory_info
@@ -21,7 +27,7 @@ struct memory_info
 #if defined(OS_WINDOWS)
 #include "os/windows_os_memory.c"
 #elif defined(OS_LINUX)
-#error "OS_LINUX not implemented"
+#include "os/linux_os_memory.c"
 #else
 #error "Operating system not set #define OS_WINDOWS or OS_LINUX"
 #endif

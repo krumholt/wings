@@ -2,76 +2,84 @@
 #define LINUX_OS_MEMORY_C
 
 #include "base/types.h"
+#include "base/macros.c"
 
+#include <stdio.h>
 #include <sys/mman.h>
 
-error
-os_reserve_memory(void **memory, u64 size)
+#ifndef OS_MEMORY_C_
+enum memory_state
 {
-    *memory = VirtualAlloc(0,
-                           size,
-                           MEM_RESERVE,
-                           PAGE_READWRITE);
-    if (memory == 0)
-        return (1);
+    memory_state_commited,
+    memory_state_reserved,
+    memory_state_free,
+};
 
+struct os_memory_block
+{
+	u8 *base;
+	u64 size;
+};
+
+struct memory_info
+{
+    void             *base_adress;
+    void             *allocation_adress;
+    u64               region_size;
+    enum memory_state state;
+};
+
+#endif
+
+
+error
+os_reserve_memory(struct os_memory_block *block, u64 size)
+{
+	block->base = mmap(0, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (block->base == MAP_FAILED)
+	{
+		return (1);
+	}
+	block->size = size;
     return (0);
 }
 
 error
-os_commit_memory(void *memory, u64 size)
+os_commit_memory(struct os_memory_block block)
 {
-    void *result = VirtualAlloc(memory,
-                                size,
-                                MEM_COMMIT,
-                                PAGE_READWRITE);
-    return (memory == result ? 0 : 1);
+	int result = mprotect(block.base, block.size, PROT_READ | PROT_WRITE);
+	printf("mprotect called\n");
+    return (result == -1 ? 1 : 0);
 }
 
 error
-os_release_memory(void *memory)
+os_release_memory(struct os_memory_block block)
 {
-    b32 result = VirtualFree(memory, 0, MEM_RELEASE);
-    return (result == 0 ? 1 : 0);
+	int result = munmap(block.base, block.size);
+	error error = 0;
+	if (result == -1)
+		error = 1;
+
+    return (error);
 }
 
 error
-os_decommit_memory(void *memory, u64 size)
+os_decommit_memory(struct os_memory_block block)
 {
-    b32 result = VirtualFree(memory, size, MEM_DECOMMIT);
-    return (result == 0 ? 1 : 0);
+	int result = mprotect(block.base, block.size, PROT_NONE);
+	error error = 0;
+	if (result == -1)
+		error = 1;
+    return (error);
 }
 
 error
 os_get_memory_info(struct memory_info *info, void *memory)
 {
-    MEMORY_BASIC_INFORMATION basic_info = { 0 };
-
-    u64 query_size = VirtualQuery(memory, &basic_info, sizeof(MEMORY_BASIC_INFORMATION));
-    if (query_size != sizeof(MEMORY_BASIC_INFORMATION))
-        return (1);
-
-    enum memory_state state = { 0 };
-    switch (basic_info.State)
-    {
-    case MEM_RESERVE:
-        state = memory_state_reserved;
-        break;
-    case MEM_FREE:
-        state = memory_state_free;
-        break;
-    case MEM_COMMIT:
-        state = memory_state_commited;
-        break;
-    default:
-        return (2);
-    }
-    info->state             = state;
-    info->base_adress       = basic_info.BaseAddress;
-    info->allocation_adress = basic_info.AllocationBase;
-    info->region_size       = basic_info.RegionSize;
-
-    return (0);
+	UNUSED(info);
+	UNUSED(memory);
+	WARN("os_get_memory_info not implemented in linux");
+	return(1);
 }
 
 #endif

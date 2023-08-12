@@ -11,5 +11,19 @@
     (void)(x)
 #endif
 
+#ifndef WARN
+#define WARN(x) \
+    printf("[WARNING] %s\n", x)
+#endif
+
+#ifndef ASSERT
+#ifdef NO_ASSERTS
+#define ASSERT(argument)
+#else
+#include <assert.h>
+#define ASSERT(argument) assert(argument)
+#endif
+#endif
+
 
 #endif
