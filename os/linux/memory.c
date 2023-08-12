@@ -74,10 +74,10 @@ os_decommit_memory(struct os_memory_block block)
 }
 
 error
-os_get_memory_info(struct memory_info *info, void *memory)
+os_get_memory_info(struct memory_info *info, struct os_memory_block block)
 {
 	UNUSED(info);
-	UNUSED(memory);
+	UNUSED(block);
 	WARN("os_get_memory_info not implemented in linux");
 	return(1);
 }
