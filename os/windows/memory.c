@@ -1,7 +1,7 @@
 #ifndef OS_WINDOWS_MEMORY_C_
 #define OS_WINDOWS_MEMORY_C_
 
-#include "base/types.h"
+#include "wings/base/types.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -9,7 +9,7 @@
 #endif
 #include <Windows.h>
 
-#ifndef OS_MEMORY_C_
+#ifndef WINGS_OS_MEMORY_C_
 enum memory_state
 {
     memory_state_commited,
