@@ -9,29 +9,32 @@
 #endif
 #include <windows.h>
 
-
-u64 get_os_timer_frequency(void)
+u64
+get_os_timer_frequency(void)
 {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
     return frequency.QuadPart;
 }
 
-u64 get_os_timer(void)
+u64
+get_os_timer(void)
 {
     LARGE_INTEGER value;
     QueryPerformanceCounter(&value);
     return value.QuadPart;
 }
 
-f64 get_os_timer_in_seconds(void)
+f64
+get_os_timer_in_seconds(void)
 {
     LARGE_INTEGER value;
     QueryPerformanceCounter(&value);
     return value.QuadPart / (f64)get_os_timer_frequency();
 }
 
-u64 get_cpu_timer(void)
+u64
+get_cpu_timer(void)
 {
     return __rdtsc();
 }

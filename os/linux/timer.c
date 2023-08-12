@@ -9,6 +9,7 @@
 u64
 get_os_timer_frequency(void)
 {
+	return 1e9;
 }
 
 u64
