@@ -1,5 +1,5 @@
-#ifndef OS_LINUX_MEMORY_C_
-#define OS_LINUX_MEMORY_C_
+#ifndef WINGS_OS_LINUX_MEMORY_C_
+#define WINGS_OS_LINUX_MEMORY_C_
 
 #include "wings/base/types.h"
 #include "wings/base/macros.c"

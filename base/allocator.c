@@ -1,9 +1,9 @@
-#ifndef MEM_C
-#define MEM_C
+#ifndef WINGS_BASE_ALLOCATOR_C_
+#define WINGS_BASE_ALLOCATOR_C_
 
-#include "base/types.h"
+#include "wings/base/types.c"
 
-#include "profiler.c"
+#include "wings/profiler.c"
 #include <assert.h>
 #include <malloc.h>
 #include <stdlib.h>

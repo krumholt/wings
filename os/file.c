@@ -1,7 +1,7 @@
 #ifndef WINGS_OS_FILE_C_
 #define WINGS_OS_FILE_C_
 
-#include "wings/base/types.h"
+#include "wings/base/types.c"
 #include "wings/os/memory.c"
 
 

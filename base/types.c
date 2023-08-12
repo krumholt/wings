@@ -1,5 +1,5 @@
-#ifndef WINGS_BASE_TYPES_H_
-#define WINGS_BASE_TYPES_H_
+#ifndef WINGS_BASE_TYPES_C_
+#define WINGS_BASE_TYPES_C_
 
 #include <stdint.h>
 

@@ -1,8 +1,8 @@
 #ifndef PROFILER_C
 #define PROFILER_C
 
+#include "wings/base/types.c"
 #include "os_timer.c"
-#include "types.h"
 
 #include <assert.h>
 #include <stdio.h>
