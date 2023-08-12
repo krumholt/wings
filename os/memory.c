@@ -25,9 +25,9 @@ struct memory_info
 };
 
 #if defined(OS_WINDOWS)
-#include "os/windows_os_memory.c"
+#include "os/windows/memory.c"
 #elif defined(OS_LINUX)
-#include "os/linux_os_memory.c"
+#include "os/linux/memory.c"
 #else
 #error "Operating system not set #define OS_WINDOWS or OS_LINUX"
 #endif

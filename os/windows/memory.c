@@ -1,5 +1,5 @@
-#ifndef WINDOWS_OS_MEMORY_C
-#define WINDOWS_OS_MEMORY_C
+#ifndef OS_WINDOWS_MEMORY_C_
+#define OS_WINDOWS_MEMORY_C_
 
 #include "base/types.h"
 
@@ -9,11 +9,18 @@
 #endif
 #include <Windows.h>
 
+#ifndef OS_MEMORY_C_
 enum memory_state
 {
     memory_state_commited,
     memory_state_reserved,
     memory_state_free,
+};
+
+struct os_memory_block
+{
+    u8 *base;
+    u64 size;
 };
 
 struct memory_info
@@ -24,49 +31,52 @@ struct memory_info
     enum memory_state state;
 };
 
+#endif
+
 error
-os_reserve_memory(void **memory, u64 size)
+os_reserve_memory(struct os_memory_block *block, u64 size)
 {
-    *memory = VirtualAlloc(0,
-                           size,
-                           MEM_RESERVE,
-                           PAGE_READWRITE);
-    if (memory == 0)
+    block->base = VirtualAlloc(0,
+                               size,
+                               MEM_RESERVE,
+                               PAGE_READWRITE);
+    if (block->base == 0)
         return (1);
+    block->size = size;
 
     return (0);
 }
 
 error
-os_commit_memory(void *memory, u64 size)
+os_commit_memory(struct os_memory_block block)
 {
-    void *result = VirtualAlloc(memory,
-                                size,
+    void *result = VirtualAlloc(block.base,
+                                block.size,
                                 MEM_COMMIT,
                                 PAGE_READWRITE);
-    return (memory == result ? 0 : 1);
+    return (block.base == result ? 0 : 1);
 }
 
 error
-os_release_memory(void *memory)
+os_release_memory(struct os_memory_block block)
 {
-    b32 result = VirtualFree(memory, 0, MEM_RELEASE);
+    b32 result = VirtualFree(block.base, 0, MEM_RELEASE);
     return (result == 0 ? 1 : 0);
 }
 
 error
-os_decommit_memory(void *memory, u64 size)
+os_decommit_memory(struct os_memory_block block)
 {
-    b32 result = VirtualFree(memory, size, MEM_DECOMMIT);
+    b32 result = VirtualFree(block.base, block.size, MEM_DECOMMIT);
     return (result == 0 ? 1 : 0);
 }
 
 error
-os_get_memory_info(struct memory_info *info, void *memory)
+os_get_memory_info(struct memory_info *info, struct os_memory_block block)
 {
     MEMORY_BASIC_INFORMATION basic_info = { 0 };
 
-    u64 query_size = VirtualQuery(memory, &basic_info, sizeof(MEMORY_BASIC_INFORMATION));
+    u64 query_size = VirtualQuery(block.base, &basic_info, sizeof(MEMORY_BASIC_INFORMATION));
     if (query_size != sizeof(MEMORY_BASIC_INFORMATION))
         return (1);
 

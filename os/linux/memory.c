@@ -1,5 +1,5 @@
-#ifndef LINUX_OS_MEMORY_C
-#define LINUX_OS_MEMORY_C
+#ifndef OS_LINUX_MEMORY_C_
+#define OS_LINUX_MEMORY_C_
 
 #include "base/types.h"
 #include "base/macros.c"
