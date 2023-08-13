@@ -7,27 +7,14 @@
 #include <string.h>
 
 void
-print_header(char *text, s32 header_width)
+print_header(char *text)
 {
-    printf("x");
-    for (s32 index = 0; index < header_width - 2; ++index)
+    printf("%s\n", text);
+    for (u32 index = 0; index < strlen(text); ++index)
     {
-        printf("=");
+        printf("-");
     }
-    printf("x\n");
-    printf("| %s", text);
-    s32 string_size = (s32)strlen(text);
-    for (s32 index = 0; index < header_width - string_size - 3; ++index)
-    {
-        printf(" ");
-    }
-    printf("|\n");
-    printf("x");
-    for (s32 index = 0; index < header_width - 2; ++index)
-    {
-        printf("=");
-    }
-    printf("x\n");
+	printf("\n");
 }
 
 #define init_tests()     \
@@ -37,7 +24,7 @@ print_header(char *text, s32 header_width)
 #define begin_test(text)          \
     do                            \
     {                             \
-        print_header((text), 80); \
+        print_header(text); \
         error_count = 0;          \
     } while (0)
 
