@@ -1,7 +1,7 @@
-#ifndef TEST_C_
-#define TEST_C_
+#ifndef WINGS_BASE_TESTS_C_
+#define WINGS_BASE_TESTS_C_
 
-#include "base/types.h"
+#include "wings/base/types.c"
 
 #include <stdio.h>
 #include <string.h>
