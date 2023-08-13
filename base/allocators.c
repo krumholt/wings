@@ -133,10 +133,10 @@ linear_fixed_size_allocator_allocate(u8 **memory, struct fixed_size_linear_alloc
 }
 
 #define allocate_struct(pointer, allocator, type) \
-    (*(pointer)=(type *)(0), allocate((u8 **)(pointer), (allocator), sizeof(type)))
+    (*(pointer) = (type *)(0), allocate((u8 **)(pointer), (allocator), sizeof(type)))
 
 #define allocate_array(pointer, allocator, n, type) \
-    (*(pointer)=(type *)(0), allocate((u8 **)(pointer), (allocator), (n) * sizeof(type)))
+    (*(pointer) = (type *)(0), allocate((u8 **)(pointer), (allocator), (n) * sizeof(type)))
 
 error
 allocate(u8 **memory, struct allocator *allocator, u64 size)
@@ -156,30 +156,34 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
     }
 }
 
-inline void
+inline error
 linear_growing_allocator_free_top_block(struct growing_linear_allocator *allocator)
 {
     struct buffer_stack *top = allocator->stack;
     allocator->stack         = top->previous;
     allocator->number_of_blocks -= 1;
-    struct os_memory_block block = { top->buffer.to, top->buffer.to - top->buffer.from };
-    os_release_memory(block);
+    struct os_memory_block block = { top->buffer.from, top->buffer.to - top->buffer.from };
+    error error = os_release_memory(block);
+    return (error);
 }
 
-void
+error
 linear_growing_allocator_clear(struct growing_linear_allocator *allocator)
 {
     while (allocator->stack)
     {
-        linear_growing_allocator_free_top_block(allocator);
+        error error = linear_growing_allocator_free_top_block(allocator);
+        if (error)
+            return error;
     }
+    return NO_ERROR;
 }
 
 void
 linear_fixed_size_allocator_clear(struct fixed_size_linear_allocator *allocator)
 {
     for (u8 *current = allocator->stack.buffer.from;
-         current <= allocator->stack.buffer.current;
+         current < allocator->stack.buffer.current;
          ++current)
     {
         *current = 0;
@@ -187,19 +191,20 @@ linear_fixed_size_allocator_clear(struct fixed_size_linear_allocator *allocator)
     allocator->stack.buffer.current = allocator->stack.buffer.from;
 }
 
-void
+error
 allocator_clear(struct allocator *allocator)
 {
     switch (allocator->type)
     {
     case allocator_type_growing_linear:
     {
-        linear_growing_allocator_clear(&allocator->growing_linear_allocator);
+        return linear_growing_allocator_clear(&allocator->growing_linear_allocator);
     }
     break;
     case allocator_type_fixed_size_linear:
     {
-        linear_fixed_size_allocator_clear(&allocator->fixed_size_linear_allocator);
+		linear_fixed_size_allocator_clear(&allocator->fixed_size_linear_allocator);
+		return NO_ERROR;
     }
     break;
     }
