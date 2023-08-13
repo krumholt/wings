@@ -48,17 +48,17 @@ print_header(char *text, s32 header_width)
                error_count, test_count);  \
     printf("\n")
 
-#define test(f)                                               \
-    test_count++;                                             \
-    printf("%d: %s", test_count, #f);                         \
-    if ((f))                                                  \
-    {                                                         \
-        printf(" => SUCCESS\n");                              \
-    }                                                         \
-    else                                                      \
-    {                                                         \
-        error_count++;                                        \
-        printf(" => FAILED\n"); \
+#define test(f)                       \
+    test_count++;                     \
+    printf("%d: %s", test_count, #f); \
+    if ((f))                          \
+    {                                 \
+        printf(" => SUCCESS\n");      \
+    }                                 \
+    else                              \
+    {                                 \
+        error_count++;                \
+        printf(" => FAILED\n");       \
     }
 
 #define summary() \

@@ -14,7 +14,10 @@ typedef uint64_t      u64;
 typedef float         f32;
 typedef double        f64;
 
-typedef uint32_t      b32;
-typedef uint32_t      error;
+typedef uint32_t b32;
+typedef uint32_t error;
+typedef error    merror;
+
+const error NO_ERROR = 0;
 
 #endif
