@@ -43,36 +43,34 @@ end_test(void)
     if (tests.test_failed_asserts)
     {
         tests.failed += 1;
-        printf("%d / %d asserts failed.\n",
+        printf("   %d / %d asserts failed.\n",
                tests.test_failed_asserts,
                tests.test_asserts);
         printf("\n");
     }
 }
 
-#define test(f)                                           \
-    tests.test_asserts += 1;                              \
-    do                                                    \
-    {                                                     \
-        if (!(f))                                         \
-        {                                                 \
-            if (!tests.name_printed)                      \
-            {                                             \
-                print_header(tests.name);                 \
-                tests.name_printed = 1;                   \
-            }                                             \
-            tests.test_failed_asserts += 1;               \
-            printf("%s:%d:0: error: ", __FILE__, __LINE__); \
-            printf("(%s)\n", #f);                         \
-        }                                                 \
+#define test(f)                                                \
+    tests.test_asserts += 1;                                   \
+    do                                                         \
+    {                                                          \
+        if (!(f))                                              \
+        {                                                      \
+            if (!tests.name_printed)                           \
+            {                                                  \
+                print_header(tests.name);                      \
+                tests.name_printed = 1;                        \
+            }                                                  \
+            tests.test_failed_asserts += 1;                    \
+            printf("   %s:%d:0: error: ", __FILE__, __LINE__); \
+            printf("   (%s)\n", #f);                           \
+        }                                                      \
     } while (0)
 
 void
 print_summary(void)
 {
-    printf("Ran %d tests with %d failed\n",
-           tests.run,
-           tests.failed);
+    printf("   %d/%d successful tests\n", tests.run - tests.failed, tests.run);
 }
 
 #endif
