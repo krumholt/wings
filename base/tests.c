@@ -7,48 +7,72 @@
 #include <string.h>
 
 void
-print_header(char *text)
+print_header(const char *text)
 {
     printf("%s\n", text);
     for (u32 index = 0; index < strlen(text); ++index)
     {
         printf("-");
     }
-	printf("\n");
+    printf("\n");
 }
 
-#define init_tests()     \
-    int test_count  = 0; \
-    int error_count = 0
+struct tests
+{
+    u32         run;
+    u32         failed;
+    u32         test_asserts;
+    u32         test_failed_asserts;
+    const char *name;
+    u32         name_printed;
+} tests = { 0 };
 
-#define begin_test(text)          \
-    do                            \
-    {                             \
-        print_header(text); \
-        error_count = 0;          \
+void
+begin_test(const char *name)
+{
+    tests.run += 1;
+    tests.test_failed_asserts = 0;
+    tests.test_asserts        = 0;
+    tests.name                = name;
+    tests.name_printed        = 0;
+}
+
+void
+end_test(void)
+{
+    if (tests.test_failed_asserts)
+    {
+        tests.failed += 1;
+        printf("%d / %d asserts failed.\n",
+               tests.test_failed_asserts,
+               tests.test_asserts);
+        printf("\n");
+    }
+}
+
+#define test(f)                                           \
+    tests.test_asserts += 1;                              \
+    do                                                    \
+    {                                                     \
+        if (!(f))                                         \
+        {                                                 \
+            if (!tests.name_printed)                      \
+            {                                             \
+                print_header(tests.name);                 \
+                tests.name_printed = 1;                   \
+            }                                             \
+            tests.test_failed_asserts += 1;               \
+            printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+            printf("(%s)\n", #f);                         \
+        }                                                 \
     } while (0)
 
-#define end_test()                        \
-    printf("\n");                         \
-    if (error_count)                      \
-        printf("%d / %d tests failed.\n", \
-               error_count, test_count);  \
-    printf("\n")
-
-#define test(f)                       \
-    test_count++;                     \
-    printf("%d: %s", test_count, #f); \
-    if ((f))                          \
-    {                                 \
-        printf(" => SUCCESS\n");      \
-    }                                 \
-    else                              \
-    {                                 \
-        error_count++;                \
-        printf(" => FAILED\n");       \
-    }
-
-#define summary() \
-    printf("Ran %d tests with %d failed\n", test_count, error_count)
+void
+print_summary(void)
+{
+    printf("Ran %d tests with %d failed\n",
+           tests.run,
+           tests.failed);
+}
 
 #endif
