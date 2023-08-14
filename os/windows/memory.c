@@ -12,11 +12,11 @@
 
 enum os_memory_error
 {
-	os_memory_error_NO_ERROR,
-	os_memory_error_FAILED_TO_ALLOCATE,
-	os_memory_error_QUERY_UNKNOWN_STATE,
-	os_memory_error_QUERY_FAILED,
-	os_memory_error_ENUM_LENGTH,
+    os_memory_error_NO_ERROR,
+    os_memory_error_FAILED_TO_ALLOCATE,
+    os_memory_error_QUERY_UNKNOWN_STATE,
+    os_memory_error_QUERY_FAILED,
+    os_memory_error_ENUM_LENGTH,
 };
 
 #ifndef WINGS_OS_MEMORY_C_
@@ -27,7 +27,7 @@ enum memory_state
     memory_state_free,
 };
 
-struct os_memory_block
+struct os_allocation
 {
     u8 *base;
     u64 size;
@@ -44,21 +44,25 @@ struct memory_info
 #endif
 
 error
-os_reserve_memory(struct os_memory_block *block, u64 size)
+os_reserve_memory(struct os_allocation *block, u64 size)
 {
-    block->base = VirtualAlloc(0,
-                               size,
-                               MEM_RESERVE,
-                               PAGE_READWRITE);
+    SYSTEM_INFO info = { 0 };
+    GetSystemInfo(&info);
+    u32 page_size   = info.dwPageSize;
+    u32 actual_size = ((size / page_size) + 1) * page_size;
+    block->base     = VirtualAlloc(0,
+                                   actual_size,
+                                   MEM_RESERVE,
+                                   PAGE_READWRITE);
     if (block->base == 0)
         return (os_memory_error_FAILED_TO_ALLOCATE);
-    block->size = size;
+    block->size = actual_size;
 
     return (0);
 }
 
 error
-os_commit_memory(struct os_memory_block block)
+os_commit_memory(struct os_allocation block)
 {
     void *result = VirtualAlloc(block.base,
                                 block.size,
@@ -68,7 +72,7 @@ os_commit_memory(struct os_memory_block block)
 }
 
 error
-os_reserve_and_commit_memory(struct os_memory_block *block, u64 size)
+os_reserve_and_commit_memory(struct os_allocation *block, u64 size)
 {
     error error = 0;
     error       = os_reserve_memory(block, size);
@@ -83,21 +87,21 @@ os_reserve_and_commit_memory(struct os_memory_block *block, u64 size)
 }
 
 error
-os_release_memory(struct os_memory_block block)
+os_release_memory(struct os_allocation block)
 {
     b32 result = VirtualFree(block.base, 0, MEM_RELEASE);
     return (result == 0 ? os_memory_error_FAILED_TO_ALLOCATE : NO_ERROR);
 }
 
 error
-os_decommit_memory(struct os_memory_block block)
+os_decommit_memory(struct os_allocation block)
 {
     b32 result = VirtualFree(block.base, block.size, MEM_DECOMMIT);
     return (result == 0 ? os_memory_error_FAILED_TO_ALLOCATE : NO_ERROR);
 }
 
 error
-os_get_memory_info(struct memory_info *info, struct os_memory_block block)
+os_get_memory_info(struct memory_info *info, struct os_allocation block)
 {
     MEMORY_BASIC_INFORMATION basic_info = { 0 };
 

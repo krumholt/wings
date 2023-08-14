@@ -5,30 +5,36 @@
 #include "wings/base/types.c"
 #include "wings/os/memory.c"
 
-struct buffer
+struct memory_block
 {
-    u8 *from;
-    u8 *to;
-    u8 *current;
+    struct os_allocation allocation;
+    u64                  used;
 };
 
-struct buffer_stack
+struct memory_block_stack_node
 {
-    struct buffer_stack *previous;
-    struct buffer        buffer;
+    struct memory_block_stack_node *previous;
+    struct memory_block             block;
+};
+
+struct memory_block_stack
+{
+    struct memory_block_stack_node
+        *top;
+    u32  number_of_nodes;
+    u64  total_memory_allocated;
 };
 
 struct growing_linear_allocator
 {
-    struct buffer_stack *stack;
+    struct memory_block_stack stack;
 
-    u64 number_of_blocks;
     u64 min_block_size;
 };
 
 struct fixed_size_linear_allocator
 {
-    struct buffer_stack stack;
+    struct memory_block_stack stack;
 };
 
 enum allocator_type
@@ -49,16 +55,12 @@ struct allocator
 };
 
 error
-allocate_buffer(struct buffer *buffer, u64 size)
+_allocate(struct memory_block *allocation, u64 size)
 {
-    struct os_memory_block block = { 0 };
-
-    error error = os_reserve_and_commit_memory(&block, size);
+    error error = os_reserve_and_commit_memory(&allocation->allocation, size);
     if (error)
         return (1);
-    buffer->from    = block.base;
-    buffer->to      = block.base + block.size;
-    buffer->current = block.base;
+    allocation->used = 0;
     return (0);
 }
 
@@ -69,7 +71,6 @@ make_growing_linear_allocator(u64 block_size)
         .type                     = allocator_type_growing_linear,
         .alignment                = 8,
         .growing_linear_allocator = {
-                                     .stack          = 0,
                                      .min_block_size = block_size,
                                      },
     };
@@ -80,55 +81,62 @@ error
 linear_growing_allocator_allocate(u8 **memory, struct growing_linear_allocator *allocator, u64 alignment, u64 size)
 {
     size = (size + alignment - 1) & ~(alignment - 1);
-    if (!allocator->stack
-        || (allocator->stack->buffer.current + size
-            > allocator->stack->buffer.to))
+    if (!allocator->stack.top
+        || (allocator->stack.top->block.used + size
+            > allocator->stack.top->block.allocation.size))
     {
         u64 new_block_size = max(size, allocator->min_block_size);
 
-        struct os_memory_block block = { 0 };
+        struct os_allocation allocation = { 0 };
 
-        error error = os_reserve_and_commit_memory(&block,
-                                                   sizeof(struct buffer_stack) + new_block_size);
+        error error = os_reserve_and_commit_memory(&allocation,
+                                                   sizeof(struct memory_block_stack) + new_block_size);
         if (error)
             return (1);
-        struct buffer_stack *new_stack = (struct buffer_stack *)block.base;
-        new_stack->buffer.from         = block.base
-                                 + sizeof(struct buffer_stack);
-        new_stack->buffer.to      = new_stack->buffer.from + new_block_size;
-        new_stack->buffer.current = new_stack->buffer.from;
+        struct memory_block_stack_node *new_node
+            = (struct memory_block_stack_node *)allocation.base;
+        new_node->block.allocation = allocation;
+        new_node->block.used       = sizeof(struct memory_block_stack_node);
 
-        new_stack->previous = allocator->stack;
-        allocator->stack    = new_stack;
-        allocator->number_of_blocks += 1;
+        new_node->previous = allocator->stack.top;
+        allocator->stack.top   = new_node;
+        allocator->stack.number_of_nodes += 1;
     }
 
-    *memory = allocator->stack->buffer.current;
-    allocator->stack->buffer.current += size;
+    *memory = allocator->stack.top->block.allocation.base + allocator->stack.top->block.used;
+    allocator->stack.top->block.used += size;
     return (0);
 }
 
 error
 make_fixed_size_linear_allocator(struct allocator *allocator, u64 size)
 {
+	struct os_allocation allocation = { 0 };
+	error error = os_reserve_and_commit_memory(&allocation,
+			sizeof(struct memory_block_stack_node) + size);
+	if (error)
+		return (1);
+	struct memory_block_stack_node *new_node
+		= (struct memory_block_stack_node *)allocation.base;
+	new_node->block.allocation = allocation;
+	new_node->block.used       = sizeof(struct memory_block_stack_node);
     allocator->type      = allocator_type_fixed_size_linear;
     allocator->alignment = 8;
-    error error          = 0;
-    error                = allocate_buffer(&allocator->fixed_size_linear_allocator.stack.buffer, size);
-    return (error);
+    allocator->fixed_size_linear_allocator.stack.top = new_node;
+    return (0);
 }
 
 error
 linear_fixed_size_allocator_allocate(u8 **memory, struct fixed_size_linear_allocator *allocator, u64 alignment, u64 size)
 {
     size            = (size + alignment - 1) & ~(alignment - 1);
-    u64 memory_left = allocator->stack.buffer.to
-                      - allocator->stack.buffer.current;
+    u64 memory_left = allocator->stack.top->block.allocation.size
+                      - allocator->stack.top->block.used;
     if (memory_left < size)
         return (1);
 
-    *memory = allocator->stack.buffer.current;
-    allocator->stack.buffer.current += size;
+    *memory = allocator->stack.top->block.allocation.base;
+    allocator->stack.top->block.used += size;
     return (0);
 }
 
@@ -159,11 +167,11 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
 inline error
 linear_growing_allocator_free_top_block(struct growing_linear_allocator *allocator)
 {
-    struct buffer_stack *top = allocator->stack;
-    allocator->stack         = top->previous;
+    struct memory_block_stack *top = allocator->stack;
+    allocator->stack               = top->previous;
     allocator->number_of_blocks -= 1;
-    struct os_memory_block block = { top->buffer.from, top->buffer.to - top->buffer.from };
-    error error = os_release_memory(block);
+    struct os_allocation block = { top->allocation.from, top->allocation.to - top->allocation.from };
+    error                error = os_release_memory(block);
     return (error);
 }
 
@@ -182,13 +190,13 @@ linear_growing_allocator_clear(struct growing_linear_allocator *allocator)
 void
 linear_fixed_size_allocator_clear(struct fixed_size_linear_allocator *allocator)
 {
-    for (u8 *current = allocator->stack.buffer.from;
-         current < allocator->stack.buffer.current;
+    for (u8 *current = allocator->stack.allocation.from;
+         current < allocator->stack.allocation.current;
          ++current)
     {
         *current = 0;
     }
-    allocator->stack.buffer.current = allocator->stack.buffer.from;
+    allocator->stack.allocation.current = allocator->stack.allocation.from;
 }
 
 error
@@ -203,8 +211,8 @@ allocator_clear(struct allocator *allocator)
     break;
     case allocator_type_fixed_size_linear:
     {
-		linear_fixed_size_allocator_clear(&allocator->fixed_size_linear_allocator);
-		return NO_ERROR;
+        linear_fixed_size_allocator_clear(&allocator->fixed_size_linear_allocator);
+        return NO_ERROR;
     }
     break;
     }

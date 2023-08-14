@@ -10,10 +10,10 @@ enum memory_state
     memory_state_free,
 };
 
-struct os_memory_block
+struct os_allocation
 {
-	u8 *base;
-	u64 size;
+    u8 *base;
+    u64 size;
 };
 
 struct memory_info
