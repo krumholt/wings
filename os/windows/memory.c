@@ -48,12 +48,12 @@ os_reserve_memory(struct os_allocation *block, u64 size)
 {
     SYSTEM_INFO info = { 0 };
     GetSystemInfo(&info);
-    u32 page_size   = info.dwPageSize;
-    u32 actual_size = ((size / page_size) + 1) * page_size;
-    block->base     = VirtualAlloc(0,
-                                   actual_size,
-                                   MEM_RESERVE,
-                                   PAGE_READWRITE);
+    u32 allocation_size = info.dwAllocationGranularity;
+    u32 actual_size     = ((size / allocation_size) + 1) * allocation_size;
+    block->base         = VirtualAlloc(0,
+                                       actual_size,
+                                       MEM_RESERVE,
+                                       PAGE_READWRITE);
     if (block->base == 0)
         return (os_memory_error_FAILED_TO_ALLOCATE);
     block->size = actual_size;
@@ -98,6 +98,24 @@ os_decommit_memory(struct os_allocation block)
 {
     b32 result = VirtualFree(block.base, block.size, MEM_DECOMMIT);
     return (result == 0 ? os_memory_error_FAILED_TO_ALLOCATE : NO_ERROR);
+}
+
+u64
+os_get_page_size(void)
+{
+    SYSTEM_INFO info = { 0 };
+    GetSystemInfo(&info);
+    u32 page_size = info.dwPageSize;
+    return (page_size);
+}
+
+u64
+os_get_allocation_size(void)
+{
+    SYSTEM_INFO info = { 0 };
+    GetSystemInfo(&info);
+    u32 page_size = info.dwAllocationGranularity;
+    return (page_size);
 }
 
 error
