@@ -168,6 +168,7 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
     }
 }
 
+#include "stdio.h"
 error
 linear_growing_allocator_clear(struct allocator *allocator_)
 {
@@ -175,6 +176,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
     allocator_->total_memory_allocated         = 0;
     allocator_->total_memory_used              = 0;
     struct memory_block_stack_node *node       = allocator->stack.top;
+	allocator->stack.top = 0;
     while (node)
     {
         struct memory_block_stack_node *previous
@@ -184,6 +186,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
             return error;
         node = previous;
     }
+	allocator->stack.number_of_nodes = 0;
     return NO_ERROR;
 }
 
