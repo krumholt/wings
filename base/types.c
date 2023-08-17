@@ -20,4 +20,10 @@ typedef error    merror;
 
 const error NO_ERROR = 0;
 
+struct buffer
+{
+    u8 *data;
+    u64 size;
+};
+
 #endif

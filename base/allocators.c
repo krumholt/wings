@@ -78,6 +78,7 @@ make_growing_linear_allocator(u64 block_size)
     return (allocator);
 }
 
+#include <stdio.h>
 error
 linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64 size)
 {
@@ -88,12 +89,21 @@ linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64
         || (allocator->stack.top->block.used + size
             > allocator->stack.top->block.allocation.size))
     {
-        u64 new_block_size = max(size, allocator->min_block_size);
+        u64 new_block_size = 0;
+		if (size > allocator->min_block_size)
+		{
+			new_block_size = size;
+		}
+		else
+		{
+			new_block_size = allocator->min_block_size;
+		}
 
         struct os_allocation allocation = { 0 };
 
-        error error = os_reserve_and_commit_memory(&allocation,
-                                                   sizeof(struct memory_block_stack) + new_block_size);
+        error error = os_reserve_and_commit_memory(
+				&allocation,
+				new_block_size);
         if (error)
             return (1);
         allocator_->total_memory_allocated += allocation.size;

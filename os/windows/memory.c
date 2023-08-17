@@ -49,7 +49,7 @@ os_reserve_memory(struct os_allocation *block, u64 size)
     SYSTEM_INFO info = { 0 };
     GetSystemInfo(&info);
     u32 allocation_size = info.dwAllocationGranularity;
-    u32 actual_size     = ((size / allocation_size) + 1) * allocation_size;
+    u32 actual_size     = ((size + allocation_size - 1) / allocation_size) * allocation_size;
     block->base         = VirtualAlloc(0,
                                        actual_size,
                                        MEM_RESERVE,
@@ -114,8 +114,8 @@ os_get_allocation_size(void)
 {
     SYSTEM_INFO info = { 0 };
     GetSystemInfo(&info);
-    u32 page_size = info.dwAllocationGranularity;
-    return (page_size);
+    u32 allocation_size = info.dwAllocationGranularity;
+    return (allocation_size);
 }
 
 error

@@ -1,14 +1,13 @@
 #ifndef WINGS_OS_FILE_C_
 #define WINGS_OS_FILE_C_
 
-#include "wings/base/types.c"
-#include "wings/os/memory.c"
 
-
-error read_file(u8           **data,
-               u32           *size,
-               char          *file_path,
-               b32            zero_terminate,
-               struct allocator *allocator);
+#if defined(OS_WINDOWS)
+#include "wings/os/windows/file.c"
+#elif defined(OS_LINUX)
+#include "wings/os/linux/file.c"
+#else
+#error "Operating system not set #define OS_WINDOWS or OS_LINUX"
+#endif
 
 #endif
