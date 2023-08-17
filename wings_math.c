@@ -1,8 +1,8 @@
 #ifndef WINGS_MATH_C
 #define WINGS_MATH_C
 
-#include "random.c"
-#include "types.h"
+#include "wings/base/types.c"
+#include "wings/base/random.c"
 
 #include <float.h>
 #include <limits.h>
@@ -1352,9 +1352,10 @@ make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32
 struct mat4
 make_perspective_projection_RH_ZO(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 fov)
 {
+	UNUSED(near_plane); UNUSED(far_plane);
     struct mat4 result = { 0 };
-    f32         n      = near_plane;
-    f32         f      = far_plane;
+    //f32         n      = near_plane;
+    //f32         f      = far_plane;
 
     result.m00 = 1.0f / tanf(0.5f * fov);
     result.m10 = 0.0f;
@@ -2528,8 +2529,6 @@ next_ray_grid_march(struct ray_grid_march *march)
 struct v3
 rotate_vector_by_quaternion(struct quaternion q, struct v3 vector)
 {
-    struct v3 result = { 0 };
-
     struct v3 vector_part = { q.x, q.y, q.z };
     f32       scalar_part = q.w;
 
@@ -2612,9 +2611,9 @@ screen_position_to_camera_ray(struct v3   camera_position,
     f32 y = ((2.0f * (f32)mouse_position.y / (f32)screen_size.y) - 1.0f);
 
     struct v4 ndc           = { x, -y, -1.0f, 1.0f };
-    struct v4 ndc_2         = { x, -y, 1.0f, 1.0f };
+    //struct v4 ndc_2         = { x, -y, 1.0f, 1.0f };
     struct v4 ray_eye       = mul_mat4_v4(inv_projection, ndc);
-    struct v4 ray_eye_2     = mul_mat4_v4(inv_projection, ndc_2);
+    //struct v4 ray_eye_2     = mul_mat4_v4(inv_projection, ndc_2);
     ray_eye.w               = 0.0f;
     struct v4 ray_world     = mul_mat4_v4(inv_view, ray_eye);
     struct v3 ray_direction = { ray_world.x, ray_world.y, ray_world.z };

@@ -1,8 +1,8 @@
-#ifndef _wings_strings_c_
-#define _wings_strings_c_
+#ifndef WINGS_STRINGS_C_
+#define WINGS_STRINGS_C_
 
-#include "memory.h"
-#include "types.h"
+#include "wings/base/types.c"
+
 #include <stdio.h>
 #include <string.h>
 

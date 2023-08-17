@@ -1,11 +1,11 @@
-#ifndef BITMAP_FONT_C
-#define BITMAP_FONT_C
+#ifndef BITMAP_FONT_C_
+#define BITMAP_FONT_C_
 
-#include "file_windows.c"
-#include "geometry_2d.c"
+#include "wings/base/types.c"
+#include "wings/base/allocators.c"
+
+#include "wings/geometry_2d.c"
 #include "image.c"
-#include "memory.c"
-#include "types.h"
 #include "wings_math.c"
 #include "wings_strings.c"
 
@@ -29,7 +29,7 @@ struct bitmap_font
 };
 
 void
-bitmap_font_from_text(struct bitmap_font *font, struct string text, struct memory *memory)
+bitmap_font_from_text(struct bitmap_font *font, struct string text, struct allocator *allocator)
 {
     s32 glyph_count = 0;
     u16 image_width = 0, image_height = 0;
@@ -52,7 +52,8 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct memor
         {
             sscanf_s(line.base, "chars count=%d",
                      &font->number_of_glyphs);
-            font->glyph = allocate_array(memory, font->number_of_glyphs, struct glyph);
+            error error = allocate_array(&font->glyph, allocator, font->number_of_glyphs, struct glyph);
+			ASSERT(error == 0);
         }
 
         else if (begins_with_cstring(line.base, line.size, "page", 4))
@@ -91,18 +92,17 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct memor
 }
 
 b32
-load_bitmap_font(struct bitmap_font *font, char *path, struct memory *memory)
+load_bitmap_font(struct bitmap_font *font, char *path, struct allocator *allocator)
 {
-    u32 size  = 0;
-    u8 *data  = 0;
+	struct buffer buffer = {0};
     b32 error = 0;
-    error     = load_file(&data, &size, path, 1, memory);
+    error     = read_file(&buffer, path, 1, allocator);
     if (error)
         return 1;
-    struct string text = { (char *)data, strlen((char *)data) };
-    bitmap_font_from_text(font, text, memory);
+    struct string text = { (char *)buffer.data, buffer.size - 1 };
+    bitmap_font_from_text(font, text, allocator);
 
-    error = load_image(&font->image, font->image_name, memory);
+    error = load_image(&font->image, font->image_name, allocator);
     if (error)
         return 2;
     return 0;
@@ -112,7 +112,7 @@ struct glyph
 get_glyph(struct bitmap_font font, int c)
 {
     s32 unknown_glyph_index = 0;
-    for (int i = 0; i < font.number_of_glyphs; ++i)
+    for (u32 i = 0; i < font.number_of_glyphs; ++i)
     {
         if (font.glyph[i].id == -1)
             unknown_glyph_index = i;

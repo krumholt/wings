@@ -1,8 +1,8 @@
 #ifndef GEOMETRY_2D_C_
 #define GEOMETRY_2D_C_
 
-#include "memory.c"
-#include "wings_math.c"
+#include "wings/base/allocators.c"
+#include "wings/wings_math.c"
 
 struct triangle2
 {
@@ -78,11 +78,13 @@ f32 distance_line_point(struct v2 a, struct v2 b, struct v2 point);
 f32 distance_line_segment_point(struct v2 a, struct v2 b, struct v2 point);
 
 struct poly_line2
-make_poly_line2(s32 max_number_of_points, struct memory *memory)
+make_poly_line2(s32 max_number_of_points, struct allocator *allocator)
 {
     struct poly_line2 line    = { 0 };
     line.max_number_of_points = max_number_of_points;
-    line.points               = allocate_array(memory, max_number_of_points, struct v2);
+    error error = allocate_array(&line.points, allocator, max_number_of_points, struct v2);
+	if (error) // @TODO: @FIXME
+		printf("ERROR\n");
     return (line);
 }
 
@@ -319,7 +321,6 @@ _box2_circle_intersection(struct v2  box_position,
 {
     struct mat2 rotation            = make_rotation_mat2(box_rotation);
     struct mat2 rotation_transposed = transpose_mat2(rotation);
-    struct v2   half_extend         = box_half_extend;
 
     struct v2 box_to_circle = sub_v2(center, box_position);
     struct v2 d_box         = mul_mat2_v2(rotation_transposed, box_to_circle);
@@ -363,7 +364,6 @@ _box2_circle_contact_points(struct v2             box_position,
 {
     struct mat2 rotation            = make_rotation_mat2(box_rotation);
     struct mat2 rotation_transposed = transpose_mat2(rotation);
-    struct v2   half_extend         = box_half_extend;
 
     struct v2 box_to_circle = sub_v2(circle_position, box_position);
     struct v2 d_box         = mul_mat2_v2(rotation_transposed, box_to_circle);
@@ -513,6 +513,7 @@ clip_segment_to_line(struct v2             out[2],
                      f32                   offset,
                      enum box2_edge_number clip_edge)
 {
+	UNUSED(clip_edge);
     s32 number_of_points = 0;
 
     f32 distance_0 = dot_v2(normal, in[0]) - offset;
@@ -773,7 +774,7 @@ circle_poly_line2_contact_points(struct circle        circle,
                                  struct poly_line2    line,
                                  struct contact_point contact_points[2])
 {
-    f32 closest_distance   = FLT_MAX;
+    //f32 closest_distance   = FLT_MAX;
     s32 number_of_contacts = 0;
     for (s32 index = 0;
          index < line.number_of_points - 1;

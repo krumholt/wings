@@ -1,11 +1,11 @@
 #ifndef image_c
 #define image_c
 
-#include "types.h"
+#include "wings/base/types.c"
 #include "wings_math.c"
-#include "file.h"
+#include "wings/os/file.c"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "wings/extern/stb_image.h"
 #undef STB_IMAGE_IMPLEMENTATION
 
 struct image
@@ -16,10 +16,10 @@ struct image
 };
 
 b32
-load_image_from_memory(struct image *image, u8 *data, u32 size)
+load_image_from_memory(struct image *image, struct buffer buffer)
 {
     s32 width = 0, height = 0;
-    image->raw_data = stbi_load_from_memory(data, size, &width, &height, &image->number_of_components, 0);
+    image->raw_data = stbi_load_from_memory(buffer.data, buffer.size, &width, &height, &image->number_of_components, 0);
     if (!image->raw_data)
         return (1);
 
@@ -29,15 +29,14 @@ load_image_from_memory(struct image *image, u8 *data, u32 size)
 }
 
 b32
-load_image(struct image *image, char *path, struct memory *memory)
+load_image(struct image *image, char *path, struct allocator *allocator)
 {
-    u32 size  = 0;
-    u8 *data  = 0;
-    b32 error = 0;
-    error     = load_file(&data, &size, path, 0, memory);
+	struct buffer buffer = {0};
+    error error = 0;
+    error     = read_file(&buffer, path, 0, allocator);
     if (error)
         return 1;
-    error = load_image_from_memory(image, data, size);
+    error = load_image_from_memory(image, buffer);
     if (error)
         return 2;
 

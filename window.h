@@ -1,7 +1,7 @@
 #ifndef window_h
 #define window_h
-#include "types.h"
-#include "wings_math.c"
+#include "wings/base/types.c"
+#include "wings/wings_math.c"
 
 struct keyboard
 {

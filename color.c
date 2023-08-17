@@ -1,8 +1,9 @@
-#ifndef _colors_c_
-#define _colors_c_
+#ifndef WINGS_COLORS_C_
+#define WINGS_COLORS_C_
 
-#include "types.h"
-#include "wings_math.c" 
+#include "wings/base/macros.c"
+#include "wings/base/types.c"
+#include "wings/wings_math.c" 
 
 const struct v4 colors[] =
 {
@@ -95,5 +96,5 @@ const struct v4 colors[] =
 #define color_rhino           colors[41]
 #define color_light_grey      colors[42]
 
-u32 max_colors = array_length(colors);
+u32 max_colors = ARRAY_LENGTH(colors);
 #endif

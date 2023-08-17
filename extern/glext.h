@@ -34,7 +34,7 @@ extern "C" {
 
 #define GL_GLEXT_VERSION 20210420
 
-#include <KHR/khrplatform.h>
+#include <wings/extern/KHR/khrplatform.h>
 
 /* Generated C header for:
  * API: gl

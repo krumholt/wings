@@ -31,7 +31,7 @@ make_camera(struct v3 position, struct v3 right, struct v3 up, struct v3 forward
     camera.position      = position;
     camera.forward       = normalize_v3(forward);
     camera.up            = normalize_v3(up);
-    camera.right         = normalize_v3(forward);
+    camera.right         = normalize_v3(right);
     camera.projection    = projection;
     update_view(&camera);
 

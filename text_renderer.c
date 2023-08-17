@@ -67,8 +67,8 @@ struct text_renderer_buffer
 struct text_renderer_context
 {
     u32 shader_program;
-    u32 projection;
-    u32 view;
+    s32 projection;
+    s32 view;
     b32 y_up;
     u32 font_texture;
 } text_renderer_context;
@@ -108,11 +108,12 @@ make_font_texture(struct image image)
 }
 
 struct text_renderer_buffer
-make_text_renderer_buffer(u32 number_of_characters, struct bitmap_font *font, struct memory *memory)
+make_text_renderer_buffer(u32 number_of_characters, struct bitmap_font *font, struct allocator *allocator)
 {
     struct text_renderer_buffer buffer = { 0 };
     buffer.size                        = number_of_characters * 6;
-    buffer.vertex                      = allocate_array(memory, buffer.size, struct text_renderer_vertex);
+    error error                        = allocate_array(&buffer.vertex, allocator, buffer.size, struct text_renderer_vertex);
+	ASSERT(error == 0); //@TODO:@FIXME
     buffer.font                        = font;
 
     glGenVertexArrays(1, &buffer.va);
@@ -193,9 +194,8 @@ push_text_v2(struct text_renderer_buffer *buffer,
     for (; *text && size > 0; text += 1, size -= 1)
     {
         glyph                              = get_glyph(*buffer->font, *text);
-        struct text_renderer_vertex vertex = { 0 };
 
-        f32       height          = glyph.size.y;
+        //f32       height          = glyph.size.y;
         struct v3 offset_y_down[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -262,9 +262,8 @@ push_text(struct text_renderer_buffer *buffer,
     for (; *text && size > 0; text += 1, size -= 1)
     {
         glyph                              = get_glyph(*buffer->font, *text);
-        struct text_renderer_vertex vertex = { 0 };
 
-        f32       height   = glyph.size.y;
+        //f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -311,7 +310,6 @@ push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char 
     for (; *text && size > 0; text += 1, size -= 1)
     {
         glyph                              = get_glyph(*buffer->font, *text);
-        struct text_renderer_vertex vertex = { 0 };
         if (position.x + glyph.size.x > limit)
         {
             if (position.x > outline.max.x)
@@ -320,7 +318,7 @@ push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char 
             position.y += base;
         }
 
-        f32       height   = glyph.size.y;
+        //f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -380,7 +378,6 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer,
             continue;
         }
         glyph                                       = get_glyph(*buffer->font, *text);
-        struct text_renderer_vertex vertex          = { 0 };
         char                       *tmp             = text;
         u32                         tmp_size        = size;
         f32                         next_word_limit = position.x;
@@ -404,7 +401,7 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer,
             position.y += base;
         }
 
-        f32       height   = glyph.size.y;
+        //f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},

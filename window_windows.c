@@ -1,8 +1,8 @@
-#ifndef WINDOW_WINDOWS_C
-#define WINDOW_WINDOWS_C
+#ifndef WINDOW_WINDOWS_C_
+#define WINDOW_WINDOWS_C_
 
-#include "mouse.c"
-#include "window.h"
+#include "wings/mouse.c"
+#include "wings/window.h"
 
 #pragma warning(push, 0)
 #ifndef WIN32_LEAN_AND_MEAN

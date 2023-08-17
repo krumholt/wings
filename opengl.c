@@ -1,13 +1,13 @@
-#ifndef OPENGL_C_
-#define OPENGL_C_
+#ifndef WINGS_OPENGL_C_
+#define WINGS_OPENGL_C_
 
-#include "types.h"
-#include "window_windows.c"
+#include "wings/base/types.c"
+#include "wings/window_windows.c" //@TODO:@FIXME: new wings layout
 
 #include <wingdi.h>
 
 #include "GL/gl.h"
-#include "glext.h"
+#include "wings/extern/glext.h"
 
 #include <assert.h>
 
@@ -31,11 +31,11 @@ debug_message_callback(GLenum        source,
                        const GLchar *message,
                        const void   *userParam)
 {
-    unused(type);
-    unused(id);
-    unused(severity);
-    unused(length);
-    unused(userParam);
+    UNUSED(type);
+    UNUSED(id);
+    UNUSED(severity);
+    UNUSED(length);
+    UNUSED(userParam);
     printf("gl debug message: (%d) %s\n", source, message);
 }
 

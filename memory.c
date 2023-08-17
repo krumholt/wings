@@ -1,7 +1,7 @@
-#ifndef MEMORY_C
-#define MEMORY_C
+#ifndef MEMORY_C_
+#define MEMORY_C_
 
-#include "types.h"
+#include "wings/base/types.c"
 
 #include <stdio.h>
 #include <stdlib.h>
