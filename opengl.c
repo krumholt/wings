@@ -193,15 +193,14 @@ init_opengl(void)
     glDebugMessageCallback    = (PFNGLDEBUGMESSAGECALLBACKPROC)wglGetProcAddress("glDebugMessageCallback");
     glDebugMessageControl     = (PFNGLDEBUGMESSAGECONTROLPROC)wglGetProcAddress("glDebugMessageControl");
     glClipControl             = (PFNGLCLIPCONTROLPROC)wglGetProcAddress("glClipControl");
-
 #pragma warning(pop)
 }
 
 b32
 initialise_graphics_context(HDC device_context)
 {
-    _opengl_device_context = device_context;
-    s32   result = 0;
+    _opengl_device_context   = device_context;
+    s32   result             = 0;
     HGLRC tmp_opengl_context = wglCreateContext(_opengl_device_context);
     result                   = wglMakeCurrent(_opengl_device_context, tmp_opengl_context);
     if (result == 0)
@@ -220,7 +219,7 @@ initialise_graphics_context(HDC device_context)
 
     HGLRC opengl_context;
     opengl_context = wglCreateContextAttribsARB(_opengl_device_context, 0, attributes);
-    result = wglMakeCurrent(0, 0); // release current context
+    result         = wglMakeCurrent(0, 0); // release current context
     if (result == 0)
         return 2;
     wglDeleteContext(tmp_opengl_context);
