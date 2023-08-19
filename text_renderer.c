@@ -73,21 +73,21 @@ struct text_renderer_context
     u32 font_texture;
 } text_renderer_context;
 
-b32
+error
 initialise_text_renderer(void)
 {
-    b32 error = compile_shader_program(
+    error error = compile_shader_program(
         &text_renderer_context.shader_program,
         text_renderer_vertex_shader_text,
         text_renderer_fragment_shader_text);
     if (error)
-        return (error);
+        return (1);
     text_renderer_context.view       = glGetUniformLocation(text_renderer_context.shader_program, "view");
     text_renderer_context.projection = glGetUniformLocation(text_renderer_context.shader_program, "projection");
     text_renderer_context.y_up       = 0;
     if (text_renderer_context.view == -1 || text_renderer_context.projection == -1)
     {
-        return (1);
+        return (2);
     }
     return (0);
 }
@@ -102,7 +102,7 @@ make_font_texture(struct image image)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, image.size.x, image.size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.raw_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.raw_data);
     glGenerateMipmap(GL_TEXTURE_2D);
     return (texture);
 }
@@ -113,8 +113,8 @@ make_text_renderer_buffer(u32 number_of_characters, struct bitmap_font *font, st
     struct text_renderer_buffer buffer = { 0 };
     buffer.size                        = number_of_characters * 6;
     error error                        = allocate_array(&buffer.vertex, allocator, buffer.size, struct text_renderer_vertex);
-	ASSERT(error == 0); //@TODO:@FIXME
-    buffer.font                        = font;
+    ASSERT(error == 0); //@TODO:@FIXME
+    buffer.font = font;
 
     glGenVertexArrays(1, &buffer.va);
     glBindVertexArray(buffer.va);
@@ -193,9 +193,9 @@ push_text_v2(struct text_renderer_buffer *buffer,
     struct glyph glyph = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
-        glyph                              = get_glyph(*buffer->font, *text);
+        glyph = get_glyph(*buffer->font, *text);
 
-        //f32       height          = glyph.size.y;
+        // f32       height          = glyph.size.y;
         struct v3 offset_y_down[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -261,9 +261,9 @@ push_text(struct text_renderer_buffer *buffer,
     struct glyph glyph = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
-        glyph                              = get_glyph(*buffer->font, *text);
+        glyph = get_glyph(*buffer->font, *text);
 
-        //f32       height   = glyph.size.y;
+        // f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -309,7 +309,7 @@ push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char 
     struct glyph glyph   = { 0 };
     for (; *text && size > 0; text += 1, size -= 1)
     {
-        glyph                              = get_glyph(*buffer->font, *text);
+        glyph = get_glyph(*buffer->font, *text);
         if (position.x + glyph.size.x > limit)
         {
             if (position.x > outline.max.x)
@@ -318,7 +318,7 @@ push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char 
             position.y += base;
         }
 
-        //f32       height   = glyph.size.y;
+        // f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
@@ -377,10 +377,10 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer,
             position.y += base;
             continue;
         }
-        glyph                                       = get_glyph(*buffer->font, *text);
-        char                       *tmp             = text;
-        u32                         tmp_size        = size;
-        f32                         next_word_limit = position.x;
+        glyph                 = get_glyph(*buffer->font, *text);
+        char *tmp             = text;
+        u32   tmp_size        = size;
+        f32   next_word_limit = position.x;
         while (*tmp && tmp_size)
         {
             next_word_limit += get_glyph(*buffer->font, *tmp).advance;
@@ -401,7 +401,7 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer,
             position.y += base;
         }
 
-        //f32       height   = glyph.size.y;
+        // f32       height   = glyph.size.y;
         struct v3 offset[] = {
             {glyph.offset.x + 0.0f,          glyph.offset.y + 0.0f,         0.0f},
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
