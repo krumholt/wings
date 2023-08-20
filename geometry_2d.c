@@ -2,7 +2,7 @@
 #define GEOMETRY_2D_C_
 
 #include "wings/base/allocators.c"
-#include "wings/wings_math.c"
+#include "wings/base/math.c"
 
 struct triangle2
 {

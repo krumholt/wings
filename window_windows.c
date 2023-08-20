@@ -1,17 +1,18 @@
 #ifndef WINDOW_WINDOWS_C_
 #define WINDOW_WINDOWS_C_
 
-#include "wings/mouse.c"
+#include "wings/input/keyboard.c"
+#include "wings/input/mouse.c"
 #include "wings/window.h"
 
 #pragma warning(push, 0)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
-#include <windows.h>
-#include <windowsx.h>
 #include <Winuser.h>
 #include <shellapi.h>
+#include <windows.h>
+#include <windowsx.h>
 #pragma warning(pop)
 #include <stdio.h>
 #include <tchar.h>
@@ -31,12 +32,11 @@ struct window
     s32     number_of_drop_files;
     char    drop_file[MAX_DROP_FILES][1024];
 
-    LRESULT (*AdditionalWndProc)
+    LRESULT(*AdditionalWndProc)
     (HWND WindowHandle, UINT Message, WPARAM wParam, LPARAM lParam);
 };
 
-struct keyboard keyboard = { 0 };
-struct window   window   = { 0 };
+struct window window = { 0 };
 
 static u32  win_Win32_KeyMapping[256]          = { 0 };
 static char win_Char_KeyMapping_LowerCase[256] = { 0 };
@@ -108,6 +108,8 @@ update_window(void)
     keyboard.chars_typed        = 0;
     keyboard.any_key_released   = 0;
     keyboard.any_key_pressed    = 0;
+    keyboard.alt_key_held       = GetKeyState(VK_MENU) & 0x8000;
+    keyboard.ctrl_key_held      = GetKeyState(VK_CONTROL) & 0x8000;
     memcpy(keyboard.key_state_last_frame, keyboard.key_state, sizeof(keyboard.key_state_last_frame));
     memcpy(mouse.button_last_frame, mouse.button, sizeof(mouse.button_last_frame));
     mouse.position_last_frame = mouse.position;
@@ -250,54 +252,6 @@ update_window(void)
         break;
         }
     }
-}
-
-b32
-altkey_held(void)
-{
-    return GetKeyState(VK_MENU) & 0x8000;
-}
-
-b32
-ctrlkey_held(void)
-{
-    return GetKeyState(VK_CONTROL) & 0x8000;
-}
-
-b32
-key_held(enum keycode key)
-{
-    return keyboard.key_state[key] > 0;
-}
-
-b32
-key_released(enum keycode key)
-{
-    return keyboard.key_state[key] == 0 && keyboard.key_state_last_frame[key] > 0;
-}
-
-b32
-key_pressed(enum keycode key)
-{
-    return keyboard.key_state[key] != 0 && keyboard.key_state_last_frame[key] == 0;
-}
-
-b32
-key_repeated(enum keycode key)
-{
-    return keyboard.key_state_last_frame[key] < keyboard.key_state[key];
-}
-
-b32
-any_key_pressed(void)
-{
-    return keyboard.any_key_pressed;
-}
-
-b32
-any_key_released(void)
-{
-    return keyboard.any_key_released;
 }
 
 LRESULT CALLBACK

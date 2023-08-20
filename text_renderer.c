@@ -156,9 +156,9 @@ render_text_renderer_buffer(struct text_renderer_buffer buffer, struct mat4 proj
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, buffer.texture);
 
+    glBindVertexArray(buffer.va);
     upload_text_renderer_buffer(buffer);
 
-    glBindVertexArray(buffer.va);
     glDrawArrays(GL_TRIANGLES, 0, buffer.used);
     glBindVertexArray(0);
 }

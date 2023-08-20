@@ -2611,9 +2611,7 @@ screen_position_to_camera_ray(struct v3   camera_position,
     f32 y = ((2.0f * (f32)mouse_position.y / (f32)screen_size.y) - 1.0f);
 
     struct v4 ndc           = { x, -y, -1.0f, 1.0f };
-    //struct v4 ndc_2         = { x, -y, 1.0f, 1.0f };
     struct v4 ray_eye       = mul_mat4_v4(inv_projection, ndc);
-    //struct v4 ray_eye_2     = mul_mat4_v4(inv_projection, ndc_2);
     ray_eye.w               = 0.0f;
     struct v4 ray_world     = mul_mat4_v4(inv_view, ray_eye);
     struct v3 ray_direction = { ray_world.x, ray_world.y, ray_world.z };

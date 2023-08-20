@@ -1,7 +1,7 @@
-#ifndef mouse_c
-#define mouse_c
+#ifndef MOUSE_C_
+#define MOUSE_C_
 
-#include "wings_math.c"
+#include "wings/base/math.c"
 
 enum mouse_button
 {
@@ -26,49 +26,49 @@ left_mouse_button_pressed(void)
     return(mouse.button[_mouse_button_left] && !mouse.button_last_frame[_mouse_button_left]);
 }
 
-b32
+inline b32
 left_mouse_button_held(void)
 {
     return(mouse.button[_mouse_button_left]);
 }
 
-b32
+inline b32
 left_mouse_button_released(void)
 {
     return(!mouse.button[_mouse_button_left] && mouse.button_last_frame[_mouse_button_left]);
 }
 
-b32
+inline b32
 right_mouse_button_pressed(void)
 {
     return(mouse.button[_mouse_button_right] && !mouse.button_last_frame[_mouse_button_right]);
 }
 
-b32
+inline b32
 right_mouse_button_held(void)
 {
     return(mouse.button[_mouse_button_right]);
 }
 
-b32
+inline b32
 right_mouse_button_released(void)
 {
     return(!mouse.button[_mouse_button_right] && mouse.button_last_frame[_mouse_button_right]);
 }
 
-b32
+inline b32
 middle_mouse_button_pressed(void)
 {
     return mouse.button[_mouse_button_middle] && !mouse.button_last_frame[_mouse_button_middle];
 }
 
-b32
+inline b32
 middle_mouse_button_held(void)
 {
     return mouse.button[_mouse_button_middle];
 }
 
-b32
+inline b32
 middle_mouse_button_released(void)
 {
     return !mouse.button[_mouse_button_middle] && mouse.button_last_frame[_mouse_button_middle];

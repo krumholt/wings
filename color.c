@@ -3,7 +3,7 @@
 
 #include "wings/base/macros.c"
 #include "wings/base/types.c"
-#include "wings/wings_math.c" 
+#include "wings/base/math.c" 
 
 const struct v4 colors[] =
 {

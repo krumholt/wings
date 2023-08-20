@@ -39,12 +39,13 @@ debug_message_callback(GLenum        source,
     printf("gl debug message: (%d) %s\n", source, message);
 }
 
-#define GL_CHECK()                \
+#define GL_CHECK(err_no)          \
+    do                            \
     {                             \
         u32 error = glGetError(); \
         if (error != GL_NO_ERROR) \
-            return (error);       \
-    }
+            return (err_no);      \
+    } while (0)
 
 PFNGLPUSHDEBUGGROUPPROC          glPushDebugGroup;
 PFNGLPOPDEBUGGROUPPROC           glPopDebugGroup;
@@ -243,30 +244,31 @@ _link_program(u32 program)
     assert(program > 0);
 
     glLinkProgram(program);
-    GL_CHECK();
+    GL_CHECK(1);
 
     GLint success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
-    GL_CHECK();
+    GL_CHECK(2);
     if (success != GL_TRUE)
     {
         GLsizei log_length    = 0;
         char    message[1024] = { 0 };
         glGetProgramInfoLog(program, 1024, &log_length, message);
         printf("link status %d failed with(length:%d): %s\n", success, log_length, message);
-        return (1);
+        return (3);
     }
     return (0);
 }
 
-b32
+error
 _compile_and_attach_shader(u32 program, const char *text, u32 shader_type, u32 *shader)
 {
     *shader = glCreateShader(shader_type);
     glShaderSource(*shader, 1, &text, 0);
+    GL_CHECK(1);
     glCompileShader(*shader);
-    GL_CHECK();
-    GLint compiled;
+    GL_CHECK(2);
+    GLint compiled = 0;
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &compiled);
     if (compiled != GL_TRUE)
     {
@@ -274,28 +276,30 @@ _compile_and_attach_shader(u32 program, const char *text, u32 shader_type, u32 *
         char   *message    = (char *)calloc(1024, sizeof(char));
         glGetShaderInfoLog(*shader, 1024, &log_length, message);
         printf("%s\n%.30s\n", message, text);
-        return 1;
+        return (3);
     }
 
     glAttachShader(program, *shader);
-    GL_CHECK();
+    GL_CHECK(4);
 
     glDeleteShader(*shader);
-    GL_CHECK();
+    GL_CHECK(5);
 
-    return 0;
+    return (0);
 }
 
-b32
+error
 compile_shader_program(u32 *program, const char *vertex_shader, const char *fragment_shader)
 {
-    b32 error = 0;
-    *program  = glCreateProgram();
+    error error = 0;
+    *program    = glCreateProgram();
 
     u32 vs = 0;
     error  = _compile_and_attach_shader(*program, vertex_shader, GL_VERTEX_SHADER, &vs);
     if (error)
+    {
         return 1;
+    }
 
     u32 fs = 0;
     error  = _compile_and_attach_shader(*program, fragment_shader, GL_FRAGMENT_SHADER, &fs);
