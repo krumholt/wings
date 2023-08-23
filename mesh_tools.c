@@ -153,48 +153,35 @@ hex_direction(struct v3 center, f32 size, s32 i)
 }
 
 void
-write_hexagon_positions(f32 *target, s32 stride, s32 offset, s32 height)
+write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 height)
 {
-    struct v3 center = { 0.0f, 0.0f, 0.0f };
     for (s32 index = 0; index < 6; ++index)
     {
-        struct v3 corner_1 = pointy_hex_corner(center, 100.0f, index);
-        struct v3 corner_2 = pointy_hex_corner(center, 100.0f, index + 1);
+        struct v3 corner_1 = pointy_hex_corner(center, size, index);
+        struct v3 corner_1_down = corner_1;
+		corner_1_down.z -= height;
+        struct v3 corner_2 = pointy_hex_corner(center, size, index + 1);
+        struct v3 corner_2_down = corner_2;
+		corner_2_down.z -= height;
 
-        s32 count                                     = 0;
-        target[index * 9 * stride + count++ + offset] = center.x;
-        target[index * 9 * stride + count++ + offset] = center.y;
-        target[index * 9 * stride + count++ + offset] = center.z;
-        target[index * 9 * stride + count++ + offset] = corner_1.x;
-        target[index * 9 * stride + count++ + offset] = corner_1.y;
-        target[index * 9 * stride + count++ + offset] = corner_1.z;
-        target[index * 9 * stride + count++ + offset] = corner_2.x;
-        target[index * 9 * stride + count++ + offset] = corner_2.y;
-        target[index * 9 * stride + count++ + offset] = corner_2.z;
-
-        target[index * 9 * stride + count++ + offset] = corner_1.x;
-        target[index * 9 * stride + count++ + offset] = corner_1.y;
-        target[index * 9 * stride + count++ + offset] = corner_1.z - height;
-
-        target[index * 9 * stride + count++ + offset] = corner_2.x;
-        target[index * 9 * stride + count++ + offset] = corner_2.y;
-        target[index * 9 * stride + count++ + offset] = corner_2.z - height;
-
-        target[index * 9 * stride + count++ + offset] = corner_1.x;
-        target[index * 9 * stride + count++ + offset] = corner_1.y;
-        target[index * 9 * stride + count++ + offset] = corner_1.z;
-
-        target[index * 9 * stride + count++ + offset] = corner_1.x;
-        target[index * 9 * stride + count++ + offset] = corner_1.y;
-        target[index * 9 * stride + count++ + offset] = corner_1.z;
-
-        target[index * 9 * stride + count++ + offset] = corner_2.x;
-        target[index * 9 * stride + count++ + offset] = corner_2.y;
-        target[index * 9 * stride + count++ + offset] = corner_2.z - height;
-
-        target[index * 9 * stride + count++ + offset] = corner_2.x;
-        target[index * 9 * stride + count++ + offset] = corner_2.y;
-        target[index * 9 * stride + count++ + offset] = corner_2.z;
+        *target = center;
+		++target;
+        *target = corner_1;
+		++target;
+        *target = corner_2;
+		++target;
+        *target = corner_1_down;
+		++target;
+        *target = corner_2_down;
+		++target;
+        *target = corner_1;
+		++target;
+        *target = corner_1;
+		++target;
+        *target = corner_2_down;
+		++target;
+        *target = corner_2;
+		++target;
     }
 }
 
@@ -228,14 +215,12 @@ write_hexagon_normals(struct v3 *target)
 }
 
 void
-write_hexagon_colors(f32 *target, s32 stride, s32 offset, struct v4 color)
+write_hexagon_colors(struct v4 *target, struct v4 color)
 {
     for (s32 index = 0; index < 54; ++index)
     {
-        target[index * stride + 0 + offset] = color.x;
-        target[index * stride + 1 + offset] = color.y;
-        target[index * stride + 2 + offset] = color.z;
-        target[index * stride + 3 + offset] = color.w;
+		*target = color;
+		++target;
     }
 }
 
