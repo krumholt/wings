@@ -125,7 +125,7 @@ write_cube_colors(f32 *target, s32 stride, s32 offset, struct v4 color)
 }
 
 struct v3
-pointy_hex_corner(struct v3 center, f32 size, s32 i)
+_mt_pointy_hex_corner(struct v3 center, f32 size, s32 i)
 {
     f32 angle_degrees = 60.0f * i - 30.0f;
     f32 angle_radians = PI / 180 * angle_degrees;
@@ -139,7 +139,7 @@ pointy_hex_corner(struct v3 center, f32 size, s32 i)
 }
 
 struct v3
-hex_direction(struct v3 center, f32 size, s32 i)
+_mt_hex_direction(struct v3 center, f32 size, s32 i)
 {
     f32 angle_degrees = 60.0f * i;
     f32 angle_radians = PI / 180 * angle_degrees;
@@ -157,31 +157,32 @@ write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 heigh
 {
     for (s32 index = 0; index < 6; ++index)
     {
-        struct v3 corner_1 = pointy_hex_corner(center, size, index);
+        struct v3 corner_1      = _mt_pointy_hex_corner(center, size, index);
         struct v3 corner_1_down = corner_1;
-		corner_1_down.z -= height;
-        struct v3 corner_2 = pointy_hex_corner(center, size, index + 1);
+        corner_1.z = height;
+
+        struct v3 corner_2      = _mt_pointy_hex_corner(center, size, index + 1);
         struct v3 corner_2_down = corner_2;
-		corner_2_down.z -= height;
+        corner_2.z = height;
 
         *target = center;
-		++target;
+        ++target;
         *target = corner_1;
-		++target;
+        ++target;
         *target = corner_2;
-		++target;
+        ++target;
         *target = corner_1_down;
-		++target;
+        ++target;
         *target = corner_2_down;
-		++target;
+        ++target;
         *target = corner_1;
-		++target;
+        ++target;
         *target = corner_1;
-		++target;
+        ++target;
         *target = corner_2_down;
-		++target;
+        ++target;
         *target = corner_2;
-		++target;
+        ++target;
     }
 }
 
@@ -189,38 +190,38 @@ void
 write_hexagon_normals(struct v3 *target)
 {
     struct v3 center = { 0.0f, 0.0f, 0.0f };
-	struct v3 up = {0.0f, 0.0f, 1.0f};
+    struct v3 up     = { 0.0f, 0.0f, 1.0f };
     for (s32 index = 0; index < 6; ++index)
     {
-		*target = up;
-		++target;
-		*target = up;
-		++target;
-		*target = up;
-		++target;
-        struct v3 corner = hex_direction(center, 1.0f, index);
-		*target = corner;
-		++target;
-		*target = corner;
-		++target;
-		*target = corner;
-		++target;
-		*target = corner;
-		++target;
-		*target = corner;
-		++target;
-		*target = corner;
-		++target;
+        *target = up;
+        ++target;
+        *target = up;
+        ++target;
+        *target = up;
+        ++target;
+        struct v3 corner = _mt_hex_direction(center, 1.0f, index);
+        *target          = corner;
+        ++target;
+        *target = corner;
+        ++target;
+        *target = corner;
+        ++target;
+        *target = corner;
+        ++target;
+        *target = corner;
+        ++target;
+        *target = corner;
+        ++target;
     }
 }
 
 void
-write_hexagon_colors(struct v4 *target, struct v4 color)
+write_hexagon_colors(struct v4 *target, struct v4 *colors, u32 number_of_colors)
 {
     for (s32 index = 0; index < 54; ++index)
     {
-		*target = color;
-		++target;
+        *target = colors[index % number_of_colors];
+        ++target;
     }
 }
 

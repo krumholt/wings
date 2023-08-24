@@ -1,8 +1,8 @@
 #ifndef WINGS_MATH_C
 #define WINGS_MATH_C
 
-#include "wings/base/types.c"
 #include "wings/base/random.c"
+#include "wings/base/types.c"
 
 #include <float.h>
 #include <limits.h>
@@ -1159,7 +1159,9 @@ _make_look_at_matrix(f32 origin_x, f32 origin_y, f32 origin_z,
 }
 
 struct mat4
-make_look_at_matrix(struct v3 position, struct v3 target, struct v3 up)
+make_look_at_matrix(struct v3 position,
+                    struct v3 target,
+                    struct v3 up)
 {
 
     struct v3 forward = normalize_v3(sub_v3(target, position));
@@ -1325,26 +1327,26 @@ make_translation_matrix(struct v3 v)
 }
 
 struct mat4
-make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 fov)
+make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 horizontal_fov)
 {
     struct mat4 result = { 0 };
-    f32         n      = near_plane;
-    f32         f      = far_plane;
-    f32         r      = n * tanf(0.5f * fov);
-    f32         l      = -r;
-    f32         t      = r / aspect_ratio;
-    f32         b      = -t;
+    f32         near   = near_plane;
+    f32         far    = far_plane;
+    f32         right  = near * tanf(0.5f * horizontal_fov);
+    f32         left   = -right;
+    f32         top    = right / aspect_ratio;
+    f32         bottom = -top;
 
-    result.m00 = (2.0f * n) / (r - l);
+    result.m00 = (2.0f * near) / (right - left);
 
-    result.m10 = (r + l) / (r - l);
-    result.m11 = (t + b) / (t - b);
-    result.m12 = (f + n) / (f - n);
+    result.m10 = (right + left) / (right - left);
+    result.m11 = (top + bottom) / (top - bottom);
+    result.m12 = (far + near) / (far - near);
     result.m13 = 1.0f;
 
-    result.m21 = 2.0f * n / (t - b);
+    result.m21 = 2.0f * near / (top - bottom);
 
-    result.m32 = -2.0f * f * n / (f - n);
+    result.m32 = -2.0f * far * near / (far - near);
 
     return (result);
 }
@@ -1352,10 +1354,11 @@ make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32
 struct mat4
 make_perspective_projection_RH_ZO(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 fov)
 {
-	UNUSED(near_plane); UNUSED(far_plane);
+    UNUSED(near_plane);
+    UNUSED(far_plane);
     struct mat4 result = { 0 };
-    //f32         n      = near_plane;
-    //f32         f      = far_plane;
+    // f32         n      = near_plane;
+    // f32         f      = far_plane;
 
     result.m00 = 1.0f / tanf(0.5f * fov);
     result.m10 = 0.0f;

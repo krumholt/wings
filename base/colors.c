@@ -50,6 +50,7 @@ const struct v4 colors[] =
     {0x6F / 255.0f, 0x90 / 255.0f, 0xF4 / 255.0f, 1.0f},
     {0xB9 / 255.0f, 0xBB / 255.0f, 0xB6 / 255.0f, 1.0f},
     {0xD3 / 255.0f, 0xD3 / 255.0f, 0xD3 / 255.0f, 1.0f},
+    {0x32 / 255.0f, 0xFC / 255.0f, 0x4A / 255.0f, 1.0f},
 };
 
 #define color_red             colors[ 0]
@@ -95,6 +96,7 @@ const struct v4 colors[] =
 #define color_cornflower_blue colors[40]
 #define color_rhino           colors[41]
 #define color_light_grey      colors[42]
+#define color_light_green     colors[43]
 
 u32 max_colors = ARRAY_LENGTH(colors);
 #endif

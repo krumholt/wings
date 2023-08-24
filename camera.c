@@ -16,12 +16,9 @@ struct camera
 void
 update_view(struct camera *camera)
 {
-    camera->forward = normalize_v3(camera->forward);
-    camera->right   = normalize_v3(cross_v3(camera->forward, camera->up));
-    camera->up      = normalize_v3(cross_v3(camera->right, camera->forward));
-    camera->view    = make_look_at_matrix(camera->position,
-                                          add_v3(camera->position, camera->forward),
-                                          camera->up);
+    camera->view = make_look_at_matrix(camera->position,
+                                       add_v3(camera->position, camera->forward),
+                                       camera->up);
 }
 
 struct camera
@@ -29,9 +26,9 @@ make_camera(struct v3 position, struct v3 right, struct v3 up, struct v3 forward
 {
     struct camera camera = { 0 };
     camera.position      = position;
-    camera.forward       = normalize_v3(forward);
-    camera.up            = normalize_v3(up);
     camera.right         = normalize_v3(right);
+    camera.up            = normalize_v3(up);
+    camera.forward       = normalize_v3(forward);
     camera.projection    = projection;
     update_view(&camera);
 
