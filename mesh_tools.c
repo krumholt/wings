@@ -28,46 +28,46 @@ struct v2 cube_uvs[] = {
 const s32 cube_indices[] = {
     // -X
     4,
-    0,
     7,
+    0,
     3,
-    7,
     0,
+    7,
     // +X
     1,
-    5,
     2,
+    5,
     6,
-    2,
     5,
+    2,
     // -Y
     4,
-    5,
     0,
+    5,
     1,
-    0,
     5,
+    0,
     // +Y
     3,
-    2,
     7,
+    2,
     6,
-    7,
     2,
+    7,
     // -Z
     7,
-    6,
     4,
+    6,
     5,
-    4,
     6,
+    4,
     // +Z
     1,
-    2,
     0,
+    2,
     3,
-    0,
     2,
+    0,
 };
 
 const struct v3 cube_normals[] = {
@@ -81,46 +81,39 @@ const struct v3 cube_normals[] = {
 };
 
 void
-write_cube_positions(f32 *target, s32 stride, s32 offset, struct v3 translation, struct v3 scale)
+write_cube_positions(struct v3 *target, struct v3 translation, struct v3 scale)
 {
     for (s32 index = 0; index < 36; ++index)
     {
-        target[index * stride + 0 + offset] = unit_cube_positions[cube_indices[index]].x * scale.x + translation.x;
-        target[index * stride + 1 + offset] = unit_cube_positions[cube_indices[index]].y * scale.y + translation.y;
-        target[index * stride + 2 + offset] = unit_cube_positions[cube_indices[index]].z * scale.z + translation.z;
+        target[index] = add_v3(mul_v3(unit_cube_positions[cube_indices[index]], scale), translation);
     }
 }
 
 void
-write_cube_normals(f32 *target, s32 stride, s32 offset)
+write_cube_normals(struct v3 *target)
 {
     for (s32 index = 0; index < 36; ++index)
     {
-        target[index * stride + 0 + offset] = cube_normals[index / 6].x;
-        target[index * stride + 1 + offset] = cube_normals[index / 6].y;
-        target[index * stride + 2 + offset] = cube_normals[index / 6].z;
+        target[index] = cube_normals[index / 6];
     }
 }
 
 void
-write_cube_uvs(f32 *target, s32 stride, s32 offset)
+write_cube_uvs(struct v2 *target)
 {
     for (s32 index = 0; index < 36; ++index)
     {
-        target[index * stride + 0 + offset] = cube_uvs[index / 6].x;
-        target[index * stride + 1 + offset] = cube_uvs[index / 6].y;
+
+        target[index] = cube_uvs[index / 6];
     }
 }
 
 void
-write_cube_colors(f32 *target, s32 stride, s32 offset, struct v4 color)
+write_cube_colors(struct v4 *target, struct v4 color)
 {
     for (s32 index = 0; index < 36; ++index)
     {
-        target[index * stride + 0 + offset] = color.x;
-        target[index * stride + 1 + offset] = color.y;
-        target[index * stride + 2 + offset] = color.z;
-        target[index * stride + 3 + offset] = color.w;
+        target[index] = color;
     }
 }
 
@@ -159,11 +152,11 @@ write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 heigh
     {
         struct v3 corner_1      = _mt_pointy_hex_corner(center, size, index);
         struct v3 corner_1_down = corner_1;
-        corner_1.z = height;
+        corner_1.z              = height;
 
         struct v3 corner_2      = _mt_pointy_hex_corner(center, size, index + 1);
         struct v3 corner_2_down = corner_2;
-        corner_2.z = height;
+        corner_2.z              = height;
 
         *target = center;
         ++target;

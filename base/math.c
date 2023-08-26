@@ -1330,89 +1330,14 @@ struct mat4
 make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 horizontal_fov)
 {
     struct mat4 result = { 0 };
-    f32         near   = near_plane;
-    f32         far    = far_plane;
-    f32         right  = near * tanf(0.5f * horizontal_fov);
-    f32         left   = -right;
-    f32         top    = right / aspect_ratio;
-    f32         bottom = -top;
 
-    result.m00 = (2.0f * near) / (right - left);
+    result.m00 = 1.0f / tanf(0.5f * horizontal_fov);
 
-    result.m10 = (right + left) / (right - left);
-    result.m11 = (top + bottom) / (top - bottom);
-    result.m12 = (far + near) / (far - near);
-    result.m13 = 1.0f;
+    result.m11 = 1.0f / tanf(0.5f * horizontal_fov) / aspect_ratio;
 
-    result.m21 = 2.0f * near / (top - bottom);
-
-    result.m32 = -2.0f * far * near / (far - near);
-
-    return (result);
-}
-
-struct mat4
-make_perspective_projection_RH_ZO(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 fov)
-{
-    UNUSED(near_plane);
-    UNUSED(far_plane);
-    struct mat4 result = { 0 };
-    // f32         n      = near_plane;
-    // f32         f      = far_plane;
-
-    result.m00 = 1.0f / tanf(0.5f * fov);
-    result.m10 = 0.0f;
-    result.m20 = 0.0f;
-    result.m30 = 0.0f;
-
-    result.m01 = 0.0f;
-    result.m11 = aspect_ratio * result.m00;
-    result.m21 = 0.0f;
-    result.m31 = 0.0f;
-
-    result.m02 = 0.0f;
-    result.m12 = 0.0f;
-    result.m22 = 0.0f;
-    result.m32 = 1.0f;
-
-    result.m03 = 0.0f;
-    result.m13 = 0.0f;
-    result.m23 = -1.0f;
-    result.m33 = 0.0f;
-
-    return (result);
-}
-
-struct mat4
-make_perspective_projection_RH(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32 fov)
-{
-    struct mat4 result = { 0 };
-    f32         n      = near_plane;
-    f32         f      = far_plane;
-    f32         r      = n * tanf(0.5f * fov);
-    f32         l      = -r;
-    f32         t      = r / aspect_ratio;
-    f32         b      = -t;
-
-    result.m00 = (2.0f * n) / (r - l);
-    result.m10 = 0.0f;
-    result.m20 = (r + l) / (r - l);
-    result.m30 = 0.0f;
-
-    result.m01 = 0.0f;
-    result.m11 = 2.0f * n / (t - b);
-    result.m21 = (t + b) / (t - b);
-    result.m31 = 0.0f;
-
-    result.m02 = 0.0f;
-    result.m12 = 0.0f;
-    result.m22 = -1.0f * (f + n) / (f - n);
-    result.m32 = -2.0f * f * n / (f - n);
-
-    result.m03 = 0.0f;
-    result.m13 = 0.0f;
-    result.m23 = -1.0f;
-    result.m33 = 0.0f;
+    result.m22 = far_plane / (far_plane - near_plane);
+    result.m32 = -(far_plane * near_plane) / (far_plane - near_plane);
+    result.m23 = 1.0f;
 
     return (result);
 }
