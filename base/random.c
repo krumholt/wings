@@ -63,7 +63,7 @@ f32
 random_f32(f32 min, f32 max)
 {
     f32 diff = max - min;
-    return ((f32)(random_u64(0, ULLONG_MAX) / (f32)ULLONG_MAX) * diff + min);
+    return ((f32)(random_u64(0, ULLONG_MAX) / (f64)ULLONG_MAX) * diff + min);
 }
 
 f64
