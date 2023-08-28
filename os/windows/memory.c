@@ -50,10 +50,10 @@ os_reserve_memory(struct os_allocation *block, u64 size)
     GetSystemInfo(&info);
     u32 allocation_size = info.dwAllocationGranularity;
     u32 actual_size     = ((size + allocation_size - 1) / allocation_size) * allocation_size;
-    block->base         = VirtualAlloc(0,
-                                       actual_size,
-                                       MEM_RESERVE,
-                                       PAGE_READWRITE);
+    block->base         = (u8 *)VirtualAlloc(0,
+                                             actual_size,
+                                             MEM_RESERVE,
+                                             PAGE_READWRITE);
     if (block->base == 0)
         return (os_memory_error_FAILED_TO_ALLOCATE);
     block->size = actual_size;
@@ -127,7 +127,7 @@ os_get_memory_info(struct memory_info *info, struct os_allocation block)
     if (query_size != sizeof(MEMORY_BASIC_INFORMATION))
         return (os_memory_error_QUERY_FAILED);
 
-    enum memory_state state = { 0 };
+    enum memory_state state = memory_state_free;
     switch (basic_info.State)
     {
     case MEM_RESERVE:
