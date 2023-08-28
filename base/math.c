@@ -1165,7 +1165,7 @@ make_look_at_matrix(struct v3 position,
 {
 
     struct v3 forward = normalize_v3(sub_v3(target, position));
-    struct v3 right   = normalize_v3(cross_v3(forward, up));
+    struct v3 right   = normalize_v3(cross_v3(up, forward));
     up                = normalize_v3(cross_v3(right, forward));
     position          = mul_f32_v3(-1.0f, position);
 

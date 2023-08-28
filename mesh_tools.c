@@ -109,11 +109,11 @@ write_cube_uvs(struct v2 *target)
 }
 
 void
-write_cube_colors(struct v4 *target, struct v4 color)
+write_cube_colors(struct v4 *target, struct v4 *colors, u32 number_of_colors)
 {
     for (s32 index = 0; index < 36; ++index)
     {
-        target[index] = color;
+        target[index] = colors[index%number_of_colors];
     }
 }
 
