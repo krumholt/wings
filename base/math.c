@@ -1096,78 +1096,16 @@ mul_mat4(struct mat4 a, struct mat4 b)
 }
 
 struct mat4
-_make_look_at_matrix(f32 origin_x, f32 origin_y, f32 origin_z,
-                     f32 target_x, f32 target_y, f32 target_z)
-{
-    f32 forward_x = target_x - origin_x;
-    f32 forward_y = target_y - origin_y;
-    f32 forward_z = target_z - origin_z;
-    origin_x      = -origin_x;
-    origin_y      = -origin_y;
-    origin_z      = -origin_z;
-
-    f32 forward_length = sqrtf(forward_x * forward_x + forward_y * forward_y + forward_z * forward_z);
-    forward_x          = forward_x / forward_length;
-    forward_y          = forward_y / forward_length;
-    forward_z          = forward_z / forward_length;
-
-    f32 up_x = 0.0f;
-    f32 up_y = 0.0f;
-    f32 up_z = 1.0f;
-    if (forward_x == 0.0f && forward_y == 0.0f)
-    {
-        up_y = -forward_z;
-        up_z = 0.0f;
-    }
-
-    // 0, 0, -1
-    f32 right_x = forward_y * up_z - forward_z * up_y;
-    f32 right_y = forward_z * up_x - forward_x * up_z;
-    f32 right_z = forward_x * up_y - forward_y * up_x;
-
-    f32 right_length = sqrtf(right_x * right_x + right_y * right_y + right_z * right_z);
-    right_x          = right_x / right_length;
-    right_y          = right_y / right_length;
-    right_z          = right_z / right_length;
-
-    up_x = right_y * forward_z - right_z * forward_y;
-    up_y = right_z * forward_x - right_x * forward_z;
-    up_z = right_x * forward_y - right_y * forward_x;
-
-    struct mat4 result;
-    result.m00 = right_x;
-    result.m01 = forward_x;
-    result.m02 = up_x;
-    result.m03 = 0;
-
-    result.m10 = right_y;
-    result.m11 = forward_y;
-    result.m12 = up_y;
-    result.m13 = 0;
-
-    result.m20 = right_z;
-    result.m21 = forward_z;
-    result.m22 = up_z;
-    result.m23 = 0;
-
-    result.m30 = origin_x * right_x + origin_y * right_y + origin_z * right_z;
-    result.m31 = origin_x * forward_x + origin_y * forward_y + origin_z * forward_z;
-    result.m32 = origin_x * up_x + origin_y * up_y + origin_z * up_z;
-    result.m33 = 1;
-
-    return (result);
-}
-
-struct mat4
 make_look_at_matrix(struct v3 position,
-                    struct v3 target,
+                    struct v3 forward,
+                    struct v3 right,
                     struct v3 up)
 {
 
-    struct v3 forward = normalize_v3(sub_v3(target, position));
-    struct v3 right   = normalize_v3(cross_v3(forward, up));
-    up                = normalize_v3(cross_v3(right, forward));
-    position          = mul_f32_v3(-1.0f, position);
+    forward  = normalize_v3(forward);
+    right    = normalize_v3(right);
+    up       = normalize_v3(up);
+    position = mul_f32_v3(-1.0f, position);
 
     struct mat4 result = { 0 };
     result.m00         = right.x;
