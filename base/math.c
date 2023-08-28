@@ -1528,6 +1528,14 @@ are_equal_v2(struct v2 a, struct v2 b, f32 epsilon)
 }
 
 b32
+are_equal_v3(struct v3 a, struct v3 b)
+{
+    return (a.x == b.x
+            && a.y == b.y
+            && a.z == b.z);
+}
+
+b32
 are_equal_v3s(struct v3s a, struct v3s b)
 {
     return (a.x == b.x
