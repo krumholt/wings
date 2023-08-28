@@ -17,7 +17,8 @@ void
 update_view(struct camera *camera)
 {
     camera->view = make_look_at_matrix(camera->position,
-                                       add_v3(camera->position, camera->forward),
+                                       camera->forward,
+                                       camera->right,
                                        camera->up);
 }
 
@@ -66,9 +67,7 @@ move_right(struct camera *camera, f32 amount)
 void
 turn_right(struct camera *camera, f32 amount)
 {
-    if (camera->up.z < 0.0f)
-        amount = -amount;
-    struct mat3 rotation = mat4_to_mat3(make_rotation_z_axis_mat4(amount));
+    struct mat3 rotation = mat4_to_mat3(make_rotation_z_axis_mat4(-amount));
     camera->forward      = normalize_v3(mul_mat3_v3(rotation, camera->forward));
     camera->right        = normalize_v3(mul_mat3_v3(rotation, camera->right));
     camera->up           = normalize_v3(mul_mat3_v3(rotation, camera->up));
