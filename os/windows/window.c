@@ -3,7 +3,6 @@
 
 #include "wings/input/keyboard.c"
 #include "wings/input/mouse.c"
-#include "wings/window.h"
 
 #pragma warning(push, 0)
 #ifndef WIN32_LEAN_AND_MEAN
