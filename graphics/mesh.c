@@ -118,6 +118,7 @@ upload_mesh(struct mesh mesh)
         { mesh_attribute_colors,   (u8 **)&mesh.colors,    sizeof(struct v4), 4},
     };
 
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
     u64 offset = 0;
     for (u32 index = 0;
          index < ARRAY_LENGTH(buffers_to_create);

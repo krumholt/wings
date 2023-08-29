@@ -2,6 +2,7 @@
 #define MESH_TOOLS_C_
 
 #include "wings/base/math.c"
+#include "wings/graphics/mesh.c"
 
 struct v3 unit_cube_positions[] = {
     {-1.0f,  -1.0f, 1.0f },
@@ -216,6 +217,92 @@ write_hexagon_colors(struct v4 *target, struct v4 *colors, u32 number_of_colors)
         *target = colors[index % number_of_colors];
         ++target;
     }
+}
+
+void
+push_sphere(struct mesh *mesh,
+            struct v3    position,
+            f32          radius,
+            struct v4    color)
+{
+    const s32 number_of_vertical_slices   = 32;
+    const s32 number_of_horizontal_slices = 32;
+    const s32 number_of_vertices          = number_of_vertical_slices * number_of_horizontal_slices * 3 * 2; // two triangles per horizontal slice
+    if (mesh->used + number_of_vertices > mesh->size)
+    {
+        static s32 frame_counter = 0;
+        frame_counter++;
+        if (frame_counter > 180)
+        {
+            frame_counter = 0;
+            printf("[WARNING]: Mesh overflow\n");
+        }
+        return;
+    }
+
+    for (int altitude_index = 0;
+         altitude_index < number_of_horizontal_slices;
+         ++altitude_index)
+    {
+        for (int azimuth_index = 0;
+             azimuth_index < number_of_vertical_slices;
+             ++azimuth_index)
+        {
+            f32       altitude_1 = to_radians(180.0f + (f32)(altitude_index)*180.0f / (f32)(number_of_horizontal_slices));
+            f32       altitude_2 = to_radians(180.0f + (f32)(altitude_index + 1) * 180.0f / (f32)(number_of_horizontal_slices));
+            f32       azimuth_1  = to_radians((f32)(azimuth_index)*360.0f / (f32)(number_of_vertical_slices));
+            f32       azimuth_2  = to_radians((f32)(azimuth_index + 1) * 360.0f / (f32)(number_of_vertical_slices));
+            struct v3 point_1    = calculate_point_on_sphere(azimuth_1, altitude_1);
+            struct v3 point_2    = calculate_point_on_sphere(azimuth_2, altitude_1);
+            struct v3 point_3    = calculate_point_on_sphere(azimuth_1, altitude_2);
+            struct v3 point_4    = calculate_point_on_sphere(azimuth_2, altitude_2);
+
+            u32 index = mesh->used;
+            if (mesh->attributes & mesh_attribute_positions)
+            {
+                index                    = mesh->used;
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_1),
+                                                  position);
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_3),
+                                                  position);
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_2),
+                                                  position);
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_3),
+                                                  position);
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_4),
+                                                  position);
+                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_2),
+                                                  position);
+            }
+            if (mesh->attributes & mesh_attribute_normals)
+            {
+                index                  = mesh->used;
+                mesh->normals[index++] = normalize_v3(point_1);
+                mesh->normals[index++] = normalize_v3(point_3);
+                mesh->normals[index++] = normalize_v3(point_2);
+                mesh->normals[index++] = normalize_v3(point_3);
+                mesh->normals[index++] = normalize_v3(point_4);
+                mesh->normals[index++] = normalize_v3(point_2);
+            }
+            if (mesh->attributes & mesh_attribute_colors)
+            {
+                index                 = mesh->used;
+                mesh->colors[index++] = color;
+                mesh->colors[index++] = color;
+                mesh->colors[index++] = color;
+                mesh->colors[index++] = color;
+                mesh->colors[index++] = color;
+                mesh->colors[index++] = color;
+            }
+            mesh->used = index;
+        }
+    }
+}
+
+void
+clear_mesh(struct mesh *mesh)
+{
+    mesh->used = 0;
 }
 
 #endif
