@@ -7,7 +7,7 @@
 #include "wings/geometry_2d.c"
 #include "image.c"
 #include "wings/base/math.c"
-#include "wings_strings.c"
+#include "wings/base/strings.c"
 
 struct glyph
 {

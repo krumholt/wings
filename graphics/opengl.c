@@ -1,8 +1,8 @@
-#ifndef WINGS_OPENGL_C_
-#define WINGS_OPENGL_C_
+#ifndef WINGS_GRAPHICS_OPENGL_C_
+#define WINGS_GRAPHICS_OPENGL_C_
 
 #include "wings/base/types.c"
-#include "wings/window_windows.c" //@TODO:@FIXME: new wings layout
+#include "wings/os/window.c" //@TODO:@FIXME: new wings layout
 
 #include <wingdi.h>
 

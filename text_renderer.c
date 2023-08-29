@@ -1,9 +1,9 @@
 #ifndef TEXT_RENDERER_C_
 #define TEXT_RENDERER_C_
 
-#include "bitmap_font.c"
-#include "image.c"
-#include "opengl.c"
+#include "wings/graphics/bitmap_font.c"
+#include "wings/graphics/image.c"
+#include "wings/graphics/opengl.c"
 
 const char *text_renderer_vertex_shader_text
     = "#version 330\n\n"

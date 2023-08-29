@@ -4,7 +4,7 @@
 #include "wings/base/allocators.c"
 #include "wings/base/math.c"
 #include "wings/base/types.c"
-#include "wings/opengl.c"
+#include "wings/graphics/opengl.c"
 
 enum mesh_attributes
 {
