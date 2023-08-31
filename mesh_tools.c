@@ -232,7 +232,7 @@ push_sphere(struct mesh *mesh,
     {
         static s32 frame_counter = 0;
         frame_counter++;
-        if (frame_counter > 180)
+        if (frame_counter > 1000)
         {
             frame_counter = 0;
             printf("[WARNING]: Mesh overflow\n");
