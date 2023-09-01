@@ -2,6 +2,7 @@
 #define WINGS_BASE_PROFILER_C_
 
 #include "wings/base/types.c"
+#include "wings/base/units.c"
 #include "wings/os/timer.c"
 
 #include <assert.h>
@@ -122,7 +123,7 @@ end_profiling(void)
     profiler.end_tick = GET_CPU_TICK();
     f64 total_time    = seconds_to_nanoseconds(get_os_timer_in_seconds() - profiler.start_time);
     for (u32 index = 0;
-         index < array_length(profiler.anchors);
+         index < ARRAY_LENGTH(profiler.anchors);
          ++index)
     {
         struct profiler_anchor *anchor = profiler.anchors + index;

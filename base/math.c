@@ -2766,4 +2766,17 @@ check_collision_ray_triangle(struct ray_v3 ray, struct v3 a, struct v3 b, struct
     return 1;
 }
 
+b32
+min_s32(s32 a, s32 b)
+{
+	return((a < b) ? a : b);
+}
+
+b32
+max_s32(s32 a, s32 b)
+{
+	return((a > b) ? a : b);
+}
+
+
 #endif
