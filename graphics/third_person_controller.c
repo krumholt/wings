@@ -1,6 +1,6 @@
 #include "wings/base/math.c"
 #include "wings/base/types.c"
-#include "wings/camera.c"
+#include "wings/graphics/camera.c"
 #include "wings/input/keyboard.c"
 #include "wings/input/mouse.c"
 
