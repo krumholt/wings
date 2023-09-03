@@ -49,22 +49,6 @@ make_path(char *string, u64 size)
     return (path);
 }
 
-// @TODO: this seems highly dangerous to return an internal pointer
-char *
-path_filename(struct path *path)
-{
-    s32 current_character_index = path->used - 1;
-    while (current_character_index >= 0)
-    {
-        char current_character = path->string[current_character_index];
-        if (_is_path_seperator(current_character))
-            break;
-
-        current_character_index -= 1;
-    }
-    return path->string + current_character_index + 1;
-}
-
 void
 copy_path(struct path *target, struct path source)
 {

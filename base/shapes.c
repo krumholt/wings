@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_2D_C_
-#define GEOMETRY_2D_C_
+#ifndef WINGS_BASE_SHAPES_C_
+#define WINGS_BASE_SHAPES_C_
 
 #include "wings/base/allocators.c"
 #include "wings/base/math.c"
