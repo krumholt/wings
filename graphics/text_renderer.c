@@ -1,6 +1,7 @@
 #ifndef TEXT_RENDERER_C_
 #define TEXT_RENDERER_C_
 
+#include "wings/base/shapes.c"
 #include "wings/graphics/bitmap_font.c"
 #include "wings/graphics/image.c"
 #include "wings/graphics/opengl.c"
@@ -215,12 +216,12 @@ push_text_v2(struct text_renderer_buffer *buffer,
             { glyph.offset.x + 0.0f,         y_offset_y_up + 0.0f,         0.0f},
         };
         struct v2 uv[] = {
-            {glyph.uv.min.x,  glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.max.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
+            { glyph.uv_min.x,  glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_max.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
         };
         struct v3 *offset = offset_y_down;
         if (text_renderer_context.y_up)
@@ -273,12 +274,12 @@ push_text(struct text_renderer_buffer *buffer,
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
         };
         struct v2 uv[] = {
-            {glyph.uv.min.x,  glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.max.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
+            { glyph.uv_min.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_max.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
         };
         for (u32 index = 0; index < 6; ++index)
         {
@@ -328,12 +329,12 @@ push_text_limited(struct text_renderer_buffer *buffer, struct v3 position, char 
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
         };
         struct v2 uv[] = {
-            {glyph.uv.min.x,  glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.max.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
+            { glyph.uv_min.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_max.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
         };
         for (u32 index = 0; index < 6; ++index)
         {
@@ -411,12 +412,12 @@ push_text_limited_wrapped(struct text_renderer_buffer *buffer,
             { glyph.offset.x + 0.0f,         glyph.offset.y + glyph.size.y, 0.0f},
         };
         struct v2 uv[] = {
-            {glyph.uv.min.x,  glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.max.x, glyph.uv.max.y},
-            { glyph.uv.max.x, glyph.uv.min.y},
-            { glyph.uv.min.x, glyph.uv.max.y},
+            { glyph.uv_min.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_max.x, glyph.uv_max.y},
+            { glyph.uv_max.x, glyph.uv_min.y},
+            { glyph.uv_min.x, glyph.uv_max.y},
         };
         for (u32 index = 0; index < 6; ++index)
         {

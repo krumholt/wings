@@ -1,21 +1,21 @@
 #ifndef BITMAP_FONT_C_
 #define BITMAP_FONT_C_
 
-#include "wings/base/types.c"
 #include "wings/base/allocators.c"
+#include "wings/base/types.c"
 
-#include "wings/geometry_2d.c"
 #include "image.c"
 #include "wings/base/math.c"
 #include "wings/base/strings.c"
 
 struct glyph
 {
-    s32         id;
-    struct v2   size;
-    struct aab2 uv;
-    struct v2   offset;
-    f32         advance;
+    s32       id;
+    struct v2 size;
+    struct v2 uv_min;
+    struct v2 uv_max;
+    struct v2 offset;
+    f32       advance;
 };
 
 struct bitmap_font
@@ -53,7 +53,7 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
             sscanf_s(line.base, "chars count=%d",
                      &font->number_of_glyphs);
             error error = allocate_array(&font->glyph, allocator, font->number_of_glyphs, struct glyph);
-			ASSERT(error == 0);
+            ASSERT(error == 0);
         }
 
         else if (begins_with_cstring(line.base, line.size, "page", 4))
@@ -76,13 +76,11 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
             sscanf_s(line.base, "char id=%hd   x=%hd   y=%hd    width=%hd     height=%hd     xoffset=%hd     yoffset=%hd     xadvance=%hd",
                      &Id, &X, &Y, &Width, &Height, &x_offset, &y_offset, &XAdvance);
 
-            font->glyph[glyph_count].id     = Id;
-            font->glyph[glyph_count].size.x = Width;
-            font->glyph[glyph_count].size.y = Height;
-            font->glyph[glyph_count].uv     = (struct aab2) {
-                {(f32)X / image_width,            (f32)Y / image_height           },
-                { (f32)(X + Width) / image_width, (f32)(Y + Height) / image_height}
-            };
+            font->glyph[glyph_count].id       = Id;
+            font->glyph[glyph_count].size.x   = Width;
+            font->glyph[glyph_count].size.y   = Height;
+            font->glyph[glyph_count].uv_min = (struct v2) { (f32)X / image_width, (f32)Y / image_height };
+            font->glyph[glyph_count].uv_max   = (struct v2) { (f32)(X + Width) / image_width, (f32)(Y + Height) / image_height };
             font->glyph[glyph_count].offset.x = (f32)x_offset;
             font->glyph[glyph_count].offset.y = (f32)y_offset;
             font->glyph[glyph_count].advance  = XAdvance;
@@ -94,9 +92,9 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
 b32
 load_bitmap_font(struct bitmap_font *font, char *path, struct allocator *allocator)
 {
-	struct buffer buffer = {0};
-    b32 error = 0;
-    error     = read_file(&buffer, path, 1, allocator);
+    struct buffer buffer = { 0 };
+    b32           error  = 0;
+    error                = read_file(&buffer, path, 1, allocator);
     if (error)
         return 1;
     struct string text = { (char *)buffer.data, buffer.size - 1 };
