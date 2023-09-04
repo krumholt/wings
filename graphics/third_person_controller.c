@@ -48,7 +48,7 @@ update_camera_from_controller(struct camera *cam, struct third_person_controller
     if (right_mouse_button_held())
     {
         controller->angle_xy -= mouse.position_delta.x * controller->speed_angle_xy * delta_in_seconds;
-        controller->angle_z += mouse.position_delta.y * controller->speed_angle_xy * delta_in_seconds;
+        controller->angle_z += mouse.position_delta.y * controller->speed_angle_z * delta_in_seconds;
     }
     struct v3 forward = cam->forward;
     forward.z         = 0;
