@@ -1271,7 +1271,7 @@ make_perspective_projection(f32 aspect_ratio, f32 near_plane, f32 far_plane, f32
 
     result.m00 = 1.0f / tanf(0.5f * horizontal_fov);
 
-    result.m11 = 1.0f / tanf(0.5f * horizontal_fov) / aspect_ratio;
+    result.m11 = aspect_ratio / tanf(0.5f * horizontal_fov);
 
     result.m22 = far_plane / (far_plane - near_plane);
     result.m32 = -(far_plane * near_plane) / (far_plane - near_plane);
