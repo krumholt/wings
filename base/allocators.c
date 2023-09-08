@@ -90,20 +90,20 @@ linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64
             > allocator->stack.top->block.allocation.size))
     {
         u64 new_block_size = 0;
-		if (size > allocator->min_block_size)
-		{
-			new_block_size = size;
-		}
-		else
-		{
-			new_block_size = allocator->min_block_size;
-		}
+        if (size > allocator->min_block_size)
+        {
+            new_block_size = size;
+        }
+        else
+        {
+            new_block_size = allocator->min_block_size;
+        }
 
         struct os_allocation allocation = { 0 };
 
         error error = os_reserve_and_commit_memory(
-				&allocation,
-				new_block_size);
+            &allocation,
+            new_block_size);
         if (error)
             return (1);
         allocator_->total_memory_allocated += allocation.size;
@@ -186,7 +186,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
     allocator_->total_memory_allocated         = 0;
     allocator_->total_memory_used              = 0;
     struct memory_block_stack_node *node       = allocator->stack.top;
-	allocator->stack.top = 0;
+    allocator->stack.top                       = 0;
     while (node)
     {
         struct memory_block_stack_node *previous
@@ -196,7 +196,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
             return error;
         node = previous;
     }
-	allocator->stack.number_of_nodes = 0;
+    allocator->stack.number_of_nodes = 0;
     return NO_ERROR;
 }
 
