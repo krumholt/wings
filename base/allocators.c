@@ -154,7 +154,7 @@ linear_fixed_size_allocator_allocate(u8 **memory, struct allocator *allocator_, 
     if (memory_left < size)
         return (1);
 
-    *memory = allocator->block.allocation.base;
+    *memory = allocator->block.allocation.base + allocator->block.used;
     allocator->block.used += size;
     allocator_->total_memory_used += size;
     return (0);
