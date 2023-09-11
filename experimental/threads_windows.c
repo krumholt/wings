@@ -7,30 +7,30 @@
 
 struct thread
 {
-	HANDLE handle;
+    HANDLE handle;
 };
 
 b32
 make_thread_and_run(struct thread *thread, unsigned long (*fn)(void *), void *args)
 {
-	thread->handle = CreateThread(0, 0, fn, args, 0, 0);
-	if (!thread->handle)
-		return(1);
+    thread->handle = CreateThread(0, 0, fn, args, 0, 0);
+    if (!thread->handle)
+        return (1);
 
-	return(0);
+    return (0);
 }
 
 b32
 thread_running(struct thread thread)
 {
-	return( WaitForSingleObject(thread.handle, 0) != WAIT_OBJECT_0);
+    return (WaitForSingleObject(thread.handle, 0) != WAIT_OBJECT_0);
 }
 
 b32
 thread_result(struct thread thread, u32 *result)
 {
-	b32 error = GetExitCodeThread(thread.handle, (unsigned long *)result);
-	return (error == 0);
+    b32 error = GetExitCodeThread(thread.handle, (unsigned long *)result);
+    return (error == 0);
 }
 
 #endif
