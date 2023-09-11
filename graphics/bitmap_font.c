@@ -79,7 +79,7 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
             font->glyph[glyph_count].id       = Id;
             font->glyph[glyph_count].size.x   = Width;
             font->glyph[glyph_count].size.y   = Height;
-            font->glyph[glyph_count].uv_min = (struct v2) { (f32)X / image_width, (f32)Y / image_height };
+            font->glyph[glyph_count].uv_min   = (struct v2) { (f32)X / image_width, (f32)Y / image_height };
             font->glyph[glyph_count].uv_max   = (struct v2) { (f32)(X + Width) / image_width, (f32)(Y + Height) / image_height };
             font->glyph[glyph_count].offset.x = (f32)x_offset;
             font->glyph[glyph_count].offset.y = (f32)y_offset;

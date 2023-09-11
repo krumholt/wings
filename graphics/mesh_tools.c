@@ -149,6 +149,7 @@ _mt_hex_direction(struct v3 center, f32 size, s32 i)
 void
 write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 height)
 {
+	center.z = height;
     for (s32 index = 0; index < 6; ++index)
     {
         struct v3 corner_1      = _mt_pointy_hex_corner(center, size, index);
@@ -158,6 +159,7 @@ write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 heigh
         struct v3 corner_2      = _mt_pointy_hex_corner(center, size, index + 1);
         struct v3 corner_2_down = corner_2;
         corner_2.z              = height;
+
 
         *target = center;
         ++target;
