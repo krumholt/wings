@@ -498,6 +498,13 @@ add_v3(struct v3 a, struct v3 b)
 {
     return (struct v3) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
+
+struct v3
+add_v3_3(struct v3 a, struct v3 b, struct v3 c)
+{
+    return (struct v3) { a.x + b.x + c.x, a.y + b.y + c.y, a.z + b.z +c.z };
+}
+
 struct v3s
 add_v3s(struct v3s a, struct v3s b)
 {
@@ -2471,6 +2478,7 @@ make_rotation_quaternion(struct v3 axis, f32 angle)
     return (result);
 }
 
+#include <stdio.h>
 struct ray_v3
 screen_position_to_camera_ray(struct v3   camera_position,
                               struct mat4 projection,
@@ -2482,15 +2490,16 @@ screen_position_to_camera_ray(struct v3   camera_position,
     struct mat4 inv_view       = invert_mat4(view);
 
     f32 x = ((2.0f * (f32)mouse_position.x / (f32)screen_size.x) - 1.0f);
-    f32 y = ((2.0f * (f32)mouse_position.y / (f32)screen_size.y) - 1.0f);
+    f32 y = ((2.0f * (f32)(screen_size.y - mouse_position.y) / (f32)screen_size.y) - 1.0f);
 
-    struct v4 ndc           = { x, -y, -1.0f, 1.0f };
+    struct v4 ndc           = { x, y, 0.0f, 1.0f };
     struct v4 ray_eye       = mul_mat4_v4(inv_projection, ndc);
+    ray_eye.z               = 1.0f;
     ray_eye.w               = 0.0f;
     struct v4 ray_world     = mul_mat4_v4(inv_view, ray_eye);
     struct v3 ray_direction = { ray_world.x, ray_world.y, ray_world.z };
 
-    struct ray_v3 ray = { camera_position, ray_direction };
+    struct ray_v3 ray = { camera_position, normalize_v3(ray_direction) };
     return ray;
 }
 /*

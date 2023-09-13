@@ -149,7 +149,7 @@ _mt_hex_direction(struct v3 center, f32 size, s32 i)
 void
 write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 height)
 {
-	center.z = height;
+    center.z = height;
     for (s32 index = 0; index < 6; ++index)
     {
         struct v3 corner_1      = _mt_pointy_hex_corner(center, size, index);
@@ -159,7 +159,6 @@ write_hexagon_positions(struct v3 *target, struct v3 center, f32 size, s32 heigh
         struct v3 corner_2      = _mt_pointy_hex_corner(center, size, index + 1);
         struct v3 corner_2_down = corner_2;
         corner_2.z              = height;
-
 
         *target = center;
         ++target;
@@ -218,6 +217,94 @@ write_hexagon_colors(struct v4 *target, struct v4 *colors, u32 number_of_colors)
     {
         *target = colors[index % number_of_colors];
         ++target;
+    }
+}
+
+void
+push_line(struct mesh *mesh,
+          struct v3    start,
+          struct v3    end,
+          f32          thickness,
+          struct v4    color)
+{
+    struct v3 forward = normalize_v3(sub_v3(end, start));
+    struct v3 up      = { 0.0f, 0.0f, 1.0f };
+    if (are_equal_v3(up, forward, 0.001f))
+        up = (struct v3) { 0.0f, -1.0f, 0.0f };
+    struct v3 right = mul_f32_v3(thickness, normalize_v3(cross_v3(forward, up)));
+    up              = mul_f32_v3(thickness, normalize_v3(cross_v3(right, forward)));
+    struct v3 left  = mul_f32_v3(-1.0f, right);
+    struct v3 down  = mul_f32_v3(-1.0f, up);
+
+    struct v3 corners[] = {
+        add_v3_3(left, up, start),
+        add_v3_3(left, down, start),
+        add_v3_3(right, down, start),
+        add_v3_3(right, up, start),
+        add_v3_3(left, up, end),
+        add_v3_3(left, down, end),
+        add_v3_3(right, down, end),
+        add_v3_3(right, up, end),
+    };
+    u32 indices[] = {
+        0,
+        1,
+        3,
+        2,
+        3,
+        1,
+
+        4,
+        5,
+        0,
+        1,
+        0,
+        5,
+
+        3,
+        2,
+        7,
+        6,
+        7,
+        2,
+
+        7,
+        4,
+        3,
+        0,
+        3,
+        4,
+
+		5,
+		6,
+		1,
+		2,
+		1,
+		6,
+
+		7,
+		6,
+		4,
+		5,
+		4,
+		6,
+    };
+    for (u32 index = 0; index < ARRAY_LENGTH(indices); ++index)
+    {
+        ASSERT(mesh->used + 1 <= mesh->size);
+        u32 mesh_index = mesh->used++;
+        if (mesh->attributes & mesh_attribute_positions)
+        {
+            mesh->positions[mesh_index] = corners[indices[index]];
+        }
+        if (mesh->attributes & mesh_attribute_normals)
+        {
+            // mesh->positions[mesh_index] = corners[indices[mesh_index]];
+        }
+        if (mesh->attributes & mesh_attribute_colors)
+        {
+            mesh->colors[mesh_index] = color;
+        }
     }
 }
 
