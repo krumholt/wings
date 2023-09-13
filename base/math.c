@@ -502,7 +502,7 @@ add_v3(struct v3 a, struct v3 b)
 struct v3
 add_v3_3(struct v3 a, struct v3 b, struct v3 c)
 {
-    return (struct v3) { a.x + b.x + c.x, a.y + b.y + c.y, a.z + b.z +c.z };
+    return (struct v3) { a.x + b.x + c.x, a.y + b.y + c.y, a.z + b.z + c.z };
 }
 
 struct v3s
@@ -2730,6 +2730,18 @@ ray_triangle_collision(struct ray_v3 ray, struct v3 va, struct v3 vb, struct v3 
     }
     else // This means that there is a line intersection but not a ray intersection.
         return 0;
+}
+
+f32
+ray_plane_collision(struct ray_v3 ray, struct v3 origin, struct v3 normal)
+{
+    f32 denominator = dot_v3(ray.direction, normal);
+    if (fabsf(denominator) > 0.0001f)
+    {
+        float t = dot_v3(sub_v3(origin, ray.origin), normal) / denominator;
+        return t;
+    }
+    return -1.0f;
 }
 
 b32

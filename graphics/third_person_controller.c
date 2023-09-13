@@ -9,6 +9,8 @@ struct third_person_controller
     struct v3 target;
     f32       angle_xy;
     f32       angle_z;
+    f32       min_angle_z;
+    f32       max_angle_z;
     f32       distance;
 
     f32 min_distance;
@@ -22,6 +24,8 @@ struct third_person_controller
     .target         = {0.0f, 0.0f, 0.0f},
     .angle_xy       = 0.0f,
     .angle_z        = 0.0f,
+    .min_angle_z    = -89.0f,
+    .max_angle_z    = 89.0f,
     .distance       = 10.0f,
     .min_distance   = 1.0f,
     .max_distance   = 1000.0f,
@@ -34,7 +38,7 @@ struct third_person_controller
 void
 update_camera_from_controller(struct camera *cam, struct third_person_controller *controller, f32 delta_in_seconds)
 {
-    controller->angle_z  = clamp_f32(controller->angle_z, -89.9f, 89.9f);
+    controller->angle_z  = clamp_f32(controller->angle_z, controller->min_angle_z, controller->max_angle_z);
     controller->distance = clamp_f32(controller->distance, controller->min_distance, controller->max_distance);
     cam->position        = make_v3(
         controller->distance * sinf(PI * (180.0f - controller->angle_xy) / 180.0f) * cosf(PI * controller->angle_z / 180.0f),
