@@ -8,20 +8,24 @@
 
 enum mesh_attributes
 {
-    mesh_attribute_positions = 1 << 0,
-    mesh_attribute_normals   = 1 << 1,
-    mesh_attribute_uvs_1     = 1 << 2,
-    mesh_attribute_uvs_2     = 1 << 3,
-    mesh_attribute_colors    = 1 << 4,
+    mesh_attribute_positions     = 1 << 0,
+    mesh_attribute_normals       = 1 << 1,
+    mesh_attribute_uvs_1         = 1 << 2,
+    mesh_attribute_uvs_2         = 1 << 3,
+    mesh_attribute_colors        = 1 << 4,
+    mesh_attribute_joint_ids     = 1 << 5,
+    mesh_attribute_joint_weights = 1 << 6,
 };
 
 struct mesh
 {
-    struct v3 *positions;
-    struct v3 *normals;
-    struct v2 *uvs_1;
-    struct v2 *uvs_2;
-    struct v4 *colors;
+    struct v3  *positions;
+    struct v3  *normals;
+    struct v2  *uvs_1;
+    struct v2  *uvs_2;
+    struct v4  *colors;
+    struct v4s *joint_ids;
+    struct v4  *joint_weights;
 
     u32 attributes;
 
@@ -49,11 +53,34 @@ make_mesh(struct mesh         *mesh,
         u64                  size;
         u8                   number_of_components;
     } buffers_to_create[] = {
-        {mesh_attribute_positions, (u8 **)&mesh->positions, sizeof(struct v3), 3},
-        { mesh_attribute_normals,  (u8 **)&mesh->normals,   sizeof(struct v3), 3},
-        { mesh_attribute_uvs_1,    (u8 **)&mesh->uvs_1,     sizeof(struct v2), 2},
-        { mesh_attribute_uvs_2,    (u8 **)&mesh->uvs_2,     sizeof(struct v2), 2},
-        { mesh_attribute_colors,   (u8 **)&mesh->colors,    sizeof(struct v4), 4},
+        {mesh_attribute_positions,
+         (u8 **)&mesh->positions,
+         sizeof(struct v3),
+         3},
+        {mesh_attribute_normals,
+         (u8 **)&mesh->normals,
+         sizeof(struct v3),
+         3},
+        {mesh_attribute_uvs_1,
+         (u8 **)&mesh->uvs_1,
+         sizeof(struct v2),
+         2},
+        {mesh_attribute_uvs_2,
+         (u8 **)&mesh->uvs_2,
+         sizeof(struct v2),
+         2},
+        {mesh_attribute_colors,
+         (u8 **)&mesh->colors,
+         sizeof(struct v4),
+         4},
+        {mesh_attribute_joint_ids,
+         (u8 **)&mesh->joint_ids,
+         sizeof(struct v4s),
+         4},
+        {mesh_attribute_joint_weights,
+         (u8 **)&mesh->joint_weights,
+         sizeof(struct v4),
+         4},
     };
 
     u64 total_size = 0;
@@ -112,10 +139,10 @@ upload_mesh(struct mesh mesh)
         u8                   number_of_components;
     } buffers_to_create[] = {
         {mesh_attribute_positions, (u8 **)&mesh.positions, sizeof(struct v3), 3},
-        { mesh_attribute_normals,  (u8 **)&mesh.normals,   sizeof(struct v3), 3},
-        { mesh_attribute_uvs_1,    (u8 **)&mesh.uvs_1,     sizeof(struct v2), 2},
-        { mesh_attribute_uvs_2,    (u8 **)&mesh.uvs_2,     sizeof(struct v2), 2},
-        { mesh_attribute_colors,   (u8 **)&mesh.colors,    sizeof(struct v4), 4},
+        {mesh_attribute_normals,   (u8 **)&mesh.normals,   sizeof(struct v3), 3},
+        {mesh_attribute_uvs_1,     (u8 **)&mesh.uvs_1,     sizeof(struct v2), 2},
+        {mesh_attribute_uvs_2,     (u8 **)&mesh.uvs_2,     sizeof(struct v2), 2},
+        {mesh_attribute_colors,    (u8 **)&mesh.colors,    sizeof(struct v4), 4},
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);

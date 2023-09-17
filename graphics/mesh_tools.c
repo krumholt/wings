@@ -2,7 +2,8 @@
 #define MESH_TOOLS_C_
 
 #include "wings/base/math.c"
-#include "wings/graphics/mesh.c"
+// #include "wings/graphics/mesh.c"
+#include "experimental_mesh.c"
 
 struct v3 unit_cube_positions[] = {
     {-1.0f,  -1.0f, 1.0f },
@@ -275,33 +276,33 @@ push_line(struct mesh *mesh,
         3,
         4,
 
-		5,
-		6,
-		1,
-		2,
-		1,
-		6,
+        5,
+        6,
+        1,
+        2,
+        1,
+        6,
 
-		7,
-		6,
-		4,
-		5,
-		4,
-		6,
+        7,
+        6,
+        4,
+        5,
+        4,
+        6,
     };
     for (u32 index = 0; index < ARRAY_LENGTH(indices); ++index)
     {
         ASSERT(mesh->used + 1 <= mesh->size);
         u32 mesh_index = mesh->used++;
-        if (mesh->attributes & mesh_attribute_positions)
+        if (mesh->attributes & mesh_attribute_position)
         {
             mesh->positions[mesh_index] = corners[indices[index]];
         }
-        if (mesh->attributes & mesh_attribute_normals)
+        if (mesh->attributes & mesh_attribute_normal)
         {
             // mesh->positions[mesh_index] = corners[indices[mesh_index]];
         }
-        if (mesh->attributes & mesh_attribute_colors)
+        if (mesh->attributes & mesh_attribute_color)
         {
             mesh->colors[mesh_index] = color;
         }
@@ -347,7 +348,7 @@ push_sphere(struct mesh *mesh,
             struct v3 point_4    = calculate_point_on_sphere(azimuth_2, altitude_2);
 
             u32 index = mesh->used;
-            if (mesh->attributes & mesh_attribute_positions)
+            if (mesh->attributes & mesh_attribute_position)
             {
                 index                    = mesh->used;
                 mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_1),
@@ -363,7 +364,7 @@ push_sphere(struct mesh *mesh,
                 mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_2),
                                                   position);
             }
-            if (mesh->attributes & mesh_attribute_normals)
+            if (mesh->attributes & mesh_attribute_normal)
             {
                 index                  = mesh->used;
                 mesh->normals[index++] = normalize_v3(point_1);
@@ -373,7 +374,7 @@ push_sphere(struct mesh *mesh,
                 mesh->normals[index++] = normalize_v3(point_4);
                 mesh->normals[index++] = normalize_v3(point_2);
             }
-            if (mesh->attributes & mesh_attribute_colors)
+            if (mesh->attributes & mesh_attribute_color)
             {
                 index                 = mesh->used;
                 mesh->colors[index++] = color;

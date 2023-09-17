@@ -4,7 +4,7 @@
 #include "wings/base/shapes.c"
 #include "wings/graphics/bitmap_font.c"
 #include "wings/graphics/image.c"
-#include "wings/graphics/mesh.c"
+#include "wings/graphics/mesh_tools.c"
 #include "wings/graphics/opengl.c"
 
 const char *text_3d_renderer_vertex_shader_text
@@ -12,7 +12,7 @@ const char *text_3d_renderer_vertex_shader_text
       "\n"
       "layout (location = 0) in vec3 position;\n"
       "layout (location = 2) in vec2 uv;\n"
-      "layout (location = 4) in vec4 tint;\n"
+      "layout (location = 3) in vec4 tint;\n"
       "\n"
       "out vertex_data_t\n"
       "{\n"
@@ -165,7 +165,7 @@ push_text_3d(struct mesh *mesh,
         glyph = get_glyph(text_3d_renderer_context.font, *text);
 
         struct v3 glyph_offset_right = mul_f32_v3(glyph.offset.x, right);
-		f32 y_offset = text_3d_renderer_context.font.base_line_height - glyph.offset.y - glyph.size.y;
+        f32       y_offset           = text_3d_renderer_context.font.base_line_height - glyph.offset.y - glyph.size.y;
         struct v3 glyph_offset_up    = mul_f32_v3(y_offset, up);
         struct v3 glyph_offset       = add_v3(glyph_offset_right, glyph_offset_up);
         struct v3 glyph_size_right   = mul_f32_v3(glyph.size.x, right);
@@ -191,7 +191,7 @@ push_text_3d(struct mesh *mesh,
         for (u32 index = 0; index < 6; ++index)
         {
             mesh->positions[mesh->used + index] = add_v3(pen_position, offset[index]);
-            mesh->uvs_1[mesh->used + index]     = uv[index];
+            mesh->uvs[mesh->used + index]       = uv[index];
             mesh->colors[mesh->used + index]    = color;
         }
         mesh->used += 6;
