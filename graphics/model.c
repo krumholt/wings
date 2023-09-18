@@ -118,12 +118,12 @@ load_phong_shader(struct allocator *allocator)
     error = read_file(&buffer, file_name, 1, allocator);
     if (error)
 		return (error);
-    char *vs  = (char *)buffer.data;
+    char *vs  = (char *)buffer.base;
     file_name = "phong.fs";
     error     = read_file(&buffer, file_name, 1, allocator);
     if (error)
 		return (error);
-    char *fs = (char *)buffer.data;
+    char *fs = (char *)buffer.base;
 
     error = compile_shader_program(&phong_shader.handle, vs, fs);
     assert(error == 0 && phong_shader.handle);
@@ -152,12 +152,12 @@ load_skinning_phong_shader(struct allocator *allocator)
     error           = read_file(&buffer, file_name, 1, allocator);
     if (error)
 		return(error);
-    char *vs  = (char *)buffer.data;
+    char *vs  = (char *)buffer.base;
     file_name = "skinning_phong.fs";
     error     = read_file(&buffer, file_name, 1, allocator);
     if (error)
 		return(error);
-    char *fs = (char *)buffer.data;
+    char *fs = (char *)buffer.base;
     error    = compile_shader_program(&skinning_phong_shader.handle, vs, fs);
     assert(error == 0 && skinning_phong_shader.handle);
 

@@ -19,7 +19,7 @@ error
 load_image_from_memory(struct image *image, struct buffer buffer)
 {
     s32 width = 0, height = 0;
-    image->raw_data = stbi_load_from_memory(buffer.data, buffer.size, &width, &height, &image->number_of_components, 0);
+    image->raw_data = stbi_load_from_memory(buffer.base, buffer.size, &width, &height, &image->number_of_components, 0);
     if (!image->raw_data)
         return (1);
 

@@ -97,7 +97,7 @@ load_bitmap_font(struct bitmap_font *font, char *path, struct allocator *allocat
     error                = read_file(&buffer, path, 1, allocator);
     if (error)
         return 1;
-    struct string text = { (char *)buffer.data, buffer.size - 1 };
+    struct string text = { (char *)buffer.base, buffer.size - 1 };
     bitmap_font_from_text(font, text, allocator);
 
     error = load_image(&font->image, font->image_name, allocator);
