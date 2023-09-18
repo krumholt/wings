@@ -22,7 +22,8 @@ const error NO_ERROR = 0;
 
 struct buffer
 {
-    u8 *data;
+    u8 *base;
+    u64 used;
     u64 size;
 };
 
