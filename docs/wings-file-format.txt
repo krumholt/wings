@@ -19,10 +19,12 @@ struct wings_file_chunk
 
 Chunk "blender"
 ---------------
-struct wings_file_info_chunk
+struct wings_file_blender_chunk
 {
 	u64 number_of_models;
 	u64 creation_time;
+	u32 blend_file_name;
+	u32 blender_version; // offset into strings chunk
 }
 
 Chunk "strings"
