@@ -17,6 +17,14 @@ struct wings_file_chunk
 	u64  number_of_child_blocks;
 };
 
+Chunk "blender"
+---------------
+struct wings_file_info_chunk
+{
+	u64 number_of_models;
+	u64 creation_time;
+}
+
 Chunk "strings"
 ---------------
 Stores c-strings. The strings are 0 terminated and aligned to 8 bytes.
