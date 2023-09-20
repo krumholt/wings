@@ -14,18 +14,9 @@ struct wings_file_chunk
 {
     char id[16];
     u64  size;
-	u64  number_of_child_blocks;
+	u32  id;
+	u32  parent_id;
 };
-
-Chunk "blender"
----------------
-struct wings_file_blender_chunk
-{
-	u64 number_of_models;
-	u64 creation_time;
-	u32 blend_file_name;
-	u32 blender_version; // offset into strings chunk
-}
 
 Chunk "strings"
 ---------------
@@ -38,6 +29,15 @@ struct wings_file_strings_chunk
 	char string_data[chunk_size - 8 - 8]
 };
 
+Chunk "blender"
+---------------
+struct wings_file_blender_chunk
+{
+	u64 number_of_models;
+	u64 creation_time;
+	u32 blend_file_name;
+	u32 blender_version; // offset into strings chunk
+}
 
 Chunk "model"
 -------------
@@ -51,56 +51,38 @@ Chunk "mesh"
 ------------
 struct wings_file_mesh_chunk
 {
-	u64 number_of_child_blocks;
 	u32 number_of_vertices;
 	u32 texture_file_name; // offset into strings chunk
-	u8  has_position;
-	u8  has_normal;
-	u8  has_uv;
-	u8  has_color;
-	u8  has_joints;
-	u8  padding[3];
+	u8  has_positions;
+	u8  has_normals;
+	u8  has_uvs;
+	u8  has_colors;
+	u8  has_joint_ids;
+	u8  has_joint_weights;
+	u8  padding[2];
 };
 
 Chunk "positions"
 ----------------
-struct wings_file_vertices_chunk
-{
-	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
-};
+struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
 
 Chunk "normals"
 ----------------
-struct wings_file_vertices_chunk
-{
-	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
-};
+struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
 
 Chunk "uvs"
 ----------------
-struct wings_file_vertices_chunk
-{
-	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
-};
+struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
 
 Chunk "colors"
 ----------------
-struct wings_file_vertices_chunk
-{
-	struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
-};
+struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
 
 Chunk "joint_ids"
 -----------------
-struct wings_file_vertices_chunk
-{
-	struct v4s data[(chunk_size - chunk_header_size)/sizeof(struct v4s)];
-};
+struct v4s data[(chunk_size - chunk_header_size)/sizeof(struct v4s)];
 
 Chunk "joint_weights"
 -----------------
-struct wings_file_vertices_chunk
-{
-	struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
-};
+struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
 

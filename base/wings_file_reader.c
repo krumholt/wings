@@ -61,7 +61,7 @@ make_wings_file_parser(struct wings_file_parser *file_parser, struct buffer buff
     if (header->major_version != 1 || header->minor_version != 0)
         return (2);
     file_parser->current = buffer.base + sizeof(struct wings_file_header);
-    file_parser->end     = buffer.base + buffer.size;
+    file_parser->end     = buffer.base + buffer.used;
     return (0);
 }
 
@@ -75,7 +75,13 @@ wings_file_id_equals(struct wings_file_chunk *chunk, const char *id)
         if (*id != *tmp)
             return (0);
     }
-    return (1);
+    return (*id == 0 && *tmp == 0);
+}
+
+b32
+wings_file_parser_at_end(struct wings_file_parser *parser)
+{
+    return (parser->current == parser->end);
 }
 
 error
@@ -84,20 +90,34 @@ set_to_next_chunk(struct wings_file_parser *parser)
     if (parser->current >= parser->end)
         return (1);
     struct wings_file_chunk *chunk = parser->chunk;
-    parser->current                = parser->current + chunk->size;
+    ASSERT(chunk->size > 0);
+    parser->current = parser->current + chunk->size;
+    return (0);
+}
+
+error
+set_to_child_chunk(struct wings_file_parser *parser)
+{
+    if (parser->chunk->number_of_child_blocks == 0)
+        return (1);
+
+    parser->current = parser->chunk->data;
     return (0);
 }
 
 error
 set_to_next_chunk_with_id(struct wings_file_parser *parser, const char *id)
 {
-    while (set_to_next_chunk(parser) == NO_ERROR)
+    if (wings_file_parser_at_end(parser))
+        return (1);
+    do
     {
         if (wings_file_id_equals(parser->chunk, id))
         {
             return (0);
         }
-    }
+    } while (set_to_next_chunk(parser) == NO_ERROR);
+    printf("failed here\n");
     return (1);
 }
 

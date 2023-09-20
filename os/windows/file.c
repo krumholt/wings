@@ -18,6 +18,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
     u32 size_on_disk = GetFileSize(file_handle, 0);
 
     buffer->size = size_on_disk + (zero_terminate ? 1 : 0);
+    buffer->used = buffer->size;
     error error  = allocate_array(&buffer->base, allocator, buffer->size, u8);
     if (error)
         return (2);
