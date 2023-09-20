@@ -5,7 +5,7 @@ import struct
 import time
 
 ALIGNMENT = 8
-string_chunk = bytearray()
+string_storage = bytearray()
 
 
 class Mesh:
@@ -249,7 +249,7 @@ def make_model_chunk(id, obj):
     number_of_meshes = 1
 
     chunk = bytearray()
-    chunk.extend(chunk_header("model", 1, id, 0))
+    chunk.extend(chunk_header("model", 8, id, 0))
 
     chunk.extend(B(number_of_meshes, 4))
     chunk.extend(B(name_index, 4))
@@ -267,7 +267,7 @@ def make_mesh_chunk(id, model_chunk_id, mesh):
 
     texture_file_name = store_string("TODO")
     chunk = bytearray()
-    chunk.extend(chunk_header("mesh", 0, id, model_chunk_id))
+    chunk.extend(chunk_header("mesh", 4+4+1+1+1+1+1+1+2, id, model_chunk_id))
     chunk.extend(B(number_of_vertices, 4))
     chunk.extend(B(texture_file_name, 4))
     chunk.extend(B(has_positions, 1))
@@ -288,20 +288,20 @@ def make_data_chunk(id, parent_id, name, data):
 
 
 def store_string(string):
-    global string_chunk
-    index = len(string_chunk)
-    string_chunk.extend(string.encode('utf-8'))
-    string_chunk.extend((0).to_bytes(1, 'little'))
-    padding = calculate_padding(len(string_chunk))
-    string_chunk.extend(("X"*padding).encode('utf-8'))
+    global string_storage
+    index = len(string_storage)
+    string_storage.extend(string.encode('utf-8'))
+    string_storage.extend((0).to_bytes(1, 'little'))
+    padding = calculate_padding(len(string_storage))
+    string_storage.extend(("X"*padding).encode('utf-8'))
     return index
 
 
 def make_strings_chunk(id):
-    global string_chunk
+    global string_storage
     result = bytearray()
-    result.extend(chunk_header("strings", len(string_chunk), id, 0))
-    result.extend(string_chunk)
+    result.extend(chunk_header("strings", len(string_storage), id, 0))
+    result.extend(string_storage)
     return result
 
 
@@ -332,7 +332,6 @@ def export_object(obj):
     BLENDER_CHUNK_ID = 2
     MODEL_CHUNK_ID = 3
     MESH_CHUNK_ID = 4
-    strings_chunk = make_strings_chunk(STRINGS_CHUNK_ID)
     blender_chunk = make_blender_chunk(BLENDER_CHUNK_ID)
     model_chunk = make_model_chunk(MODEL_CHUNK_ID, obj)
     mesh_chunk = make_mesh_chunk(MESH_CHUNK_ID, MODEL_CHUNK_ID, mesh)
@@ -349,6 +348,8 @@ def export_object(obj):
         joint_weights_chunk = make_data_chunk(
             5, MESH_CHUNK_ID, "joint_weights", mesh.joint_weights)
 
+    strings_chunk = make_strings_chunk(STRINGS_CHUNK_ID)
+
     file_name = "{}.wings".format(obj.name.replace(" ", "_"))
     print(file_name)
     file = open(file_name, "wb")
@@ -356,7 +357,8 @@ def export_object(obj):
     file.write("WINGS\0\0\0".encode('utf-8'))
     file.write((1).to_bytes(4, 'little'))  # major version
     file.write((0).to_bytes(4, 'little'))  # minor version
-    file.write(strings_chunk)
+    if (len(string_storage) > 0):
+        file.write(strings_chunk)
     file.write(blender_chunk)
     file.write(model_chunk)
     file.write(mesh_chunk)
@@ -372,7 +374,7 @@ def export_object(obj):
 
 
 def main():
-    global string_chunk
+    global string_storage
     number_of_arguments = 0
     if "--" in sys.argv:
         start_of_arguments = sys.argv.index("--") + 1

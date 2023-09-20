@@ -12,11 +12,13 @@ struct wings_file_header
     u8   data[];
 };
 
-struct wings_file_model_chunk
+struct wings_file_chunk_header
 {
-    u32 number_of_meshes;
-    u32 name;
-    u8  data[];
+    char name[16];
+    u64  chunk_size;
+    u32  id;
+    u32  parent_id;
+    u8   data[];
 };
 
 struct wings_file_blender_chunk
@@ -24,23 +26,34 @@ struct wings_file_blender_chunk
     u64 number_of_models;
     u64 creation_time;
     u32 blend_file_name;
-    u32 blender_version;
+    u32 blender_version; // offset into strings chunk
 };
 
-struct wings_file_chunk
+struct wings_file_model_chunk
 {
-    char id[16];
-    u64  size;
-    u64  number_of_child_blocks;
-    u8   data[];
+    u32 number_of_meshes;
+    u32 name; // offset into strings chunk
+};
+
+struct wings_file_mesh_chunk
+{
+    u32 number_of_vertices;
+    u32 texture_file_name; // offset into strings chunk
+    u8  has_positions;
+    u8  has_normals;
+    u8  has_uvs;
+    u8  has_colors;
+    u8  has_joint_ids;
+    u8  has_joint_weights;
+    u8  padding[2];
 };
 
 struct wings_file_parser
 {
     union
     {
-        u8                      *current;
-        struct wings_file_chunk *chunk;
+        u8                             *current;
+        struct wings_file_chunk_header *chunk_header;
     };
     u8 *end;
 };
@@ -66,16 +79,15 @@ make_wings_file_parser(struct wings_file_parser *file_parser, struct buffer buff
 }
 
 b32
-wings_file_id_equals(struct wings_file_chunk *chunk, const char *id)
+wings_file_chunk_name_equals(struct wings_file_chunk_header *chunk, const char *name)
 {
-
-    char *tmp = chunk->id;
-    while (*id++ && *tmp++)
+    char *tmp = chunk->name;
+    while (*name++ && *tmp++)
     {
-        if (*id != *tmp)
+        if (*name != *tmp)
             return (0);
     }
-    return (*id == 0 && *tmp == 0);
+    return (*name == 0 && *tmp == 0);
 }
 
 b32
@@ -89,30 +101,20 @@ set_to_next_chunk(struct wings_file_parser *parser)
 {
     if (parser->current >= parser->end)
         return (1);
-    struct wings_file_chunk *chunk = parser->chunk;
-    ASSERT(chunk->size > 0);
-    parser->current = parser->current + chunk->size;
+    struct wings_file_chunk_header *header = parser->chunk_header;
+    ASSERT(header->chunk_size > 0);
+    parser->current = parser->current + header->chunk_size + sizeof(struct wings_file_chunk_header);
     return (0);
 }
 
 error
-set_to_child_chunk(struct wings_file_parser *parser)
-{
-    if (parser->chunk->number_of_child_blocks == 0)
-        return (1);
-
-    parser->current = parser->chunk->data;
-    return (0);
-}
-
-error
-set_to_next_chunk_with_id(struct wings_file_parser *parser, const char *id)
+set_to_next_chunk_with_name(struct wings_file_parser *parser, const char *name)
 {
     if (wings_file_parser_at_end(parser))
         return (1);
     do
     {
-        if (wings_file_id_equals(parser->chunk, id))
+        if (wings_file_chunk_name_equals(parser->chunk_header, name))
         {
             return (0);
         }

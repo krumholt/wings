@@ -12,8 +12,8 @@ struct wings_file_header
 
 struct wings_file_chunk
 {
-    char id[16];
-    u64  size;
+    char name[16];
+    u64  chunk_size;
 	u32  id;
 	u32  parent_id;
 };
@@ -24,10 +24,7 @@ Stores c-strings. The strings are 0 terminated and aligned to 8 bytes.
 Other blocks might reference strings inside this block.
 For example u32 texture_file_name; // offset into strings chunk
 ---------------
-struct wings_file_strings_chunk
-{
-	char string_data[chunk_size - 8 - 8]
-};
+char string_data[chunk_size];
 
 Chunk "blender"
 ---------------
@@ -37,7 +34,7 @@ struct wings_file_blender_chunk
 	u64 creation_time;
 	u32 blend_file_name;
 	u32 blender_version; // offset into strings chunk
-}
+};
 
 Chunk "model"
 -------------
