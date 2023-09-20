@@ -10,7 +10,7 @@ struct wings_file_header
     u32  minor_version; // 0
 };
 
-struct wings_file_chunk
+struct wings_file_chunk_header
 {
     char name[16];
     u64  chunk_size;
@@ -24,12 +24,19 @@ Stores c-strings. The strings are 0 terminated and aligned to 8 bytes.
 Other blocks might reference strings inside this block.
 For example u32 texture_file_name; // offset into strings chunk
 ---------------
-char string_data[chunk_size];
+struct wings_file_strings_chunk
+{
+	struct wings_file_chunk_header header;
+
+	char string_data[chunk_size];
+};
 
 Chunk "blender"
 ---------------
 struct wings_file_blender_chunk
 {
+	struct wings_file_chunk_header header;
+
 	u64 number_of_models;
 	u64 creation_time;
 	u32 blend_file_name;
@@ -40,6 +47,8 @@ Chunk "model"
 -------------
 struct wings_file_model_chunk
 {
+	struct wings_file_chunk_header header;
+
 	u32 number_of_meshes;
 	u32 name; // offset into strings chunk
 };
@@ -48,6 +57,8 @@ Chunk "mesh"
 ------------
 struct wings_file_mesh_chunk
 {
+	struct wings_file_chunk_header header;
+
 	u32 number_of_vertices;
 	u32 texture_file_name; // offset into strings chunk
 	u8  has_positions;
@@ -61,25 +72,55 @@ struct wings_file_mesh_chunk
 
 Chunk "positions"
 ----------------
-struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
+struct wings_file_positions_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
+};
 
 Chunk "normals"
 ----------------
-struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
+struct wings_file_normals_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v3)];
+};
 
 Chunk "uvs"
 ----------------
-struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
+struct wings_file_uvs_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
+};
 
 Chunk "colors"
 ----------------
-struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
+struct wings_file_colors_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
+};
 
 Chunk "joint_ids"
 -----------------
-struct v4s data[(chunk_size - chunk_header_size)/sizeof(struct v4s)];
+struct wings_file_joint_ids_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v4s data[(chunk_size - chunk_header_size)/sizeof(struct v4s)];
+};
 
 Chunk "joint_weights"
 -----------------
-struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
+struct wings_file_joint_weights_chunk
+{
+	struct wings_file_chunk_header header;
+
+	struct v4 data[(chunk_size - chunk_header_size)/sizeof(struct v4)];
+};
 

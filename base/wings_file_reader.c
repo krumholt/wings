@@ -2,6 +2,7 @@
 #define WINGS_BASE_WINGS_FILE_READER_C_
 
 #include "wings/base/types.c"
+#include "wings/base/math.c"
 #include "wings/base/allocators.c"
 
 struct wings_file_header
@@ -18,11 +19,19 @@ struct wings_file_chunk_header
     u64  chunk_size;
     u32  id;
     u32  parent_id;
-    u8   data[];
+};
+
+struct wings_file_strings_chunk
+{
+    struct wings_file_chunk_header header;
+
+    char string_data[];
 };
 
 struct wings_file_blender_chunk
 {
+    struct wings_file_chunk_header header;
+
     u64 number_of_models;
     u64 creation_time;
     u32 blend_file_name;
@@ -31,12 +40,16 @@ struct wings_file_blender_chunk
 
 struct wings_file_model_chunk
 {
+    struct wings_file_chunk_header header;
+
     u32 number_of_meshes;
     u32 name; // offset into strings chunk
 };
 
 struct wings_file_mesh_chunk
 {
+    struct wings_file_chunk_header header;
+
     u32 number_of_vertices;
     u32 texture_file_name; // offset into strings chunk
     u8  has_positions;
@@ -48,12 +61,68 @@ struct wings_file_mesh_chunk
     u8  padding[2];
 };
 
+struct wings_file_positions_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v3 data[];
+};
+
+struct wings_file_normals_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v3 data[];
+};
+
+struct wings_file_uvs_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v3 data[];
+};
+
+struct wings_file_colors_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v4 data[];
+};
+
+struct wings_file_joint_ids_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v4s data[];
+};
+
+struct wings_file_joint_weights_chunk
+{
+    struct wings_file_chunk_header header;
+
+    struct v4 data[];
+};
+
 struct wings_file_parser
 {
     union
     {
         u8                             *current;
         struct wings_file_chunk_header *chunk_header;
+    };
+    union
+    {
+        u8                                    *chunk_data;
+        struct wings_file_strings_chunk       *strings_chunk;
+        struct wings_file_blender_chunk       *blender_chunk;
+        struct wings_file_model_chunk         *model_chunk;
+        struct wings_file_mesh_chunk          *mesh_chunk;
+        struct wings_file_positions_chunk     *positions_chunk;
+        struct wings_file_normals_chunk       *normals_chunk;
+        struct wings_file_uvs_chunk           *uvs_chunk;
+        struct wings_file_colors_chunk        *colors_chunk;
+        struct wings_file_joint_ids_chunk     *joint_ids_chunk;
+        struct wings_file_joint_weights_chunk *joint_weights_chunk;
     };
     u8 *end;
 };
@@ -73,8 +142,9 @@ make_wings_file_parser(struct wings_file_parser *file_parser, struct buffer buff
         return (1);
     if (header->major_version != 1 || header->minor_version != 0)
         return (2);
-    file_parser->current = buffer.base + sizeof(struct wings_file_header);
-    file_parser->end     = buffer.base + buffer.used;
+    file_parser->current    = buffer.base + sizeof(struct wings_file_header);
+    file_parser->chunk_data = file_parser->current + sizeof(struct wings_file_chunk_header);
+    file_parser->end        = buffer.base + buffer.used;
     return (0);
 }
 
@@ -103,7 +173,8 @@ set_to_next_chunk(struct wings_file_parser *parser)
         return (1);
     struct wings_file_chunk_header *header = parser->chunk_header;
     ASSERT(header->chunk_size > 0);
-    parser->current = parser->current + header->chunk_size + sizeof(struct wings_file_chunk_header);
+    parser->current    = parser->chunk_data + header->chunk_size;
+    parser->chunk_data = parser->current + sizeof(struct wings_file_chunk_header);
     return (0);
 }
 
@@ -119,7 +190,6 @@ set_to_next_chunk_with_name(struct wings_file_parser *parser, const char *name)
             return (0);
         }
     } while (set_to_next_chunk(parser) == NO_ERROR);
-    printf("failed here\n");
     return (1);
 }
 

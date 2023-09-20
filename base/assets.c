@@ -23,10 +23,15 @@ mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *alloca
     if (error)
         return (2);
 
+    error = set_to_next_chunk_with_name(&parser, "blender");
+	if (error)
+		return (3);
 
-    error = set_to_next_model_chunk(&parser);
+    error = set_to_next_chunk_with_name(&parser, "model");
     if (error)
-        return (3);
+        return (4);
+
+    return (0);
 }
 
 #endif
