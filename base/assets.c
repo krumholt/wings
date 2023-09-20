@@ -24,12 +24,15 @@ mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *alloca
         return (2);
 
     error = set_to_next_chunk_with_name(&parser, "blender");
-	if (error)
-		return (3);
+    if (error)
+        return (3);
 
-    error = set_to_next_chunk_with_name(&parser, "model");
+    error = set_to_next_chunk_with_name(&parser, "mesh");
     if (error)
         return (4);
+
+    if (parser.mesh_chunk->has_positions)
+        printf("have posis\n");
 
     return (0);
 }
