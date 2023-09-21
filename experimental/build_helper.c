@@ -4,8 +4,6 @@
 #ifndef NOBUILD_C_
 #define NOBUILD_C_
 
-#include "wings/base/types.c"
-
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <stdio.h>
@@ -54,7 +52,7 @@ run_command(char *command)
 void
 check_available_compilers(void)
 {
-    b32 noclang, nocl, nogcc, notcc;
+    int noclang, nocl, nogcc, notcc;
     noclang = run_command("clang --version");
     nocl    = run_command("cl");
     nogcc   = run_command("gcc --version");
@@ -80,6 +78,11 @@ get_prefered_c_compiler(void)
 {
     struct c_compiler c_compiler = { 0 };
     return c_compiler;
+}
+
+int
+main(void)
+{
 }
 
 #endif
