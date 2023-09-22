@@ -1,8 +1,8 @@
 // 'inspired' by https://github.com/tsoding/musializer   see nob.h and nob.c
 // or https://github.com/tsoding/nobuild
 
-#ifndef NOBUILD_C_
-#define NOBUILD_C_
+#ifndef BOOTSTRAP_BON_C_
+#define BOOTSTRAP_BON_C_
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -123,18 +123,6 @@ check_available_compilers(void)
         printf("we have tcc yey\n");
 }
 
-struct c_compiler
-{
-    char *command;
-};
-
-struct c_compiler
-get_prefered_c_compiler(void)
-{
-    struct c_compiler c_compiler = { 0 };
-    return c_compiler;
-}
-
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__LCC__) && !defined(_MSC_VER)
 #define COMPILED_WITH "gcc"
 #elif defined(__clang__)
@@ -145,10 +133,7 @@ get_prefered_c_compiler(void)
 #define COMPILED_WITH "UNKNOWN COMPILER"
 #endif
 
-void
-compile(char *filename, char *include_directories)
-{
-}
+#if define(_MSC_VER)
 
 int
 main(void)
@@ -156,9 +141,9 @@ main(void)
     builder.string_memory  = calloc(200 * 1024 * 1024, 1);
     builder.command_result = calloc(MAX_COMMAND_RESULT, 1);
     check_available_compilers();
-    printf("I was build with %s,\n", COMPILED_WITH);
     printf("%s", __BASE_FILE__);
-    compile("hello_world.c", "");
+	run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
+	printf("%s\n", builder.command_result);
 }
 
 #endif
