@@ -4,26 +4,84 @@
 #ifndef BOOTSTRAP_BON_C_
 #define BOOTSTRAP_BON_C_
 
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__LCC__) && !defined(_MSC_VER)
+#define COMPILED_WITH "gcc"
+#define COMPILER_FOUND 1
+#elif defined(__clang__)
+#define COMPILED_WITH "clang"
+#define COMPILER_FOUND 1
+#elif defined(_MSC_VER)
+#define COMPILED_WITH "cl"
+#define COMPILER_FOUND 1
+#else
+#define COMPILED_WITH "UNKNOWN COMPILER"
+#define COMPILER_FOUND 0
+#endif
+
+#if defined(_WIN32)
+#define TARGET_OPERATING_SYSTEM "OS_WINDOWS"
+#elif defined(__linux__)
+#define TARGET_OPERATING_SYSTEM "OS_LINUX"
+#else
+#define TARGET_OPERATING_SYSTEM 0
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 #include <malloc.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_COMMAND_RESULT 1024 * 1024
 
-struct compiler
+typedef uint32_t error;
+typedef uint32_t u32;
+typedef int32_t  s32;
+typedef int32_t  b32;
+
+b32   compiler_found = COMPILER_FOUND;
+char *compiler_name  = COMPILED_WITH;
+
+struct string_builder
 {
-    char *name;
+    uint32_t used;
+    uint32_t size;
+    char    *base;
 };
+
+error
+make_string_builder(struct string_builder *builder, uint32_t size)
+{
+    builder->used = 0;
+    builder->size = size + 1; // + 1 for zero termination
+    builder->base = calloc(builder->size, sizeof(char));
+    if (!builder->base)
+        return (1);
+    return (0);
+}
+
+error
+string_builder_append(struct string_builder *builder, char *string)
+{
+    uint64_t length = strlen(string);
+    if (builder->used + length > builder->size)
+        return (1);
+    for (u32 index = 0; index < length; ++index)
+    {
+        builder->base[builder->used + index] = string[index];
+    }
+    builder->used += length;
+    return (0);
+}
 
 struct builder
 {
-    uint32_t string_memory_used;
-    uint32_t string_memory_size;
-    char    *string_memory;
-    char    *command_result;
+    u32   string_memory_used;
+    u32   string_memory_size;
+    char *string_memory;
+    char *command_result;
 } builder;
 
 struct process
@@ -34,8 +92,7 @@ struct process
 #define ERROR_COMMAND_NOT_FOUND 7
 #define GENERAL_ERROR 1
 
-
-int32_t
+error
 run_command(char *command)
 {
     SECURITY_ATTRIBUTES pipe_security_attributes = { 0 };
@@ -47,16 +104,21 @@ run_command(char *command)
     HANDLE out_pipe_read  = 0;
     HANDLE out_pipe_write = 0;
 
-    uint32_t error = 0;
+    error error   = 0;
+    s32   success = 1;
 
-    error = CreatePipe(&in_pipe_read,
-                       &in_pipe_write,
-                       &pipe_security_attributes,
-                       0);
+    success = CreatePipe(&in_pipe_read,
+                         &in_pipe_write,
+                         &pipe_security_attributes,
+                         0);
+    if (!success)
+        return (1);
     error = CreatePipe(&out_pipe_read,
                        &out_pipe_write,
                        &pipe_security_attributes,
                        0);
+    if (!success)
+        return (1);
 
     STARTUPINFO         startup_info = { 0 };
     PROCESS_INFORMATION process_info;
@@ -89,7 +151,6 @@ run_command(char *command)
     CloseHandle(out_pipe_write);
 
     unsigned long chars_read = 0;
-    int32_t       success    = 0;
     for (;;)
     {
         success = ReadFile(out_pipe_read, builder.command_result, MAX_COMMAND_RESULT, &chars_read, 0);
@@ -104,46 +165,77 @@ run_command(char *command)
     return (NO_ERROR);
 }
 
-void
-check_available_compilers(void)
+char *compiler_list[] = {
+    "gcc",
+    "cl",
+    "clang",
+    "tcc",
+};
+
+error
+try_to_find_compiler(void)
 {
-    int32_t noclang, nocl, nogcc, notcc;
-    noclang = run_command("clang --version");
-    nocl    = run_command("cl");
-    nogcc   = run_command("gcc --version");
-    notcc   = run_command("tcc");
 
-    if (!noclang)
-        printf("we have clang yey\n");
-    if (!nocl)
-        printf("we have cl yey\n");
-    if (!nogcc)
-        printf("we have gcc yey\n");
-    if (!notcc)
-        printf("we have tcc yey\n");
+    for (u32 index = 0; index < (sizeof(compiler_list) / sizeof(compiler_list[0])); ++index)
+    {
+        error error = 0;
+        error       = run_command(compiler_list[index]);
+        if (!error)
+        {
+            compiler_found = 1;
+            compiler_name  = compiler_list[index];
+            return 0;
+        }
+    }
+    return (1); // no suitable compiler found
 }
-
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__LCC__) && !defined(_MSC_VER)
-#define COMPILED_WITH "gcc"
-#elif defined(__clang__)
-#define COMPILED_WITH "clang"
-#elif defined(_MSC_VER)
-#define COMPILED_WITH "cl"
-#else
-#define COMPILED_WITH "UNKNOWN COMPILER"
-#endif
-
-#if define(_MSC_VER)
 
 int
 main(void)
 {
-    builder.string_memory  = calloc(200 * 1024 * 1024, 1);
-    builder.command_result = calloc(MAX_COMMAND_RESULT, 1);
-    check_available_compilers();
-    printf("%s", __BASE_FILE__);
-	run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
-	printf("%s\n", builder.command_result);
+    if (!compiler_found)
+    {
+        error error = try_to_find_compiler();
+        if (error)
+        {
+            printf("Failed to find suitable compiler. Tried gcc, clang, cl, tcc.\n");
+            exit(-1);
+        }
+    }
+    struct string_builder command = { 0 };
+
+    error error = make_string_builder(&command, 4096);
+    if (error)
+    {
+        printf("Failed to allocate memory. Developer info: %s:%d\n", __FILE__, __LINE__);
+        exit(-1);
+    }
+
+    char *target_operating_system = TARGET_OPERATING_SYSTEM;
+    if (!target_operating_system)
+    {
+        printf("Couldn't figure out if we are on windows or linux. FU Apple.\n");
+        exit(-1);
+    }
+
+    char *path_to_wings = ".";
+
+    string_builder_append(&command, compiler_name);
+    string_builder_append(&command, " -D ");
+    string_builder_append(&command, target_operating_system);
+    string_builder_append(&command, " -I ");
+    string_builder_append(&command, path_to_wings);
+    string_builder_append(&command, " -o jim.exe ");
+    string_builder_append(&command, path_to_wings);
+    string_builder_append(&command, "/wings/experimental/bon.c");
+
+    // run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
+    printf("%s\n", command.base);
+    error = run_command(command.base);
+    if (error)
+        printf("Failed to compile\n");
+
+    printf("%s\n", builder.command_result);
 }
 
 #endif

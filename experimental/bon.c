@@ -19,34 +19,41 @@ struct bon_master
 } bon;
 
 s32
-main(void)
+main(s32 argument_count, char **argument_vector)
 {
     struct allocator static_memory = make_growing_linear_allocator(4096 * 10);
 
     error error = NO_ERROR;
     if (error)
     {
-        printf("Why u no giv memory\n");
+        printf("Why u no giv memory?\n");
         exit(-1);
     }
 
     error = allocate_array(&bon.string_memory, &static_memory, MAX_STRING_MEMORY_SIZE, char);
     if (error)
     {
-        printf("Why u no giv memory\n");
+        printf("Why u no giv memory?\n");
         exit(-1);
     }
     error = allocate_array(&bon.command_result, &static_memory, MAX_COMMAND_RESULT_SIZE, char);
     if (error)
     {
-        printf("Why u no giv memory\n");
+        printf("Why u no giv memory?\n");
         exit(-1);
     }
     // check_available_compilers();
     // printf("I was build with %s,\n", COMPILED_WITH);
     // printf("%s", __BASE_FILE__);
     // compile("hello_world.c", "");
-    printf("Hello wombat\n");
+    printf("Hello wombat i got ");
+	for (s32 index = 0; index < argument_count; ++index)
+	{
+		printf("%s", argument_vector[index]);
+		if (index != argument_count-1)
+			printf(", ");
+	}
+	printf("\n");
 }
 
 #endif
