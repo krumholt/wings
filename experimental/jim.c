@@ -1,5 +1,5 @@
-#ifndef BON_C_
-#define BON_C_
+#ifndef JIM_C_
+#define JIM_C_
 
 #include "wings/base/allocators.c"
 #include "wings/base/types.c"
@@ -54,6 +54,7 @@ main(s32 argument_count, char **argument_vector)
 			printf(", ");
 	}
 	printf("\n");
+	printf(">>"__BASE_FILE__"\n");
 }
 
 #endif

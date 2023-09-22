@@ -227,7 +227,7 @@ main(void)
     string_builder_append(&command, path_to_wings);
     string_builder_append(&command, " -o jim.exe ");
     string_builder_append(&command, path_to_wings);
-    string_builder_append(&command, "/wings/experimental/bon.c");
+    string_builder_append(&command, "/wings/experimental/jim.c");
 
     // run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
     printf("%s\n", command.base);
