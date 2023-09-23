@@ -41,8 +41,8 @@ typedef uint32_t u32;
 typedef int32_t  s32;
 typedef int32_t  b32;
 
-b32   compiler_found = COMPILER_FOUND;
-char *compiler_name  = COMPILED_WITH;
+b32         compiler_found = COMPILER_FOUND;
+const char *compiler_name  = COMPILED_WITH;
 
 struct string_builder
 {
@@ -62,8 +62,14 @@ make_string_builder(struct string_builder *builder, uint32_t size)
     return (0);
 }
 
+void
+free_string_builder(struct string_builder *builder)
+{
+    free(builder->base);
+}
+
 error
-string_builder_append(struct string_builder *builder, char *string)
+string_builder_append(struct string_builder *builder, const char *string)
 {
     uint64_t length = strlen(string);
     if (builder->used + length > builder->size)
@@ -197,25 +203,117 @@ try_to_find_compiler(void)
     return (1); // no suitable compiler found
 }
 
+b32
+string_ends_with(char *haystack, u32 haystack_length, char *needle, u32 needle_length)
+{
+	printf("%s[%d] > %s[%d]\n", haystack, haystack_length, needle, needle_length);
+    if (haystack_length < needle_length)
+	{
+		printf("leaving\n");
+        return (0);
+	}
+    u32 haystack_index_offset = haystack_length - needle_length;
+    for (u32 index = 0; index < needle_length; ++index)
+    {
+        if (haystack[index + haystack_index_offset] != needle[index])
+            return (0);
+    }
+    return (1);
+}
+
+static b32
+_is_path_seperator(char c)
+{
+    return c == '\\' || c == '/';
+}
+
+void
+set_to_parent(char **path_in, u32 *length)
+{
+    if (*length == 0)
+        return;
+    char *path           = *path_in;
+    s32   last_character = *length - 1;
+    if (_is_path_seperator(path[last_character]))
+        last_character -= 1;
+    while (last_character >= 0)
+    {
+        if (_is_path_seperator(path[last_character]))
+        {
+            path[last_character]     = '/';
+            path[last_character + 1] = 0;
+            *length                  = last_character + 1;
+            return;
+        }
+        last_character -= 1;
+    }
+    path[0] = 0;
+    *length = 0;
+}
+
+error
+find_wings(char *path_to_bootstrap)
+{
+    if (!path_to_bootstrap)
+        return 1;
+    u32 path_to_bootstrap_length = strlen(path_to_bootstrap);
+
+    char *paths_to_walk_back[] = {
+        "jim_bootstrap.c",
+        "jim/",
+        "wings/",
+    };
+    for (u32 index = 0; index < sizeof(paths_to_walk_back) / sizeof(paths_to_walk_back[0]); ++index)
+    {
+        u32 length_substring = strlen(paths_to_walk_back[index]);
+        b32 found            = 0;
+
+        found = string_ends_with(path_to_bootstrap, path_to_bootstrap_length, paths_to_walk_back[index], length_substring);
+        if (!found)
+		{
+			if (strlen(path_to_bootstrap) == 0)
+				printf("We are inside wings INSANE\n");
+			return(1);
+		}
+
+		printf("1. %s\n", path_to_bootstrap);
+        set_to_parent(&path_to_bootstrap, &path_to_bootstrap_length);
+		printf("2. %s\n", path_to_bootstrap);
+    }
+
+    return (0);
+}
+
 int
 main(void)
 {
+    error error = 0;
+    // allocate some memory
+    struct string_builder wings_path = { 0 };
+    struct string_builder command    = { 0 };
+
+    error = make_string_builder(&wings_path, 10000);
+    if (error)
+    {
+        printf("Failed to allocate memory. Developer info: %s:%d\n", __FILE__, __LINE__);
+        exit(-1);
+    }
+
+    error = make_string_builder(&command, 4096);
+    if (error)
+    {
+        printf("Failed to allocate memory. Developer info: %s:%d\n", __FILE__, __LINE__);
+        exit(-1);
+    }
+
     if (!compiler_found)
     {
-        error error = try_to_find_compiler();
+        error = try_to_find_compiler();
         if (error)
         {
             printf("Failed to find suitable compiler. Tried gcc, clang, cl, tcc.\n");
             exit(-1);
         }
-    }
-    struct string_builder command = { 0 };
-
-    error error = make_string_builder(&command, 4096);
-    if (error)
-    {
-        printf("Failed to allocate memory. Developer info: %s:%d\n", __FILE__, __LINE__);
-        exit(-1);
     }
 
     char *target_operating_system = TARGET_OPERATING_SYSTEM;
@@ -225,11 +323,26 @@ main(void)
         exit(-1);
     }
 
-    printf("I think I should use %s building for %s.\n",
+    printf("I think I should use '%s' building for '%s'.\n",
            compiler_name,
            target_operating_system);
+    char *path_to_bootstrap = calloc(4096, sizeof(char));
+    strcpy_s(path_to_bootstrap, 4096, __BASE_FILE__);
 
-    char *path_to_wings = ".";
+    error = find_wings(path_to_bootstrap);
+    if (error)
+    {
+        printf("I couldn't find wings\n");
+        exit(-1);
+    }
+    char *path_to_wings = path_to_bootstrap;
+    if (path_to_wings[0] == 0)
+    {
+        path_to_wings[0] = '.';
+        path_to_wings[1] = '/';
+        path_to_wings[2] = 0;
+    }
+    printf("I think the path to wings is '%s'\n", path_to_wings);
 
     string_builder_append(&command, compiler_name);
     string_builder_append(&command, " -D ");
@@ -238,12 +351,12 @@ main(void)
     string_builder_append(&command, path_to_wings);
     string_builder_append(&command, " -o jim.exe ");
     string_builder_append(&command, path_to_wings);
-    string_builder_append(&command, "/wings/jim/jim.c");
+    string_builder_append(&command, "wings/jim/jim.c");
 
     s32   result_buffer_size = 4096;
     char *result_buffer      = calloc(result_buffer_size, sizeof(char));
     // run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
-    printf("Calling:\n%s\n", command.base);
+    printf("Calling: '%s'\n", command.base);
     error = run_command(command.base, result_buffer, result_buffer_size);
     if (error)
     {
