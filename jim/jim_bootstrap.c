@@ -257,6 +257,8 @@ find_wings(char *path_to_bootstrap)
     if (!path_to_bootstrap)
         return 1;
     u32 path_to_bootstrap_length = strlen(path_to_bootstrap);
+	if (path_to_bootstrap_length < 10)
+		return 1;
 
     char *paths_to_walk_back[] = {
         "jim_bootstrap.c",
@@ -271,14 +273,26 @@ find_wings(char *path_to_bootstrap)
         found = string_ends_with(path_to_bootstrap, path_to_bootstrap_length, paths_to_walk_back[index], length_substring);
         if (!found)
         {
-            if (strlen(path_to_bootstrap) == 0)
-                printf("We are inside wings INSANE\n");
+            if (strlen(path_to_bootstrap) == 2
+                && path_to_bootstrap[0] == '.'
+                && path_to_bootstrap[1] == '/')
+            {
+                if (index == 0)
+                    return (0);
+                if (index == 1)
+                {
+                    strcpy_s(path_to_bootstrap, 10, "../../");
+                }
+                else if (index == 2)
+                {
+                    strcpy_s(path_to_bootstrap, 10, "../");
+                }
+                return (0);
+            }
             return (1);
         }
 
-        printf("1. %s\n", path_to_bootstrap);
         set_to_parent(&path_to_bootstrap, &path_to_bootstrap_length);
-        printf("2. %s\n", path_to_bootstrap);
     }
 
     return (0);
@@ -327,7 +341,7 @@ main(void)
            compiler_name,
            target_operating_system);
     char *path_to_bootstrap = calloc(4096, sizeof(char));
-    strcpy_s(path_to_bootstrap, 4096, __BASE_FILE__);
+    strcpy_s(path_to_bootstrap, 4096, __FILE__);
 
     error = find_wings(path_to_bootstrap);
     if (error)
