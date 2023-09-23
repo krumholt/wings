@@ -206,12 +206,12 @@ try_to_find_compiler(void)
 b32
 string_ends_with(char *haystack, u32 haystack_length, char *needle, u32 needle_length)
 {
-	printf("%s[%d] > %s[%d]\n", haystack, haystack_length, needle, needle_length);
+    printf("%s[%d] > %s[%d]\n", haystack, haystack_length, needle, needle_length);
     if (haystack_length < needle_length)
-	{
-		printf("leaving\n");
+    {
+        printf("leaving\n");
         return (0);
-	}
+    }
     u32 haystack_index_offset = haystack_length - needle_length;
     for (u32 index = 0; index < needle_length; ++index)
     {
@@ -270,15 +270,15 @@ find_wings(char *path_to_bootstrap)
 
         found = string_ends_with(path_to_bootstrap, path_to_bootstrap_length, paths_to_walk_back[index], length_substring);
         if (!found)
-		{
-			if (strlen(path_to_bootstrap) == 0)
-				printf("We are inside wings INSANE\n");
-			return(1);
-		}
+        {
+            if (strlen(path_to_bootstrap) == 0)
+                printf("We are inside wings INSANE\n");
+            return (1);
+        }
 
-		printf("1. %s\n", path_to_bootstrap);
+        printf("1. %s\n", path_to_bootstrap);
         set_to_parent(&path_to_bootstrap, &path_to_bootstrap_length);
-		printf("2. %s\n", path_to_bootstrap);
+        printf("2. %s\n", path_to_bootstrap);
     }
 
     return (0);
