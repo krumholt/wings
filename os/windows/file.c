@@ -13,7 +13,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
                                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (file_handle == INVALID_HANDLE_VALUE)
-        return (1);
+        return (file_error_not_found);
 
     u32 size_on_disk = GetFileSize(file_handle, 0);
 
@@ -21,7 +21,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
     buffer->used = buffer->size;
     error error  = allocate_array(&buffer->base, allocator, buffer->size, u8);
     if (error)
-        return (2);
+        return (error);
 
     DWORD size_read = 0;
     b32   success   = 0;
@@ -29,7 +29,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
     if (!success || (buffer->size != size_read + (zero_terminate ? 1 : 0)))
     {
         CloseHandle(file_handle);
-        return (3);
+        return (file_error_not_found);
     }
     CloseHandle(file_handle);
 
@@ -49,7 +49,7 @@ write_file(struct buffer buffer, char *file_path, b32 create)
     if (hFile == INVALID_HANDLE_VALUE)
     {
         CloseHandle(hFile);
-        return (1);
+        return (file_error_not_found);
     }
 
     DWORD size_written = 0;
@@ -57,11 +57,26 @@ write_file(struct buffer buffer, char *file_path, b32 create)
     if (!success)
     {
         CloseHandle(hFile);
-        return (2);
+        return (file_error_writing_failed);
     }
 
     CloseHandle(hFile);
     return (0);
+}
+
+error
+move_file(char *from_file_name, char *to_file_name)
+{
+    u32 success = MoveFile(from_file_name, to_file_name);
+    if (!success)
+    {
+        DWORD last_error = GetLastError();
+        if (last_error == 2)
+            return file_error_not_found;
+        if (last_error == 5)
+            return file_error_access_denied;
+    }
+    return (!success);
 }
 
 #endif

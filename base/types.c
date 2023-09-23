@@ -18,8 +18,6 @@ typedef uint32_t b32;
 typedef uint32_t error;
 typedef error    merror;
 
-const error NO_ERROR = 0;
-
 struct buffer
 {
     u8 *base;

@@ -93,7 +93,7 @@ struct process
 #define GENERAL_ERROR 1
 
 error
-run_command(char *command)
+run_command(char *command, char *result_buffer, u32 result_buffer_size)
 {
     SECURITY_ATTRIBUTES pipe_security_attributes = { 0 };
     pipe_security_attributes.nLength             = sizeof(SECURITY_ATTRIBUTES);
@@ -153,7 +153,11 @@ run_command(char *command)
     unsigned long chars_read = 0;
     for (;;)
     {
-        success = ReadFile(out_pipe_read, builder.command_result, MAX_COMMAND_RESULT, &chars_read, 0);
+        success = ReadFile(out_pipe_read,
+                           result_buffer,
+                           result_buffer_size,
+                           &chars_read,
+                           0);
         if (!success || chars_read == 0)
             break;
     }
@@ -175,11 +179,13 @@ char *compiler_list[] = {
 error
 try_to_find_compiler(void)
 {
+    s32   result_buffer_size = 4096;
+    char *result_buffer      = calloc(result_buffer_size, sizeof(char));
 
     for (u32 index = 0; index < (sizeof(compiler_list) / sizeof(compiler_list[0])); ++index)
     {
         error error = 0;
-        error       = run_command(compiler_list[index]);
+        error       = run_command(compiler_list[index], result_buffer, result_buffer_size);
         if (!error)
         {
             compiler_found = 1;
@@ -187,6 +193,7 @@ try_to_find_compiler(void)
             return 0;
         }
     }
+    free(result_buffer);
     return (1); // no suitable compiler found
 }
 
@@ -218,6 +225,10 @@ main(void)
         exit(-1);
     }
 
+    printf("I think I should use %s building for %s.\n",
+           compiler_name,
+           target_operating_system);
+
     char *path_to_wings = ".";
 
     string_builder_append(&command, compiler_name);
@@ -227,15 +238,21 @@ main(void)
     string_builder_append(&command, path_to_wings);
     string_builder_append(&command, " -o jim.exe ");
     string_builder_append(&command, path_to_wings);
-    string_builder_append(&command, "/wings/experimental/jim.c");
+    string_builder_append(&command, "/wings/jim/jim.c");
 
+    s32   result_buffer_size = 4096;
+    char *result_buffer      = calloc(result_buffer_size, sizeof(char));
     // run_command("gcc -DOS_WINDOWS -I./ -obon.exe wings/experimental/bon.c");
-    printf("%s\n", command.base);
-    error = run_command(command.base);
+    printf("Calling:\n%s\n", command.base);
+    error = run_command(command.base, result_buffer, result_buffer_size);
     if (error)
-        printf("Failed to compile\n");
-
-    printf("%s\n", builder.command_result);
+    {
+        printf("%s\n", result_buffer);
+        free(result_buffer);
+        exit(-3);
+    }
+    free(result_buffer);
+    printf("jim is ready\n");
 }
 
 #endif

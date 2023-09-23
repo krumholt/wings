@@ -18,8 +18,27 @@ struct bon_master
     char *command_result;
 } bon;
 
+struct arguments
+{
+    char **arguments;
+    u32    argument_count;
+};
+
+struct command_definition
+{
+    char *name;
+};
+
+error
+move()
+{
+    MoveFile("", "");
+
+    return (NO_ERROR);
+}
+
 s32
-main(s32 argument_count, char **argument_vector)
+main(s32 argument_count, char **arguments)
 {
     struct allocator static_memory = make_growing_linear_allocator(4096 * 10);
 
@@ -42,19 +61,23 @@ main(s32 argument_count, char **argument_vector)
         printf("Why u no giv memory?\n");
         exit(-1);
     }
-    // check_available_compilers();
-    // printf("I was build with %s,\n", COMPILED_WITH);
-    // printf("%s", __BASE_FILE__);
-    // compile("hello_world.c", "");
-    printf("Hello wombat i got ");
-	for (s32 index = 0; index < argument_count; ++index)
-	{
-		printf("%s", argument_vector[index]);
-		if (index != argument_count-1)
-			printf(", ");
-	}
-	printf("\n");
-	printf(">>"__BASE_FILE__"\n");
+
+    if (argument_count == 1)
+    {
+    }
+    else if (argument_count == 2)
+    {
+    }
+
+    for (s32 index = 0; index < argument_count; ++index)
+    {
+        printf("%s", arguments[index]);
+        if (index != argument_count - 1)
+            printf(", ");
+    }
+    printf("\n");
+    printf(">>"__BASE_FILE__
+           "\n");
 }
 
 #endif

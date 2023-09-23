@@ -3,6 +3,7 @@
 
 #include "wings/base/macros.c"
 #include "wings/base/types.c"
+#include "wings/base/error_codes.c"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -10,14 +11,6 @@
 #endif
 #include <Windows.h>
 
-enum os_memory_error
-{
-    os_memory_error_NO_ERROR,
-    os_memory_error_FAILED_TO_ALLOCATE,
-    os_memory_error_QUERY_UNKNOWN_STATE,
-    os_memory_error_QUERY_FAILED,
-    os_memory_error_ENUM_LENGTH,
-};
 
 #ifndef WINGS_OS_MEMORY_C_
 enum memory_state
@@ -58,7 +51,7 @@ os_reserve_memory(struct os_allocation *block, u64 size)
         return (os_memory_error_FAILED_TO_ALLOCATE);
     block->size = actual_size;
 
-    return (0);
+    return (NO_ERROR);
 }
 
 error
