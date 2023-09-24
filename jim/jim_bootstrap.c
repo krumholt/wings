@@ -18,7 +18,7 @@
 #define COMPILER_FOUND 0
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define TARGET_OPERATING_SYSTEM "OS_WINDOWS"
 #elif defined(__linux__)
 #define TARGET_OPERATING_SYSTEM "OS_LINUX"
@@ -167,14 +167,14 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         if (!success || chars_read == 0)
             break;
     }
-	DWORD exit_code = 0;
-	GetExitCodeProcess(process_info.hProcess, &exit_code);
+    DWORD exit_code = 0;
+    GetExitCodeProcess(process_info.hProcess, &exit_code);
     CloseHandle(in_pipe_write);
     CloseHandle(out_pipe_read);
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
-	if (exit_code != 0)
-		return exit_code;
+    if (exit_code != 0)
+        return exit_code;
 
     return (NO_ERROR);
 }
@@ -261,8 +261,8 @@ find_wings(char *path_to_bootstrap)
     if (!path_to_bootstrap)
         return 1;
     u32 path_to_bootstrap_length = strlen(path_to_bootstrap);
-	if (path_to_bootstrap_length < 10)
-		return 1;
+    if (path_to_bootstrap_length < 10)
+        return 1;
 
     char *paths_to_walk_back[] = {
         "jim_bootstrap.c",
@@ -285,11 +285,11 @@ find_wings(char *path_to_bootstrap)
                     return (0);
                 if (index == 1)
                 {
-                    strcpy_s(path_to_bootstrap, 10, "../../");
+                    strcpy(path_to_bootstrap, "../../");
                 }
                 else if (index == 2)
                 {
-                    strcpy_s(path_to_bootstrap, 10, "../");
+                    strcpy(path_to_bootstrap, "../");
                 }
                 return (0);
             }
@@ -345,7 +345,7 @@ main(void)
            compiler_name,
            target_operating_system);
     char *path_to_bootstrap = calloc(4096, sizeof(char));
-    strcpy_s(path_to_bootstrap, 4096, __FILE__);
+    strcpy(path_to_bootstrap, __FILE__);
 
     error = find_wings(path_to_bootstrap);
     if (error)

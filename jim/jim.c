@@ -173,7 +173,7 @@ execute_command(char **arguments, s32 argument_count)
 void
 jim_please_compile(struct program *program)
 {
-    char command_text[1024];
+    char command_text[1024] = { 0 };
     snprintf(command_text, 1024, "gcc -DOS_WINDOWS -I . -o %s %s",
              program->executable,
              program->source);
@@ -187,10 +187,9 @@ jim_please_compile(struct program *program)
 void
 jim_please_run(struct program *program)
 {
-    char command_text[1024];
+    char command_text[1024] = { 0 };
     snprintf(command_text, 1024, "./%s",
              program->executable);
-    printf("running %s\n", command_text);
     jim.last_error = run_command(command_text,
                                  jim.output, jim.output_size);
 }
@@ -210,9 +209,9 @@ jim_what_was_the_output()
 error
 call_jim()
 {
-    jim.static_memory = make_growing_linear_allocator(4096 * 10);
+    jim.static_memory = make_growing_linear_allocator(mebibytes(1));
 
-    jim.output_size = mebibytes(1);
+    jim.output_size = 1024 * 1024;
     error error     = allocate_array(&jim.output, &jim.static_memory, jim.output_size, char);
     return (error);
 }

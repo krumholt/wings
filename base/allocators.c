@@ -61,21 +61,21 @@ make_growing_linear_allocator(u64 block_size)
     };
     return (allocator);
 }
-
+#include <stdio.h>
 error
-linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64 size)
+linear_growing_allocator_allocate(u8 **memory, struct allocator *general_allocator, u64 size)
 {
-    struct growing_linear_allocator *allocator = &allocator_->growing_linear_allocator;
+    struct growing_linear_allocator *allocator = &general_allocator->growing_linear_allocator;
 
-    size = (size + allocator_->alignment - 1) & ~(allocator_->alignment - 1);
+    size = (size + general_allocator->alignment - 1) & ~(general_allocator->alignment - 1);
     if (!allocator->stack.top
         || (allocator->stack.top->buffer.used + size
             > allocator->stack.top->buffer.size))
     {
         u64 new_block_size = 0;
-        if (size > allocator->min_block_size)
+        if (size + sizeof(struct memory_stack_node) > allocator->min_block_size)
         {
-            new_block_size = size;
+            new_block_size = size + sizeof(struct memory_stack_node);
         }
         else
         {
@@ -89,7 +89,7 @@ linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64
             new_block_size);
         if (error)
             return (1);
-        allocator_->total_memory_allocated += allocation.size;
+        general_allocator->total_memory_allocated += allocation.size;
         struct memory_stack_node *new_node
             = (struct memory_stack_node *)allocation.base;
         new_node->allocation  = allocation;
@@ -104,7 +104,7 @@ linear_growing_allocator_allocate(u8 **memory, struct allocator *allocator_, u64
 
     *memory = allocator->stack.top->buffer.base + allocator->stack.top->buffer.used;
     allocator->stack.top->buffer.used += size;
-    allocator_->total_memory_used += size;
+    general_allocator->total_memory_used += size;
     return (0);
 }
 
@@ -164,7 +164,6 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
     }
 }
 
-#include "stdio.h"
 error
 linear_growing_allocator_clear(struct allocator *allocator_)
 {

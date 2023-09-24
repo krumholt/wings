@@ -65,7 +65,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     CloseHandle(in_pipe_read);
     CloseHandle(out_pipe_write);
 
-    unsigned long chars_read = 0;
+    DWORD chars_read = 0;
     for (;;)
     {
         success = ReadFile(out_pipe_read,
@@ -73,20 +73,25 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
                            result_buffer_size,
                            &chars_read,
                            0);
-        if (!success || chars_read == 0)
+        if (chars_read == 0)
             break;
-		result_buffer += chars_read;
-		result_buffer_size -= chars_read;
-		printf("%lu chars read\n", chars_read);
+        if (!success)
+        {
+            u32 last_error = GetLastError();
+            printf("bad %d happend\n", last_error);
+            break;
+        }
+        result_buffer += chars_read;
+        result_buffer_size -= chars_read;
     }
-	DWORD exit_code = 0;
-	GetExitCodeProcess(process_info.hProcess, &exit_code);
+    DWORD exit_code = 0;
+    GetExitCodeProcess(process_info.hProcess, &exit_code);
     CloseHandle(in_pipe_write);
     CloseHandle(out_pipe_read);
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
-	if (exit_code != 0)
-		return exit_code;
+    if (exit_code != 0)
+        return exit_code;
 
     return (NO_ERROR);
 }
