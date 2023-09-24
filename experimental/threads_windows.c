@@ -1,7 +1,7 @@
 #ifndef THREADS_WINDOWS_C
 #define THREADS_WINDOWS_C
 
-#include "types.h"
+#include "wings/base/types.c"
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 

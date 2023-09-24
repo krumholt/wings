@@ -79,4 +79,44 @@ move_file(char *from_file_name, char *to_file_name)
     return (!success);
 }
 
+error
+copy_file(char *from_file_name, char *to_file_name)
+{
+    u32 success = CopyFile(from_file_name, to_file_name, 1);
+    if (!success)
+    {
+        DWORD last_error = GetLastError();
+        if (last_error == 2)
+            return file_error_not_found;
+        if (last_error == 5)
+            return file_error_access_denied;
+    }
+    return (!success);
+}
+
+error
+file_get_last_write_time(u64 *time, char *file_path)
+{
+    HANDLE file_handle = { 0 };
+    file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
+                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if (!file_handle)
+    {
+        return (1);
+    }
+    u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
+    u32 success = GetFileTime(
+        file_handle,
+        (FILETIME *)&creation_time,
+        (FILETIME *)&last_access_time,
+        (FILETIME *)&last_write_time);
+    if (!success)
+    {
+        return (1);
+    }
+    CloseHandle(file_handle);
+    *time = last_write_time;
+    return (0);
+}
+
 #endif

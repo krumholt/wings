@@ -167,10 +167,14 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         if (!success || chars_read == 0)
             break;
     }
+	DWORD exit_code = 0;
+	GetExitCodeProcess(process_info.hProcess, &exit_code);
     CloseHandle(in_pipe_write);
     CloseHandle(out_pipe_read);
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
+	if (exit_code != 0)
+		return exit_code;
 
     return (NO_ERROR);
 }

@@ -4,19 +4,10 @@
 #include "wings/base/allocators.c"
 #include "wings/base/types.c"
 #include "wings/base/units.c"
+#include "wings/os/file.c"
+#include "wings/os/process.c"
 
 #include <stdlib.h>
-
-#define MAX_COMMAND_RESULT_SIZE (56 * 1024)
-#define MAX_STRING_MEMORY_SIZE (56 * 1024)
-
-struct bon_master
-{
-    u32   string_memory_used;
-    u32   string_memory_size;
-    char *string_memory;
-    char *command_result;
-} bon;
 
 struct arguments
 {
@@ -29,25 +20,77 @@ struct command_definition
     char *name;
 };
 
+struct program
+{
+    char *source;
+    char *executable;
+    b32   debug;
+    char *compile_flags;
+};
+
 typedef error (*command_function)(char **arguments, u32 arguments_length);
 
 struct
 {
-    u32    argument_count;
-    char **arguments;
+    u32           argument_count;
+    char        **arguments;
+    error         last_error;
+    struct buffer output;
 } jim = { 0 };
 
 error
-move_command(char **arguments, u32 arguments_length)
+move(char **arguments, u32 arguments_length)
 {
-	if (arguments_length != 2)
-	{
-		printf("I only move one thing to another place!\njim move <from> <to>\n");
-		return(1);
-	}
-    MoveFile(arguments[0], arguments[1]);
+    if (arguments_length != 2)
+    {
+        printf("I only move one thing to another place!\njim move <from> <to>\n");
+        return (1);
+    }
+    error error = move_file(arguments[0], arguments[1]);
+    if (error)
+    {
+        printf("I tried, but i was too hard....\n");
+    }
+
+    return (error);
+}
+
+error
+copy(char **arguments, u32 arguments_length)
+{
+    if (arguments_length != 2)
+    {
+        printf("I only move one thing to another place!\njim move <from> <to>\n");
+        return (1);
+    }
+    error error = copy_file(arguments[0], arguments[1]);
+    if (error)
+    {
+        printf("I tried, but i was too hard....\n");
+    }
 
     return (NO_ERROR);
+}
+
+error
+time(char **arguments, u32 arguments_length)
+{
+    if (arguments_length != 1)
+    {
+        printf("Only one you shall provide...\n");
+        return (1);
+    }
+
+    u64   the_time = 0;
+    error error    = file_get_last_write_time(&the_time, arguments[0]);
+    if (error)
+    {
+        printf("I tried, but i was too hard....\n");
+        return (1);
+    }
+    printf("Sir, the time is %zu\n", the_time);
+
+    return (error);
 }
 
 struct command_mapping
@@ -125,6 +168,28 @@ execute_command(char **arguments, s32 argument_count)
     printf("I don't know how to '%s'.\n", arguments[1]);
 }
 
+void
+jim_lets_compile(struct program *program)
+{
+	jim.output.size = 100000;
+    jim.output.base = calloc(jim.output.size, sizeof(char));
+    error error     = run_command("clang -DOS_WINDOWS -I . -o cool.exe source/main.c", (char *)jim.output.base, jim.output.size);
+	jim.last_error = error;
+}
+
+error
+we_failed_jim()
+{
+    return jim.last_error;
+}
+
+void
+jim_what_was_the_output()
+{
+	printf("%s\n", jim.output.base);
+}
+
+#if !defined(JIMS_BRAIN)
 s32
 main(s32 argument_count, char **arguments)
 {
@@ -133,12 +198,11 @@ main(s32 argument_count, char **arguments)
 
     error = make_command_mappings(100, &static_memory);
     EXIT_IF_ERROR();
-    add_command_mapping("move", move_command);
-
-    error = allocate_array(&bon.string_memory, &static_memory, MAX_STRING_MEMORY_SIZE, char);
+    add_command_mapping("move", move);
     EXIT_IF_ERROR();
-
-    error = allocate_array(&bon.command_result, &static_memory, MAX_COMMAND_RESULT_SIZE, char);
+    add_command_mapping("copy", copy);
+    EXIT_IF_ERROR();
+    add_command_mapping("time", time);
     EXIT_IF_ERROR();
 
     if (argument_count == 1)
@@ -155,5 +219,6 @@ main(s32 argument_count, char **arguments)
         printf("Jim is very confused. My brain reached unreachable heights\n");
     }
 }
+#endif
 
 #endif
