@@ -32,10 +32,12 @@ typedef error (*command_function)(char **arguments, u32 arguments_length);
 
 struct
 {
-    u32           argument_count;
-    char        **arguments;
-    error         last_error;
-    struct buffer output;
+    struct allocator static_memory;
+    u32              argument_count;
+    char           **arguments;
+    error            last_error;
+    u32              output_size;
+    char            *output;
 } jim = { 0 };
 
 error
@@ -169,12 +171,28 @@ execute_command(char **arguments, s32 argument_count)
 }
 
 void
-jim_lets_compile(struct program *program)
+jim_please_compile(struct program *program)
 {
-	jim.output.size = 100000;
-    jim.output.base = calloc(jim.output.size, sizeof(char));
-    error error     = run_command("clang -DOS_WINDOWS -I . -o cool.exe source/main.c", (char *)jim.output.base, jim.output.size);
-	jim.last_error = error;
+    char command_text[1024];
+    snprintf(command_text, 1024, "gcc -DOS_WINDOWS -I . -o %s %s",
+             program->executable,
+             program->source);
+    jim.last_error = run_command(command_text,
+                                 (char *)jim.output, jim.output_size);
+    if (jim.last_error)
+    {
+        printf("%s\n", jim.output);
+    }
+}
+void
+jim_please_run(struct program *program)
+{
+    char command_text[1024];
+    snprintf(command_text, 1024, "./%s",
+             program->executable);
+    printf("running %s\n", command_text);
+    jim.last_error = run_command(command_text,
+                                 jim.output, jim.output_size);
 }
 
 error
@@ -186,7 +204,17 @@ we_failed_jim()
 void
 jim_what_was_the_output()
 {
-	printf("%s\n", jim.output.base);
+    printf("%s\n", jim.output);
+}
+
+error
+call_jim()
+{
+    jim.static_memory = make_growing_linear_allocator(4096 * 10);
+
+    jim.output_size = mebibytes(1);
+    error error     = allocate_array(&jim.output, &jim.static_memory, jim.output_size, char);
+    return (error);
 }
 
 #if !defined(JIMS_BRAIN)
@@ -195,6 +223,10 @@ main(s32 argument_count, char **arguments)
 {
     error            error         = NO_ERROR;
     struct allocator static_memory = make_growing_linear_allocator(4096 * 10);
+
+    jim.output_size = mebibytes(1);
+    error           = allocate_array(&jim.output, &static_memory, jim.output_size, char);
+    EXIT_IF_ERROR();
 
     error = make_command_mappings(100, &static_memory);
     EXIT_IF_ERROR();

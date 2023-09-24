@@ -75,6 +75,9 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
                            0);
         if (!success || chars_read == 0)
             break;
+		result_buffer += chars_read;
+		result_buffer_size -= chars_read;
+		printf("%lu chars read\n", chars_read);
     }
 	DWORD exit_code = 0;
 	GetExitCodeProcess(process_info.hProcess, &exit_code);
