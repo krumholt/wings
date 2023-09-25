@@ -37,7 +37,7 @@ struct program
     struct compiler compiler;
     char           *source;
     char           *executable;
-	char           *output_folder;
+    char           *output_folder;
     char           *compile_flags;
     b32             debug;
     b32             include_wings;
@@ -52,6 +52,15 @@ struct compiler default_clang = {
     .add_include_directory_format   = "-I%s",
     .use_c_mode                     = "-x c",
     .extra_command_line_arguments   = 0,
+};
+
+struct program jims_brain = {
+    .source        = "./jims_brain.c",
+    .executable    = "new_jim.exe",
+    .output_folder = "./",
+    .compile_flags = "",
+    .debug         = 0,
+    .include_wings = 1,
 };
 
 typedef error (*command_function)(char **arguments, u32 arguments_length);
@@ -242,49 +251,59 @@ jim_what_was_the_output()
 }
 
 error
-call_jim()
+jim_get(struct compiler compiler, s32 argc, char **argv)
 {
-    jim.static_memory = make_growing_linear_allocator(mebibytes(1));
+    jims_brain.compiler = compiler;
+    jim.static_memory   = make_growing_linear_allocator(mebibytes(1));
 
     jim.output_size = 1024 * 1024;
     error error     = allocate_array(&jim.output, &jim.static_memory, jim.output_size, char);
+    if (error)
+        return error;
+
+    u64 jim_last_write_time        = 0;
+    u64 jims_brain_last_write_time = 0;
+
+    error = file_get_last_write_time(&jim_last_write_time, "./jim.exe");
+    if (error)
+        return error;
+    error = file_get_last_write_time(&jims_brain_last_write_time, "./jims_brain.c");
+    if (error)
+        return error;
+    if (jims_brain_last_write_time > jim_last_write_time)
+    {
+        error = jim_please_compile(&jims_brain);
+        if (error)
+            return error;
+        delete_file("./.jim_old.exe");
+        error = move_file("./jim.exe", "./.jim_old.exe");
+        if (error)
+        {
+            return error;
+        }
+        error = move_file("new_jim.exe", "jim.exe");
+        if (error)
+        {
+            error = move_file("./.jim_old.exe", "./jim.exe");
+            return error;
+        }
+		char jim_command[1024] = {0};
+		s32 jim_command_size = 1024;
+		char *tmp = jim_command;
+		u32 chars_written = snprintf(tmp, jim_command_size, "./jim.exe ");
+		tmp += chars_written;
+		jim_command_size -= chars_written;
+		for (u32 index = 0; index < argc; ++index)
+		{
+			chars_written = snprintf(tmp, jim_command_size, "%s ", argv[index]);
+			tmp += chars_written;
+			jim_command_size -= chars_written;
+		}
+		run_command(jim_command, jim.output, jim.output_size);
+		printf("%s", jim.output);
+		exit(0);
+    }
     return (error);
 }
-
-#if !defined(JIMS_BRAIN)
-s32
-main(s32 argument_count, char **arguments)
-{
-    error            error         = NO_ERROR;
-    struct allocator static_memory = make_growing_linear_allocator(4096 * 10);
-
-    jim.output_size = mebibytes(1);
-    error           = allocate_array(&jim.output, &static_memory, jim.output_size, char);
-    EXIT_IF_ERROR();
-
-    error = make_command_mappings(100, &static_memory);
-    EXIT_IF_ERROR();
-    add_command_mapping("move", move);
-    EXIT_IF_ERROR();
-    add_command_mapping("copy", copy);
-    EXIT_IF_ERROR();
-    add_command_mapping("time", time);
-    EXIT_IF_ERROR();
-
-    if (argument_count == 1)
-    {
-        print_commands();
-        return (0);
-    }
-    else if (argument_count >= 2)
-    {
-        execute_command(arguments, argument_count);
-    }
-    else
-    {
-        printf("Jim is very confused. My brain reached unreachable heights\n");
-    }
-}
-#endif
 
 #endif

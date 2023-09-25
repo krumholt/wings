@@ -65,6 +65,21 @@ write_file(struct buffer buffer, char *file_path, b32 create)
 }
 
 error
+delete_file(char *file_name)
+{
+    u32 success = DeleteFile(file_name);
+    if (!success)
+    {
+        DWORD last_error = GetLastError();
+        if (last_error == 2)
+            return file_error_not_found;
+        if (last_error == 5)
+            return file_error_access_denied;
+    }
+    return (!success);
+}
+
+error
 move_file(char *from_file_name, char *to_file_name)
 {
     u32 success = MoveFile(from_file_name, to_file_name);
