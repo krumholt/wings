@@ -20,12 +20,38 @@ struct command_definition
     char *name;
 };
 
+struct compiler
+{
+    char *command;
+    char *produce_debug_info_gdb;
+    char *produce_debug_info_msvc;
+    char *add_library_search_path_format;
+    char *add_link_library_format;
+    char *add_include_directory_format;
+    char *use_c_mode;
+    char *extra_command_line_arguments;
+};
+
 struct program
 {
-    char *source;
-    char *executable;
-    b32   debug;
-    char *compile_flags;
+    struct compiler compiler;
+    char           *source;
+    char           *executable;
+	char           *output_folder;
+    char           *compile_flags;
+    b32             debug;
+    b32             include_wings;
+};
+
+struct compiler default_clang = {
+    .command                        = "clang",
+    .produce_debug_info_gdb         = "-g",
+    .produce_debug_info_msvc        = "-gcodeview",
+    .add_library_search_path_format = "-L%s",
+    .add_link_library_format        = "-l%s",
+    .add_include_directory_format   = "-I%s",
+    .use_c_mode                     = "-x c",
+    .extra_command_line_arguments   = 0,
 };
 
 typedef error (*command_function)(char **arguments, u32 arguments_length);
@@ -170,26 +196,27 @@ execute_command(char **arguments, s32 argument_count)
     printf("I don't know how to '%s'.\n", arguments[1]);
 }
 
-void
+error
 jim_please_compile(struct program *program)
 {
-    char  command_text[1024] = { 0 };
-    char *compiler           = "gcc";
+    char command_text[1024] = { 0 };
     snprintf(command_text, 1024, "%s -DOS_WINDOWS -I . -o %s %s",
-             compiler,
+             program->compiler.command,
              program->executable,
              program->source);
     jim.last_error = run_command(command_text,
                                  (char *)jim.output, jim.output_size);
     if (jim.last_error == process_error_command_not_found)
     {
-        printf("Sir, I couldn't find your '%s' compiler\n", compiler);
+        printf("Sir, I couldn't find your '%s' compiler\n", program->compiler.command);
         printf("I will go and check the garage.");
+        return (1);
     }
-    if (jim.last_error)
+    else if (jim.last_error)
     {
         printf("%s\n", jim.output);
     }
+    return (0);
 }
 
 void
