@@ -173,17 +173,25 @@ execute_command(char **arguments, s32 argument_count)
 void
 jim_please_compile(struct program *program)
 {
-    char command_text[1024] = { 0 };
-    snprintf(command_text, 1024, "gcc -DOS_WINDOWS -I . -o %s %s",
+    char  command_text[1024] = { 0 };
+    char *compiler           = "gcc";
+    snprintf(command_text, 1024, "%s -DOS_WINDOWS -I . -o %s %s",
+             compiler,
              program->executable,
              program->source);
     jim.last_error = run_command(command_text,
                                  (char *)jim.output, jim.output_size);
+    if (jim.last_error == process_error_command_not_found)
+    {
+        printf("Sir, I couldn't find your '%s' compiler\n", compiler);
+        printf("I will go and check the garage.");
+    }
     if (jim.last_error)
     {
         printf("%s\n", jim.output);
     }
 }
+
 void
 jim_please_run(struct program *program)
 {

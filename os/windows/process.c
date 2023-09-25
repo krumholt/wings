@@ -1,6 +1,7 @@
 #ifndef WINGS_OS_WINDOWS_PROCESS_C_
 #define WINGS_OS_WINDOWS_PROCESS_C_
 
+#include "wings/base/error_codes.c"
 #include "wings/base/types.c"
 
 #define WIN32_LEAN_AND_MEAN
@@ -27,13 +28,13 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
                          &pipe_security_attributes,
                          0);
     if (!success)
-        return (1);
+        return (process_error_failed_to_create_pipe);
     error = CreatePipe(&out_pipe_read,
                        &out_pipe_write,
                        &pipe_security_attributes,
                        0);
     if (!success)
-        return (1);
+        return (process_error_failed_to_create_pipe);
 
     STARTUPINFO         startup_info = { 0 };
     PROCESS_INFORMATION process_info;
@@ -42,7 +43,8 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     startup_info.hStdOutput = out_pipe_write;
     startup_info.hStdInput  = in_pipe_read;
     startup_info.dwFlags    = STARTF_USESTDHANDLES;
-    int result              = CreateProcess(
+
+    int result = CreateProcess(
         0,
         command,
         0,
@@ -55,11 +57,12 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         &process_info);
     if (result == 0)
     {
-        int32_t last_error = GetLastError();
+        s32 last_error = GetLastError();
         if (last_error == 2)
-            return (1);
+            error = process_error_command_not_found;
         else
-            return (2);
+            error = process_error_creation_failed;
+        return (error);
     }
     WaitForSingleObject(process_info.hProcess, INFINITE);
     CloseHandle(in_pipe_read);
@@ -91,7 +94,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
     if (exit_code != 0)
-        return exit_code;
+        return process_command_failed;
 
     return (NO_ERROR);
 }

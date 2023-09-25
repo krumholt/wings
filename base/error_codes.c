@@ -12,6 +12,11 @@ enum error_codes
     file_error_not_found,
     file_error_writing_failed,
     file_error_access_denied,
+
+    process_error_failed_to_create_pipe,
+    process_error_command_not_found,
+    process_error_creation_failed,
+    process_command_failed,
 };
 
 #endif
