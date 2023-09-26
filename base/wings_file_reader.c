@@ -79,7 +79,7 @@ struct wings_file_uvs_chunk
 {
     struct wings_file_chunk_header header;
 
-    struct v3 data[];
+    struct v2 data[];
 };
 
 struct wings_file_colors_chunk

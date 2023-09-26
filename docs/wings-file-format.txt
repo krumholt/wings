@@ -94,7 +94,7 @@ struct wings_file_uvs_chunk
 {
 	struct wings_file_chunk_header header;
 
-	struct v3 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
+	struct v2 data[(chunk_size - chunk_header_size)/sizeof(struct v2)];
 };
 
 Chunk "colors"
