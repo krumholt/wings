@@ -296,7 +296,8 @@ push_line(struct mesh *mesh,
         u32 mesh_index = mesh->used++;
         if (mesh->attributes & mesh_attribute_position)
         {
-            mesh->positions[mesh_index] = corners[indices[index]];
+            struct v3 *positions  = (struct v3 *)(mesh->data + mesh->positions_offset);
+            positions[mesh_index] = corners[indices[index]];
         }
         if (mesh->attributes & mesh_attribute_normal)
         {
@@ -304,7 +305,8 @@ push_line(struct mesh *mesh,
         }
         if (mesh->attributes & mesh_attribute_color)
         {
-            mesh->colors[mesh_index] = color;
+            struct v4 *colors  = (struct v4 *)(mesh->data + mesh->colors_offset);
+            colors[mesh_index] = color;
         }
     }
 }
@@ -350,39 +352,42 @@ push_sphere(struct mesh *mesh,
             u32 index = mesh->used;
             if (mesh->attributes & mesh_attribute_position)
             {
-                index                    = mesh->used;
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_1),
-                                                  position);
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_3),
-                                                  position);
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_2),
-                                                  position);
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_3),
-                                                  position);
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_4),
-                                                  position);
-                mesh->positions[index++] = add_v3(mul_f32_v3(radius, point_2),
-                                                  position);
+                struct v3 *positions = (struct v3 *)(mesh->data + mesh->positions_offset);
+                index                = mesh->used;
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_1),
+                                              position);
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_3),
+                                              position);
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_2),
+                                              position);
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_3),
+                                              position);
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_4),
+                                              position);
+                positions[index++]   = add_v3(mul_f32_v3(radius, point_2),
+                                              position);
             }
             if (mesh->attributes & mesh_attribute_normal)
             {
+				struct v3 *normals = (struct v3 *)(mesh->data + mesh->normals_offset);
                 index                  = mesh->used;
-                mesh->normals[index++] = normalize_v3(point_1);
-                mesh->normals[index++] = normalize_v3(point_3);
-                mesh->normals[index++] = normalize_v3(point_2);
-                mesh->normals[index++] = normalize_v3(point_3);
-                mesh->normals[index++] = normalize_v3(point_4);
-                mesh->normals[index++] = normalize_v3(point_2);
+                normals[index++] = normalize_v3(point_1);
+                normals[index++] = normalize_v3(point_3);
+                normals[index++] = normalize_v3(point_2);
+                normals[index++] = normalize_v3(point_3);
+                normals[index++] = normalize_v3(point_4);
+                normals[index++] = normalize_v3(point_2);
             }
             if (mesh->attributes & mesh_attribute_color)
             {
+				struct v4 *colors = (struct v4 *)(mesh->data + mesh->colors_offset);
                 index                 = mesh->used;
-                mesh->colors[index++] = color;
-                mesh->colors[index++] = color;
-                mesh->colors[index++] = color;
-                mesh->colors[index++] = color;
-                mesh->colors[index++] = color;
-                mesh->colors[index++] = color;
+                colors[index++] = color;
+                colors[index++] = color;
+                colors[index++] = color;
+                colors[index++] = color;
+                colors[index++] = color;
+                colors[index++] = color;
             }
             mesh->used = index;
         }

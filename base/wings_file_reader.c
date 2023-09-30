@@ -1,9 +1,9 @@
 #ifndef WINGS_BASE_WINGS_FILE_READER_C_
 #define WINGS_BASE_WINGS_FILE_READER_C_
 
-#include "wings/base/types.c"
-#include "wings/base/math.c"
 #include "wings/base/allocators.c"
+#include "wings/base/math.c"
+#include "wings/base/types.c"
 
 struct wings_file_header
 {
@@ -107,12 +107,8 @@ struct wings_file_parser
 {
     union
     {
-        u8                             *current;
-        struct wings_file_chunk_header *chunk_header;
-    };
-    union
-    {
-        u8                                    *chunk_data;
+        u8                                    *current;
+        struct wings_file_chunk_header        *chunk_header;
         struct wings_file_strings_chunk       *strings_chunk;
         struct wings_file_blender_chunk       *blender_chunk;
         struct wings_file_model_chunk         *model_chunk;
@@ -142,9 +138,8 @@ make_wings_file_parser(struct wings_file_parser *file_parser, struct buffer buff
         return (1);
     if (header->major_version != 1 || header->minor_version != 0)
         return (2);
-    file_parser->current    = buffer.base + sizeof(struct wings_file_header);
-    file_parser->chunk_data = file_parser->current + sizeof(struct wings_file_chunk_header);
-    file_parser->end        = buffer.base + buffer.used;
+    file_parser->current = buffer.base + sizeof(struct wings_file_header);
+    file_parser->end     = buffer.base + buffer.used;
     return (0);
 }
 
@@ -152,10 +147,12 @@ b32
 wings_file_chunk_name_equals(struct wings_file_chunk_header *chunk, const char *name)
 {
     char *tmp = chunk->name;
-    while (*name++ && *tmp++)
+    while (*name && *tmp)
     {
         if (*name != *tmp)
             return (0);
+        name += 1;
+        tmp += 1;
     }
     return (*name == 0 && *tmp == 0);
 }
@@ -163,18 +160,18 @@ wings_file_chunk_name_equals(struct wings_file_chunk_header *chunk, const char *
 b32
 wings_file_parser_at_end(struct wings_file_parser *parser)
 {
-    return (parser->current == parser->end);
+    return (parser->current >= parser->end);
 }
 
 error
 set_to_next_chunk(struct wings_file_parser *parser)
 {
-    if (parser->current >= parser->end)
+    if (wings_file_parser_at_end(parser))
         return (1);
     struct wings_file_chunk_header *header = parser->chunk_header;
-    ASSERT(header->chunk_size > 0);
-    parser->current    = parser->chunk_data + header->chunk_size;
-    parser->chunk_data = parser->current + sizeof(struct wings_file_chunk_header);
+    if (header->chunk_size == 0)
+        return (2);
+    parser->current = parser->current + (header->chunk_size + sizeof(struct wings_file_chunk_header));
     return (0);
 }
 
@@ -189,7 +186,8 @@ set_to_next_chunk_with_name(struct wings_file_parser *parser, const char *name)
         {
             return (0);
         }
-    } while (set_to_next_chunk(parser) == NO_ERROR);
+    }
+    while (set_to_next_chunk(parser) == NO_ERROR);
     return (1);
 }
 

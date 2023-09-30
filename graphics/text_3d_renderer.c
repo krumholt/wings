@@ -92,44 +92,6 @@ initialise_text_3d_renderer(struct bitmap_font font)
     return (0);
 }
 
-/*
-struct text_renderer_buffer
-make_text_renderer_buffer(u32 number_of_characters, struct bitmap_font *font, struct allocator *allocator)
-{
-    struct text_renderer_buffer buffer = { 0 };
-    buffer.size                        = number_of_characters * 6;
-    error error                        = allocate_array(&buffer.vertex, allocator, buffer.size, struct text_renderer_vertex);
-    ASSERT(error == 0); //@TODO:@FIXME
-    buffer.font = font;
-
-    glGenVertexArrays(1, &buffer.va);
-    glBindVertexArray(buffer.va);
-    glGenBuffers(1, &buffer.vb);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer.vb);
-    glBufferData(GL_ARRAY_BUFFER, buffer.size * (s64)sizeof(struct text_renderer_vertex), 0, GL_DYNAMIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(struct text_renderer_vertex), (void *)offsetof(struct text_renderer_vertex, position));
-    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(struct text_renderer_vertex), (void *)offsetof(struct text_renderer_vertex, uv));
-    glVertexAttribPointer(2, 4, GL_FLOAT, 0, sizeof(struct text_renderer_vertex), (void *)offsetof(struct text_renderer_vertex, color));
-
-    glBindVertexArray(0);
-
-    buffer.texture = make_font_texture(font->image);
-
-    return (buffer);
-}
-
-void
-upload_text_renderer_buffer(struct text_renderer_buffer buffer)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, buffer.vb);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, buffer.used * (s64)sizeof(struct text_renderer_vertex), buffer.vertex);
-}
-*/
-
 void
 render_text_3d(struct mesh mesh, struct mat4 projection, struct mat4 view)
 {
@@ -151,13 +113,14 @@ push_text_3d(struct mesh *mesh,
              struct v3    pen_position,
              struct v3    up,
              struct v3    right,
+             f32          scale,
              char        *text,
              int          text_length,
              struct v4    color)
 {
     ASSERT(mesh->used + (text_length * 6) <= mesh->size);
-    right = normalize_v3(right);
-    up    = normalize_v3(up);
+    right = mul_f32_v3(scale, normalize_v3(right));
+    up    = mul_f32_v3(scale, normalize_v3(up));
 
     struct glyph glyph = { 0 };
     for (; *text && text_length > 0; text += 1, text_length -= 1)
@@ -188,11 +151,14 @@ push_text_3d(struct mesh *mesh,
             { glyph.uv_min.x, glyph.uv_min.y},
             { glyph.uv_max.x, glyph.uv_max.y},
         };
+        struct v3 *positions = (struct v3 *)(mesh->data + mesh->positions_offset);
+        struct v2 *uvs       = (struct v2 *)(mesh->data + mesh->uvs_offset);
+        struct v4 *colors    = (struct v4 *)(mesh->data + mesh->colors_offset);
         for (u32 index = 0; index < 6; ++index)
         {
-            mesh->positions[mesh->used + index] = add_v3(pen_position, offset[index]);
-            mesh->uvs[mesh->used + index]       = uv[index];
-            mesh->colors[mesh->used + index]    = color;
+            positions[mesh->used + index] = add_v3(pen_position, offset[index]);
+            uvs[mesh->used + index]       = uv[index];
+            colors[mesh->used + index]    = color;
         }
         mesh->used += 6;
         pen_position = add_v3(pen_position, mul_f32_v3(glyph.advance, right));

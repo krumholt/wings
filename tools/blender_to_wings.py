@@ -257,7 +257,7 @@ def make_model_chunk(id, obj):
 
 
 def make_mesh_chunk(id, model_chunk_id, mesh):
-    number_of_vertices = len(mesh.positions)
+    number_of_vertices = len(mesh.positions) // 12
     has_positions = 1 if len(mesh.positions) > 0 else 0
     has_normals = 1 if len(mesh.normals) > 0 else 0
     has_uvs = 1 if len(mesh.uvs) > 0 else 0
