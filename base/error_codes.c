@@ -5,18 +5,20 @@ enum error_codes
 {
     NO_ERROR,
 
-    os_memory_error_FAILED_TO_ALLOCATE,
-    os_memory_error_QUERY_UNKNOWN_STATE,
-    os_memory_error_QUERY_FAILED,
+    ERROR_os_memory__failed_to_allocate,
+    ERROR_os_memory__query_unknown_state,
+    ERROR_os_memory__query_failed,
 
-    file_error_not_found,
-    file_error_writing_failed,
-    file_error_access_denied,
+    ERROR_os_file__not_found,
+    ERROR_os_file__write_failed,
+    ERROR_os_file__access_denied,
 
-    process_error_failed_to_create_pipe,
-    process_error_command_not_found,
-    process_error_creation_failed,
-    process_command_failed,
+    ERROR_os_process__failed_to_create_pipe,
+    ERROR_os_process__command_not_found,
+    ERROR_os_process__creation_failed,
+    ERROR_os_process__command_failed,
+
+    ERROR_graphics_mesh_tools__no_space_left_in_mesh,
 };
 
 #endif

@@ -1,8 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_FILE_C_
 #define WINGS_OS_WINDOWS_FILE_C_
 
-#include "wings/base/allocators.c"
 #include "wings/base/types.c"
+#include "wings/base/error_codes.c"
+#include "wings/base/allocators.c"
 
 error
 read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
@@ -13,7 +14,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
                                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (file_handle == INVALID_HANDLE_VALUE)
-        return (file_error_not_found);
+        return (ERROR_os_file__not_found);
 
     u32 size_on_disk = GetFileSize(file_handle, 0);
 
@@ -29,7 +30,7 @@ read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
     if (!success || (buffer->size != size_read + (zero_terminate ? 1 : 0)))
     {
         CloseHandle(file_handle);
-        return (file_error_not_found);
+        return (ERROR_os_file__not_found);
     }
     CloseHandle(file_handle);
 
@@ -49,7 +50,7 @@ write_file(struct buffer buffer, char *file_path, b32 create)
     if (hFile == INVALID_HANDLE_VALUE)
     {
         CloseHandle(hFile);
-        return (file_error_not_found);
+        return (ERROR_os_file__not_found);
     }
 
     DWORD size_written = 0;
@@ -57,7 +58,7 @@ write_file(struct buffer buffer, char *file_path, b32 create)
     if (!success)
     {
         CloseHandle(hFile);
-        return (file_error_writing_failed);
+        return (ERROR_os_file__write_failed);
     }
 
     CloseHandle(hFile);
@@ -72,9 +73,9 @@ delete_file(char *file_name)
     {
         DWORD last_error = GetLastError();
         if (last_error == 2)
-            return file_error_not_found;
+            return ERROR_os_file__not_found;
         if (last_error == 5)
-            return file_error_access_denied;
+            return ERROR_os_file__access_denied;
     }
     return (!success);
 }
@@ -87,9 +88,9 @@ move_file(char *from_file_name, char *to_file_name)
     {
         DWORD last_error = GetLastError();
         if (last_error == 2)
-            return file_error_not_found;
+            return ERROR_os_file__not_found;
         if (last_error == 5)
-            return file_error_access_denied;
+            return ERROR_os_file__access_denied;
     }
     return (!success);
 }
@@ -102,9 +103,9 @@ copy_file(char *from_file_name, char *to_file_name)
     {
         DWORD last_error = GetLastError();
         if (last_error == 2)
-            return file_error_not_found;
+            return ERROR_os_file__not_found;
         if (last_error == 5)
-            return file_error_access_denied;
+            return ERROR_os_file__access_denied;
     }
     return (!success);
 }

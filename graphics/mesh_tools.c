@@ -1,6 +1,8 @@
 #ifndef MESH_TOOLS_C_
 #define MESH_TOOLS_C_
 
+#include "wings/base/types.c"
+#include "wings/base/error_codes.c"
 #include "wings/base/math.c"
 // #include "wings/graphics/mesh.c"
 #include "experimental_mesh.c"
@@ -221,13 +223,15 @@ write_hexagon_colors(struct v4 *target, struct v4 *colors, u32 number_of_colors)
     }
 }
 
-void
+error
 push_line(struct mesh *mesh,
           struct v3    start,
           struct v3    end,
           f32          thickness,
           struct v4    color)
 {
+    if (mesh->used + 36 > mesh->size)
+        return (ERROR_graphics_mesh_tools__no_space_left_in_mesh);
     struct v3 forward = normalize_v3(sub_v3(end, start));
     struct v3 up      = { 0.0f, 0.0f, 1.0f };
     if (are_equal_v3(up, forward, 0.001f))
@@ -292,7 +296,6 @@ push_line(struct mesh *mesh,
     };
     for (u32 index = 0; index < ARRAY_LENGTH(indices); ++index)
     {
-        ASSERT(mesh->used + 1 <= mesh->size);
         u32 mesh_index = mesh->used++;
         if (mesh->attributes & mesh_attribute_position)
         {
@@ -309,9 +312,10 @@ push_line(struct mesh *mesh,
             colors[mesh_index] = color;
         }
     }
+    return (NO_ERROR);
 }
 
-void
+error
 push_sphere(struct mesh *mesh,
             struct v3    position,
             f32          radius,
@@ -322,14 +326,7 @@ push_sphere(struct mesh *mesh,
     const s32 number_of_vertices          = number_of_vertical_slices * number_of_horizontal_slices * 3 * 2; // two triangles per horizontal slice
     if (mesh->used + number_of_vertices > mesh->size)
     {
-        static s32 frame_counter = 0;
-        frame_counter++;
-        if (frame_counter > 1000)
-        {
-            frame_counter = 0;
-            printf("[WARNING]: Mesh overflow\n");
-        }
-        return;
+        return ERROR_graphics_mesh_tools__no_space_left_in_mesh;
     }
 
     for (int altitude_index = 0;
@@ -369,29 +366,30 @@ push_sphere(struct mesh *mesh,
             }
             if (mesh->attributes & mesh_attribute_normal)
             {
-				struct v3 *normals = (struct v3 *)(mesh->data + mesh->normals_offset);
-                index                  = mesh->used;
-                normals[index++] = normalize_v3(point_1);
-                normals[index++] = normalize_v3(point_3);
-                normals[index++] = normalize_v3(point_2);
-                normals[index++] = normalize_v3(point_3);
-                normals[index++] = normalize_v3(point_4);
-                normals[index++] = normalize_v3(point_2);
+                struct v3 *normals = (struct v3 *)(mesh->data + mesh->normals_offset);
+                index              = mesh->used;
+                normals[index++]   = normalize_v3(point_1);
+                normals[index++]   = normalize_v3(point_3);
+                normals[index++]   = normalize_v3(point_2);
+                normals[index++]   = normalize_v3(point_3);
+                normals[index++]   = normalize_v3(point_4);
+                normals[index++]   = normalize_v3(point_2);
             }
             if (mesh->attributes & mesh_attribute_color)
             {
-				struct v4 *colors = (struct v4 *)(mesh->data + mesh->colors_offset);
-                index                 = mesh->used;
-                colors[index++] = color;
-                colors[index++] = color;
-                colors[index++] = color;
-                colors[index++] = color;
-                colors[index++] = color;
-                colors[index++] = color;
+                struct v4 *colors = (struct v4 *)(mesh->data + mesh->colors_offset);
+                index             = mesh->used;
+                colors[index++]   = color;
+                colors[index++]   = color;
+                colors[index++]   = color;
+                colors[index++]   = color;
+                colors[index++]   = color;
+                colors[index++]   = color;
             }
             mesh->used = index;
         }
     }
+    return (NO_ERROR);
 }
 
 void

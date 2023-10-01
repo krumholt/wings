@@ -1,16 +1,15 @@
 #ifndef WINGS_OS_WINDOWS_MEMORY_C_
 #define WINGS_OS_WINDOWS_MEMORY_C_
 
+#include "wings/base/error_codes.c"
 #include "wings/base/macros.c"
 #include "wings/base/types.c"
-#include "wings/base/error_codes.c"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #define NOCOMM
 #endif
 #include <Windows.h>
-
 
 #ifndef WINGS_OS_MEMORY_C_
 enum memory_state
@@ -48,7 +47,7 @@ os_reserve_memory(struct os_allocation *block, u64 size)
                                              MEM_RESERVE,
                                              PAGE_READWRITE);
     if (block->base == 0)
-        return (os_memory_error_FAILED_TO_ALLOCATE);
+        return (ERROR_os_memory__failed_to_allocate);
     block->size = actual_size;
 
     return (NO_ERROR);
@@ -61,7 +60,7 @@ os_commit_memory(struct os_allocation block)
                                 block.size,
                                 MEM_COMMIT,
                                 PAGE_READWRITE);
-    return (block.base == result ? NO_ERROR : os_memory_error_FAILED_TO_ALLOCATE);
+    return (block.base == result ? NO_ERROR : ERROR_os_memory__failed_to_allocate);
 }
 
 error
@@ -83,14 +82,14 @@ error
 os_release_memory(struct os_allocation block)
 {
     b32 result = VirtualFree(block.base, 0, MEM_RELEASE);
-    return (result == 0 ? os_memory_error_FAILED_TO_ALLOCATE : NO_ERROR);
+    return (result == 0 ? ERROR_os_memory__failed_to_allocate : NO_ERROR);
 }
 
 error
 os_decommit_memory(struct os_allocation block)
 {
     b32 result = VirtualFree(block.base, block.size, MEM_DECOMMIT);
-    return (result == 0 ? os_memory_error_FAILED_TO_ALLOCATE : NO_ERROR);
+    return (result == 0 ? ERROR_os_memory__failed_to_allocate : NO_ERROR);
 }
 
 u64
@@ -118,7 +117,7 @@ os_get_memory_info(struct memory_info *info, struct os_allocation block)
 
     u64 query_size = VirtualQuery(block.base, &basic_info, sizeof(MEMORY_BASIC_INFORMATION));
     if (query_size != sizeof(MEMORY_BASIC_INFORMATION))
-        return (os_memory_error_QUERY_FAILED);
+        return (ERROR_os_memory__query_failed);
 
     enum memory_state state = memory_state_free;
     switch (basic_info.State)
@@ -133,7 +132,7 @@ os_get_memory_info(struct memory_info *info, struct os_allocation block)
         state = memory_state_commited;
         break;
     default:
-        return (os_memory_error_QUERY_UNKNOWN_STATE);
+        return (ERROR_os_memory__query_unknown_state);
     }
     info->state             = state;
     info->base_adress       = basic_info.BaseAddress;
