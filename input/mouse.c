@@ -20,55 +20,55 @@ struct mouse
     s16         wheel_delta;
 } mouse = {0};
 
-inline b32
+b32
 left_mouse_button_pressed(void)
 {
     return(mouse.button[_mouse_button_left] && !mouse.button_last_frame[_mouse_button_left]);
 }
 
-inline b32
+b32
 left_mouse_button_held(void)
 {
     return(mouse.button[_mouse_button_left]);
 }
 
-inline b32
+b32
 left_mouse_button_released(void)
 {
     return(!mouse.button[_mouse_button_left] && mouse.button_last_frame[_mouse_button_left]);
 }
 
-inline b32
+b32
 right_mouse_button_pressed(void)
 {
     return(mouse.button[_mouse_button_right] && !mouse.button_last_frame[_mouse_button_right]);
 }
 
-inline b32
+b32
 right_mouse_button_held(void)
 {
     return(mouse.button[_mouse_button_right]);
 }
 
-inline b32
+b32
 right_mouse_button_released(void)
 {
     return(!mouse.button[_mouse_button_right] && mouse.button_last_frame[_mouse_button_right]);
 }
 
-inline b32
+b32
 middle_mouse_button_pressed(void)
 {
     return mouse.button[_mouse_button_middle] && !mouse.button_last_frame[_mouse_button_middle];
 }
 
-inline b32
+b32
 middle_mouse_button_held(void)
 {
     return mouse.button[_mouse_button_middle];
 }
 
-inline b32
+b32
 middle_mouse_button_released(void)
 {
     return !mouse.button[_mouse_button_middle] && mouse.button_last_frame[_mouse_button_middle];

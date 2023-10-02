@@ -69,7 +69,6 @@ mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *alloca
         return (6);
 
     struct v3 *normals = (struct v3 *)(mesh->data + mesh->normals_offset);
-    printf("normals %llu. im expectering %llu\n", mesh->normals_offset, mesh->used * sizeof(struct v3));
     for (u32 index = 0; index < mesh->used; ++index)
     {
         normals[index] = parser.normals_chunk->data[index];
@@ -80,14 +79,12 @@ mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *alloca
         return (7);
 
     struct v2 *uvs = (struct v2 *)(mesh->data + mesh->uvs_offset);
-    printf("uvs %llu. im expectering %llu\n", mesh->uvs_offset, mesh->used * (sizeof(struct v3) + sizeof(struct v3)));
     for (u32 index = 0; index < mesh->used; ++index)
     {
         uvs[index] = parser.uvs_chunk->data[index];
     }
 
     struct v4 *colorios = (struct v4 *)(mesh->data + mesh->colors_offset);
-    printf("colors %llu. im expectering %llu\n", mesh->colors_offset, mesh->used * (sizeof(struct v3) + sizeof(struct v3) + sizeof(struct v2)));
     for (u32 index = 0; index < mesh->used; ++index)
     {
         colorios[index] = color_pink;
