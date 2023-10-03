@@ -3,6 +3,8 @@ import bpy
 from array import array
 import struct
 import time
+import shutil
+from pathlib import Path
 
 ALIGNMENT = 8
 string_storage = bytearray()
@@ -329,9 +331,8 @@ def export_object(obj):
 
     STRINGS_CHUNK_ID = 0
     BLENDER_CHUNK_ID = 1
-    BLENDER_CHUNK_ID = 2
-    MODEL_CHUNK_ID = 3
-    MESH_CHUNK_ID = 4
+    MODEL_CHUNK_ID = 2
+    MESH_CHUNK_ID = 3
     blender_chunk = make_blender_chunk(BLENDER_CHUNK_ID)
     model_chunk = make_model_chunk(MODEL_CHUNK_ID, obj)
     mesh_chunk = make_mesh_chunk(MESH_CHUNK_ID, MODEL_CHUNK_ID, mesh)
@@ -349,9 +350,8 @@ def export_object(obj):
             5, MESH_CHUNK_ID, "joint_weights", mesh.joint_weights)
 
     strings_chunk = make_strings_chunk(STRINGS_CHUNK_ID)
-
-    file_name = "{}.wings".format(obj.name.replace(" ", "_"))
-    print(file_name)
+    object_name = obj.name.replace(" ", "_")
+    file_name = "{}.wings".format(object_name)
     file = open(file_name, "wb")
 
     file.write("WINGS\0\0\0".encode('utf-8'))
@@ -370,6 +370,12 @@ def export_object(obj):
         file.write(joint_weights_chunk)
     file.flush()
     file.close()
+
+    path = Path(bpy.data.filepath)
+    albedo_image = Path(str(path.parent.absolute()) +
+                        '/' + object_name + '_albedo.png')
+    if (Path.exists(albedo_image)):
+        shutil.copy()
     return 0
 
 

@@ -4,8 +4,7 @@
 #include "wings/base/types.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/math.c"
-// #include "wings/graphics/mesh.c"
-#include "experimental_mesh.c"
+#include "wings/graphics/mesh.c"
 
 struct v3 unit_cube_positions[] = {
     {-1.0f,  -1.0f, 1.0f },

@@ -1,12 +1,12 @@
 #ifndef WINGS_BASE_ASSETS_C_
 #define WINGS_BASE_ASSETS_C_
 
-#include "experimental_mesh.c"
-#include "wings/base/allocators.c"
-#include "wings/base/colors.c"
 #include "wings/base/types.c"
+#include "wings/base/colors.c"
+#include "wings/base/allocators.c"
 #include "wings/base/wings_file_reader.c"
 #include "wings/os/file.c"
+#include "wings/graphics/mesh.c"
 
 error
 mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *allocator)

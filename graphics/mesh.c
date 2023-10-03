@@ -1,94 +1,119 @@
-#ifndef WINGS_GRAPHICS_MESH_C_
-#define WINGS_GRAPHICS_MESH_C_
+#ifndef WINGS_GRAPHICS_EXP_MESH_C_
+#define WINGS_GRAPHICS_EXP_MESH_C_
 
 #include "wings/base/allocators.c"
 #include "wings/base/math.c"
 #include "wings/base/types.c"
 #include "wings/graphics/opengl.c"
 
-enum mesh_attributes
+#define MESH_ATTRIBUTE_POSITION_LOCATION 0
+#define MESH_ATTRIBUTE_NORMAL_LOCATION 1
+#define MESH_ATTRIBUTE_UV_LOCATION 2
+#define MESH_ATTRIBUTE_COLOR_LOCATION 3
+#define MESH_ATTRIBUTE_JOINT_ID_LOCATION 4
+#define MESH_ATTRIBUTE_JOINT_WEIGHT_LOCATION 5
+#define NUMBER_OF_MESH_ATTRIBUTES 6
+
+enum mesh_attribute
 {
-    mesh_attribute_positions     = 1 << 0,
-    mesh_attribute_normals       = 1 << 1,
-    mesh_attribute_uvs           = 1 << 2,
-    mesh_attribute_colors        = 1 << 3,
-    mesh_attribute_joint_ids     = 1 << 4,
-    mesh_attribute_joint_weights = 1 << 5,
+    mesh_attribute_position     = 1 << 0,
+    mesh_attribute_normal       = 1 << 1,
+    mesh_attribute_uv           = 1 << 2,
+    mesh_attribute_color        = 1 << 3,
+    mesh_attribute_joint_id     = 1 << 4,
+    mesh_attribute_joint_weight = 1 << 5,
 };
 
 struct mesh
 {
-    struct v3  *positions;
-    struct v3  *normals;
-    struct v2  *uvs_1;
-    struct v2  *uvs_2;
-    struct v4  *colors;
-    struct v4s *joint_ids;
-    struct v4  *joint_weights;
-
+    u8 *data;
+    u64 positions_offset;
+    u64 normals_offset;
+    u64 uvs_offset;
+    u64 colors_offset;
+    u64 joint_ids_offset;
+    u64 joint_weights_offset;
     u32 attributes;
-
     u32 used;
     u32 size;
-
+    u64 size_in_bytes;
     u32 vb;
     u32 va;
 };
 
-error
-make_mesh(struct mesh         *mesh,
-          enum mesh_attributes attributes,
-          u32                  max_number_of_vertices,
-          struct allocator    *allocator)
+b32
+mesh_has_attribute(struct mesh *mesh, enum mesh_attribute attribute)
 {
+    return (mesh->attributes & attribute);
+}
+
+error
+make_mesh(struct mesh      *mesh,
+          u32               attributes,
+          u32               max_number_of_vertices,
+          struct allocator *allocator)
+{
+    error error      = NO_ERROR;
     mesh->attributes = attributes;
     mesh->size       = max_number_of_vertices;
-    error error      = NO_ERROR;
-
-    struct
-    {
-        enum mesh_attributes attribute;
-        u8                 **pointer;
-        u64                  size;
-        u8                   number_of_components;
-    } buffers_to_create[] = {
-        {mesh_attribute_positions,
-         (u8 **)&mesh->positions,
-         sizeof(struct v3),
-         3},
-        { mesh_attribute_normals,
-         (u8 **)&mesh->normals,
-         sizeof(struct v3),
-         3},
-        { mesh_attribute_uvs_1,
-         (u8 **)&mesh->uvs_1,
-         sizeof(struct v2),
-         2},
-        { mesh_attribute_uvs_2,
-         (u8 **)&mesh->uvs_2,
-         sizeof(struct v2),
-         2},
-        { mesh_attribute_colors,
-         (u8 **)&mesh->colors,
-         sizeof(struct v4),
-         4},
-        { mesh_attribute_joint_ids,
-         (u8 **)&mesh->joint_ids,
-         sizeof(struct v4s),
-         4},
-        { mesh_attribute_joint_weights,
-         (u8 **)&mesh->joint_weights,
-         sizeof(struct v4),
-         4},
-    };
 
     u64 total_size = 0;
-    for (u32 index = 0;
-         index < ARRAY_LENGTH(buffers_to_create);
-         ++index)
+    if (mesh_has_attribute(mesh, mesh_attribute_position))
     {
-        total_size += (attributes & buffers_to_create[index].attribute) * buffers_to_create[index].size * mesh->size;
+        u64 size         = sizeof(struct v3) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->positions_offset = total_size;
+        total_size += aligned_size;
     }
+    if (mesh_has_attribute(mesh, mesh_attribute_normal))
+    {
+        u64 size         = sizeof(struct v3) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->normals_offset = total_size;
+        total_size += aligned_size;
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_uv))
+    {
+        u64 size         = sizeof(struct v2) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->uvs_offset = total_size;
+        total_size += aligned_size;
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_color))
+    {
+        u64 size         = sizeof(struct v4) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->colors_offset = total_size;
+        total_size += aligned_size;
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_joint_id))
+    {
+        u64 size         = sizeof(struct v4s) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->joint_ids_offset = total_size;
+        total_size += aligned_size;
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_joint_weight))
+    {
+        u64 size         = sizeof(struct v4) * mesh->size;
+        u64 aligned_size = (size + 7) & ~(7);
+
+        mesh->joint_weights_offset = total_size;
+        total_size += aligned_size;
+    }
+
+    mesh->size_in_bytes = total_size;
+    error               = allocate_array(&mesh->data,
+                                         allocator,
+                                         mesh->size_in_bytes,
+                                         u8);
+    if (error)
+        return error;
 
     glGenVertexArrays(1, &mesh->va);
     glBindVertexArray(mesh->va);
@@ -98,78 +123,120 @@ make_mesh(struct mesh         *mesh,
                  total_size,
                  0,
                  GL_DYNAMIC_DRAW);
-
-    u64 offset = 0;
-    for (u32 index = 0;
-         index < ARRAY_LENGTH(buffers_to_create);
-         ++index)
+    if (mesh_has_attribute(mesh, mesh_attribute_position))
     {
-        if (attributes & buffers_to_create[index].attribute)
-        {
-            error = allocate(buffers_to_create[index].pointer,
-                             allocator,
-                             max_number_of_vertices * buffers_to_create[index].size);
-            if (error)
-                return error;
-            glEnableVertexAttribArray(index);
-            glVertexAttribPointer(
-                index,
-                buffers_to_create[index].number_of_components,
-                GL_FLOAT,
-                GL_FALSE,
-                0,
-                (void *)offset);
-            offset += buffers_to_create[index].size * max_number_of_vertices;
-        }
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_POSITION_LOCATION);
+        glVertexAttribPointer(
+            MESH_ATTRIBUTE_POSITION_LOCATION,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *)mesh->positions_offset);
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_normal))
+    {
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_NORMAL_LOCATION);
+        glVertexAttribPointer(
+            MESH_ATTRIBUTE_NORMAL_LOCATION,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *)mesh->normals_offset);
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_uv))
+    {
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_UV_LOCATION);
+        glVertexAttribPointer(
+            MESH_ATTRIBUTE_UV_LOCATION,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *)mesh->uvs_offset);
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_color))
+    {
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_COLOR_LOCATION);
+        glVertexAttribPointer(
+            MESH_ATTRIBUTE_COLOR_LOCATION,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *)mesh->colors_offset);
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_joint_id))
+    {
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_JOINT_ID_LOCATION);
+        glVertexAttribIPointer(
+            MESH_ATTRIBUTE_JOINT_ID_LOCATION,
+            4,
+            GL_INT,
+            0,
+            (void *)mesh->joint_ids_offset);
+    }
+    if (mesh_has_attribute(mesh, mesh_attribute_joint_weight))
+    {
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_JOINT_WEIGHT_LOCATION);
+        glVertexAttribPointer(
+            MESH_ATTRIBUTE_JOINT_WEIGHT_LOCATION,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *)mesh->joint_weights_offset);
     }
     glBindVertexArray(0);
-
+    GL_CHECK(1);
     return (0);
+}
+
+struct v3 *
+mesh_positions(struct mesh mesh)
+{
+    return (struct v3 *)(mesh.data + mesh.positions_offset);
+}
+
+struct v3 *
+mesh_normals(struct mesh mesh)
+{
+    return (struct v3 *)(mesh.data + mesh.normals_offset);
+}
+
+struct v2 *
+mesh_uvs(struct mesh mesh)
+{
+    return (struct v2 *)(mesh.data + mesh.uvs_offset);
+}
+
+struct v4 *
+mesh_colors(struct mesh mesh)
+{
+    return (struct v4 *)(mesh.data + mesh.colors_offset);
 }
 
 error
 upload_mesh(struct mesh mesh)
 {
-    struct
-    {
-        enum mesh_attributes attribute;
-        u8                 **pointer;
-        u64                  size;
-        u8                   number_of_components;
-    } buffers_to_create[] = {
-        {mesh_attribute_positions, (u8 **)&mesh.positions, sizeof(struct v3), 3},
-        { mesh_attribute_normals,  (u8 **)&mesh.normals,   sizeof(struct v3), 3},
-        { mesh_attribute_uvs_1,    (u8 **)&mesh.uvs_1,     sizeof(struct v2), 2},
-        { mesh_attribute_uvs_2,    (u8 **)&mesh.uvs_2,     sizeof(struct v2), 2},
-        { mesh_attribute_colors,   (u8 **)&mesh.colors,    sizeof(struct v4), 4},
-    };
-
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
-    u64 offset = 0;
-    for (u32 index = 0;
-         index < ARRAY_LENGTH(buffers_to_create);
-         ++index)
-    {
-        if (mesh.attributes & buffers_to_create[index].attribute)
-        {
-            u64 size = buffers_to_create[index].size * mesh.size;
-            glBufferSubData(GL_ARRAY_BUFFER, offset, size, *buffers_to_create[index].pointer);
-            offset += size;
-        }
-    }
+    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.size_in_bytes, mesh.data);
     GL_CHECK(1);
     return (NO_ERROR);
 }
 
-void
+error
 render_mesh(struct mesh mesh)
 {
     if (mesh.used == 0)
-        return;
+        return (1);
     glBindVertexArray(mesh.va);
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
     glDrawArrays(GL_TRIANGLES, 0, mesh.used);
     glBindVertexArray(0);
+    GL_CHECK(1);
+    return (NO_ERROR);
 }
 
 #endif
