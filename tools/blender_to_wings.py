@@ -375,7 +375,7 @@ def export_object(obj):
     albedo_image = Path(str(path.parent.absolute()) +
                         '/' + object_name + '_albedo.png')
     if (Path.exists(albedo_image)):
-        shutil.copy()
+        shutil.copy(albedo_image, )
     return 0
 
 
