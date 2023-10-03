@@ -1,21 +1,18 @@
 #ifndef WINGS_BASE_MACROS_C_
 #define WINGS_BASE_MACROS_C_
 
-
-#ifndef ARRAY_LENGTH
 #define ARRAY_LENGTH(x) \
     (sizeof(x) / sizeof((x)[0]))
-#endif
 
-#ifndef UNUSED
 #define UNUSED(x) \
     (void)(x)
-#endif
 
-#ifndef WARN
 #define WARN(x) \
     printf("[WARNING] %s\n", x)
-#endif
+
+#define IF_ERROR_RETURN(x) \
+    if ((x))            \
+        return x;
 
 #ifndef ASSERT
 #ifdef NO_ASSERTS
@@ -26,7 +23,7 @@
 #endif
 #endif
 
-#define NAME_AND_COMMA(Token) Token ,
-#define NAME_AS_STRING_AND_COMMA(Token) #Token ,
+#define NAME_AND_COMMA(Token) Token,
+#define NAME_AS_STRING_AND_COMMA(Token) #Token,
 
 #endif
