@@ -81,7 +81,7 @@ struct model
 {
     struct animation_collection animations;
     struct skeleton             skeleton;
-    struct meshi                 mesh;
+    struct meshi                mesh;
     struct gpu_mesh             gpu_mesh;
 };
 
@@ -117,12 +117,12 @@ load_phong_shader(struct allocator *allocator)
 
     error = read_file(&buffer, file_name, 1, allocator);
     if (error)
-		return (error);
+        return (error);
     char *vs  = (char *)buffer.base;
     file_name = "phong.fs";
     error     = read_file(&buffer, file_name, 1, allocator);
     if (error)
-		return (error);
+        return (error);
     char *fs = (char *)buffer.base;
 
     error = compile_shader_program(&phong_shader.handle, vs, fs);
@@ -140,23 +140,23 @@ load_phong_shader(struct allocator *allocator)
            phong_shader.view       != -1 &&
            phong_shader.projection != -1);
            */
-	return(NO_ERROR);
+    return (NO_ERROR);
 }
 
 error
 load_skinning_phong_shader(struct allocator *allocator)
 {
-	struct buffer buffer = {0};
-    b32   error     = 0;
-    char *file_name = "skinning_phong.vs";
-    error           = read_file(&buffer, file_name, 1, allocator);
+    struct buffer buffer    = { 0 };
+    b32           error     = 0;
+    char         *file_name = "skinning_phong.vs";
+    error                   = read_file(&buffer, file_name, 1, allocator);
     if (error)
-		return(error);
+        return (error);
     char *vs  = (char *)buffer.base;
     file_name = "skinning_phong.fs";
     error     = read_file(&buffer, file_name, 1, allocator);
     if (error)
-		return(error);
+        return (error);
     char *fs = (char *)buffer.base;
     error    = compile_shader_program(&skinning_phong_shader.handle, vs, fs);
     assert(error == 0 && skinning_phong_shader.handle);
@@ -168,7 +168,7 @@ load_skinning_phong_shader(struct allocator *allocator)
     skinning_phong_shader.palette         = glGetUniformLocation(skinning_phong_shader.handle, "palette");
     skinning_phong_shader.joints          = glGetUniformLocation(skinning_phong_shader.handle, "joint");
     assert(skinning_phong_shader.palette != -1 && skinning_phong_shader.model != -1 && skinning_phong_shader.camera_position != -1 && skinning_phong_shader.view != -1 && skinning_phong_shader.projection != -1);
-	return(NO_ERROR);
+    return (NO_ERROR);
 }
 
 struct gpu_mesh
@@ -274,7 +274,7 @@ render_model_skinned(struct model model, struct skinning_phong_shader shader, st
         glBindVertexArray(0);
     }
     GL_CHECK(1);
-	return(NO_ERROR);
+    return (NO_ERROR);
 }
 
 struct animation
@@ -288,16 +288,16 @@ make_animation(s32               number_of_joints,
     animation.number_of_keyframes = number_of_keyframes;
 
     error error = NO_ERROR;
-	//@TODO: errors not handled
-    error       = allocate_array(&animation.keyframe_time,
-                                 allocator,
-                                 number_of_keyframes,
-                                 float);
-	ASSERT(!error);
-    error       = allocate_array(&animation.joint,
-                                 allocator,
-                                 number_of_keyframes * number_of_joints, struct joint);
-	ASSERT(!error);
+    //@TODO: errors not handled
+    error = allocate_array(&animation.keyframe_time,
+                           allocator,
+                           number_of_keyframes,
+                           float);
+    ASSERT(!error);
+    error = allocate_array(&animation.joint,
+                           allocator,
+                           number_of_keyframes * number_of_joints, struct joint);
+    ASSERT(!error);
 
     for (s32 index = 0;
          index < number_of_keyframes;
