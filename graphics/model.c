@@ -4,6 +4,7 @@
 #include "wings/base/allocators.c"
 #include "wings/base/math.c"
 #include "wings/base/types.c"
+#include "wings/graphics/mesh.c"
 #include "wings/graphics/opengl.c"
 #include "wings/os/file.c"
 
@@ -21,17 +22,6 @@ struct mesh_vertex
     struct v3 position;
     struct v3 normal;
     struct v2 uv;
-};
-
-struct meshi
-{
-    s32         number_of_vertices;
-    b32         has_joints;
-    struct v3  *position;
-    struct v3  *normal;
-    struct v2  *uv;
-    struct v4s *joint_id;
-    struct v4  *joint_weight;
 };
 
 struct gpu_mesh
@@ -81,19 +71,9 @@ struct model
 {
     struct animation_collection animations;
     struct skeleton             skeleton;
-    struct meshi                mesh;
+    struct mesh                 mesh;
     struct gpu_mesh             gpu_mesh;
 };
-
-struct phong_shader
-{
-    u32 handle;
-    s32 model;
-    s32 view;
-    s32 projection;
-    s32 camera_position;
-    s32 palette;
-} phong_shader = { 0 };
 
 struct skinning_phong_shader
 {
@@ -107,41 +87,6 @@ struct skinning_phong_shader
     const char *vertex_shader_text;
     const char *fragment_shader_text;
 } skinning_phong_shader = { 0 };
-
-error
-load_phong_shader(struct allocator *allocator)
-{
-    struct buffer buffer    = { 0 };
-    b32           error     = 0;
-    char         *file_name = "phong.vs";
-
-    error = read_file(&buffer, file_name, 1, allocator);
-    if (error)
-        return (error);
-    char *vs  = (char *)buffer.base;
-    file_name = "phong.fs";
-    error     = read_file(&buffer, file_name, 1, allocator);
-    if (error)
-        return (error);
-    char *fs = (char *)buffer.base;
-
-    error = compile_shader_program(&phong_shader.handle, vs, fs);
-    assert(error == 0 && phong_shader.handle);
-
-    phong_shader.model           = glGetUniformLocation(phong_shader.handle, "model");
-    phong_shader.view            = glGetUniformLocation(phong_shader.handle, "view");
-    phong_shader.projection      = glGetUniformLocation(phong_shader.handle, "projection");
-    phong_shader.camera_position = glGetUniformLocation(phong_shader.handle, "camera_position");
-    phong_shader.palette         = glGetUniformLocation(phong_shader.handle, "palette");
-    /*
-    assert(phong_shader.palette    != -1 &&
-           phong_shader.model      != -1 &&
-           phong_shader.camera_position != -1 &&
-           phong_shader.view       != -1 &&
-           phong_shader.projection != -1);
-           */
-    return (NO_ERROR);
-}
 
 error
 load_skinning_phong_shader(struct allocator *allocator)
@@ -171,60 +116,8 @@ load_skinning_phong_shader(struct allocator *allocator)
     return (NO_ERROR);
 }
 
-struct gpu_mesh
-upload_skinning_mesh(struct skinned_mesh_vertex *vertex, s32 number_of_vertices)
-{
-    struct gpu_mesh mesh    = { 0 };
-    mesh.number_of_vertices = number_of_vertices;
-    glGenVertexArrays(1, &mesh.va);
-    glBindVertexArray(mesh.va);
-    glGenBuffers(1, &mesh.vb);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct skinned_mesh_vertex), (void *)offsetof(struct skinned_mesh_vertex, position));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct skinned_mesh_vertex), (void *)offsetof(struct skinned_mesh_vertex, normal));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct skinned_mesh_vertex), (void *)offsetof(struct skinned_mesh_vertex, uv));
-    glEnableVertexAttribArray(3);
-    glVertexAttribIPointer(3, 4, GL_INT, sizeof(struct skinned_mesh_vertex), (void *)offsetof(struct skinned_mesh_vertex, joint_id));
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(struct skinned_mesh_vertex), (void *)offsetof(struct skinned_mesh_vertex, joint_weight));
-
-    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(sizeof(struct skinned_mesh_vertex) * number_of_vertices), vertex, GL_STATIC_DRAW);
-
-    glBindVertexArray(0);
-
-    return (mesh);
-}
-
-struct gpu_mesh
-upload_meshi(struct mesh_vertex *vertex, s32 number_of_vertices)
-{
-    struct gpu_mesh mesh    = { 0 };
-    mesh.number_of_vertices = number_of_vertices;
-    glGenVertexArrays(1, &mesh.va);
-    glBindVertexArray(mesh.va);
-    glGenBuffers(1, &mesh.vb);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)offsetof(struct mesh_vertex, position));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)offsetof(struct mesh_vertex, normal));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)offsetof(struct mesh_vertex, uv));
-
-    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(sizeof(struct mesh_vertex) * number_of_vertices), vertex, GL_STATIC_DRAW);
-
-    glBindVertexArray(0);
-
-    return (mesh);
-}
-
 void
-render_model(struct model model, struct phong_shader shader, struct mat4 projection, struct mat4 view, struct v3 camera_position, u32 palette, struct mat4 transform)
+render_model(struct model model, struct mat4 projection, struct mat4 view, struct v3 camera_position, u32 palette, struct mat4 transform)
 {
     glEnable(GL_CULL_FACE);
     glUseProgram(shader.handle);
