@@ -32,10 +32,10 @@ bytes_to_mebibytes(u64 n)
     return (n / 1024.0f / 1024.0f);
 }
 
-char *
+const char *
 set_to_closest_memory_unit(f64 *size)
 {
-    char *units[] = {
+    const char *units[] = {
         "B",
         "KB",
         "MB",
