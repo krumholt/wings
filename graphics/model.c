@@ -116,15 +116,16 @@ load_skinning_phong_shader(struct allocator *allocator)
     return (NO_ERROR);
 }
 
+/*
 void
 render_model(struct model model, struct mat4 projection, struct mat4 view, struct v3 camera_position, u32 palette, struct mat4 transform)
 {
     glEnable(GL_CULL_FACE);
-    glUseProgram(shader.handle);
-    glUniform1i(shader.palette, 0);
-    glUniformMatrix4fv(shader.projection, 1, 0, &projection.m00);
-    glUniformMatrix4fv(shader.view, 1, 0, &view.m00);
-    glUniform3fv(shader.camera_position, 1, &camera_position.x);
+    //glUseProgram(shader.handle);
+    //glUniform1i(shader.palette, 0);
+    //glUniformMatrix4fv(shader.projection, 1, 0, &projection.m00);
+    //glUniformMatrix4fv(shader.view, 1, 0, &view.m00);
+    //glUniform3fv(shader.camera_position, 1, &camera_position.x);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, palette);
@@ -132,13 +133,14 @@ render_model(struct model model, struct mat4 projection, struct mat4 view, struc
         struct gpu_mesh mesh = model.gpu_mesh;
         glBindVertexArray(mesh.va);
         struct mat4 model_matrix = transform;
-        glUniformMatrix4fv(shader.model, 1, 0, &model_matrix.m00);
+        //glUniformMatrix4fv(shader.model, 1, 0, &model_matrix.m00);
 
         glDrawArrays(GL_TRIANGLES, 0, mesh.number_of_vertices);
         glBindVertexArray(0);
     }
     // GL_ASSERT(0UL);
 }
+*/
 
 error
 render_model_skinned(struct model model, struct skinning_phong_shader shader, struct mat4 projection, struct mat4 view, struct v3 camera_position, u32 palette, struct mat4 transform)
