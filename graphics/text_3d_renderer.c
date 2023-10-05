@@ -1,11 +1,27 @@
 #ifndef TEXT_3D_RENDERER_C_
 #define TEXT_3D_RENDERER_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
+#include "wings/base/types.c"
+#endif
+#if !defined(WINGS_BASE_MATH_C_)
+#include "wings/base/math.c"
+#endif
+#if !defined(WINGS_BASE_SHAPES_C_)
 #include "wings/base/shapes.c"
+#endif
+#if !defined(WINGS_GRAPHICS_BITMAP_FONT_C_)
 #include "wings/graphics/bitmap_font.c"
+#endif
+#if !defined(WINGS_GRAPHICS_IMAGE_C_)
 #include "wings/graphics/image.c"
+#endif
+#if !defined(WINGS_GRAPHICS_MESH_TOOLS_C_)
 #include "wings/graphics/mesh_tools.c"
+#endif
+#if !defined(WINGS_GRAPHICS_OPENGL_C_)
 #include "wings/graphics/opengl.c"
+#endif
 
 const char *text_3d_renderer_vertex_shader_text
     = "#version 330\n\n"

@@ -1,7 +1,9 @@
 #ifndef WINGS_INPUT_KEYBOARD_C_
 #define WINGS_INPUT_KEYBOARD_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
+#endif
 
 struct keyboard
 {
@@ -11,9 +13,9 @@ struct keyboard
     u16 key_state_last_frame[200];
     b32 any_key_pressed;
     b32 any_key_released;
-	b32 alt_key_held;
-	b32 ctrl_key_held;
-} keyboard = {0};
+    b32 alt_key_held;
+    b32 ctrl_key_held;
+} keyboard = { 0 };
 
 enum keycode
 {
@@ -108,13 +110,13 @@ enum keycode
 b32
 altkey_held(void)
 {
-	return keyboard.alt_key_held;
+    return keyboard.alt_key_held;
 }
 
 b32
 ctrlkey_held(void)
 {
-	return keyboard.ctrl_key_held;
+    return keyboard.ctrl_key_held;
 }
 
 b32

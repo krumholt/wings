@@ -1,26 +1,28 @@
 #ifndef WINGS_GRAPHICS_OPENGL_C_
 #define WINGS_GRAPHICS_OPENGL_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#include "wings/os/window.c" //@TODO:@FIXME: new wings layout
-
-#include <wingdi.h>
+#endif
+#if !defined(WINGS_OS_WINDOW_)
+#include "wings/os/window.c"
+#endif
 
 #include "GL/gl.h"
 #include "wings/extern/glext.h"
-
+#include <wingdi.h>
 #include <assert.h>
 
 typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext,
                                                     const int *attribList);
 typedef BOOL WINAPI  wgl_swap_interval_ext(int interval);
 
-#define WGL_CONTEXT_MAJOR_VERSION_ARB    0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB    0x2092
-#define WGL_CONTEXT_FLAGS_ARB            0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB     0x9126
+#define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
+#define WGL_CONTEXT_FLAGS_ARB 0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-#define WGL_CONTEXT_DEBUG_BIT_ARB        0x00000001
+#define WGL_CONTEXT_DEBUG_BIT_ARB 0x00000001
 
 void APIENTRY
 debug_message_callback(GLenum        source,
@@ -45,7 +47,8 @@ debug_message_callback(GLenum        source,
         u32 error = glGetError(); \
         if (error != GL_NO_ERROR) \
             return (err_no);      \
-    } while (0)
+    }                             \
+    while (0)
 
 PFNGLPUSHDEBUGGROUPPROC          glPushDebugGroup;
 PFNGLPOPDEBUGGROUPPROC           glPopDebugGroup;

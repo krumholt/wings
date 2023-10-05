@@ -1,8 +1,12 @@
-#ifndef image_c
-#define image_c
+#ifndef WINGS_GRAPHICS_IMAGE_C_
+#define WINGS_GRAPHICS_IMAGE_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
+#endif
+#if !defined(WINGS_OS_FILE_C_)
 #include "wings/os/file.c"
+#endif
 #define STB_IMAGE_IMPLEMENTATION
 #include "wings/extern/stb_image.h"
 #undef STB_IMAGE_IMPLEMENTATION

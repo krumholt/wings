@@ -1,12 +1,22 @@
-#ifndef BITMAP_FONT_C_
-#define BITMAP_FONT_C_
+#ifndef WINGS_BASE_BITMAP_FONT_C_
+#define WINGS_BASE_BITMAP_FONT_C_
 
-#include "wings/base/allocators.c"
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-
-#include "image.c"
+#endif
+#if !defined(WINGS_BASE_MATH_C_)
 #include "wings/base/math.c"
+#endif
+#if !defined(WINGS_BASE_ALLOCATORS_C_)
+#include "wings/base/allocators.c"
+#endif
+
+#if !defined(WINGS_GRAPHICS_IMAGE_C_)
+#include "wings/graphics/image.c"
+#endif
+#if !defined(WINGS_BASE_STRINGS_C_)
 #include "wings/base/strings.c"
+#endif
 
 struct glyph
 {

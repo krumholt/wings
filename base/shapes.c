@@ -1,8 +1,12 @@
 #ifndef WINGS_BASE_SHAPES_C_
 #define WINGS_BASE_SHAPES_C_
 
+#if !defined WINGS_BASE_ALLOCATORS_C
 #include "wings/base/allocators.c"
+#endif
+#if !defined WINGS_BASE_MATH_C
 #include "wings/base/math.c"
+#endif
 
 struct triangle2
 {

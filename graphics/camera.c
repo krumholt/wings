@@ -1,7 +1,9 @@
-#ifndef CAMERA_C_
-#define CAMERA_C_
+#ifndef WINGS_GRAPHICS_CAMERA_C_
+#define WINGS_GRAPHICS_CAMERA_C_
 
+#if !defined(WINGS_BASE_MATH_C_)
 #include "wings/base/math.c"
+#endif
 
 struct camera
 {

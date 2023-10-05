@@ -1,10 +1,18 @@
 #ifndef WINGS_GRAPHICS_EXP_MESH_C_
 #define WINGS_GRAPHICS_EXP_MESH_C_
 
-#include "wings/base/allocators.c"
-#include "wings/base/math.c"
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
+#endif
+#if !defined(WINGS_BASE_ALLOCATORS_C_)
+#include "wings/base/allocators.c"
+#endif
+#if !defined(WINGS_BASE_MATH_C_)
+#include "wings/base/math.c"
+#endif
+#if !defined(WINGS_GRAPHICS_OPENGL_C_)
 #include "wings/graphics/opengl.c"
+#endif
 
 #define MESH_ATTRIBUTE_POSITION_LOCATION 0
 #define MESH_ATTRIBUTE_NORMAL_LOCATION 1

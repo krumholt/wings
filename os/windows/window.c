@@ -1,8 +1,15 @@
-#ifndef WINDOW_WINDOWS_C_
-#define WINDOW_WINDOWS_C_
+#ifndef WINGS_OS_WINDOWS_C_
+#define WINGS_OS_WINDOWS_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
+#include "wings/base/types.c"
+#endif
+#if !defined(WINGS_INPUT_KEYBOARD_C_)
 #include "wings/input/keyboard.c"
+#endif
+#if !defined(WINGS_INPUT_MOUSE_C_)
 #include "wings/input/mouse.c"
+#endif
 
 #pragma warning(push, 0)
 #ifndef WIN32_LEAN_AND_MEAN

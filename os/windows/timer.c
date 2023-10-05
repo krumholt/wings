@@ -1,7 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_TIMER_C_
 #define WINGS_OS_WINDOWS_TIMER_C_
 
+#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
+#endif
 
 #include <intrin.h>
 #ifndef WIN32_LEAN_AND_MEAN

@@ -1,9 +1,15 @@
-#ifndef WINGS_COLORS_C_
-#define WINGS_COLORS_C_
+#ifndef WINGS_BASE_COLORS_C_
+#define WINGS_BASE_COLORS_C_
 
+#if !defined(WINGSS_BASE_MACROS_C_)
 #include "wings/base/macros.c"
+#endif
+#if !defined(WINGSS_BASE_TYPES_C_)
 #include "wings/base/types.c"
+#endif
+#if !defined(WINGSS_BASE_MATH_C_)
 #include "wings/base/math.c" 
+#endif
 
 const struct v4 colors[] =
 {

@@ -1,9 +1,15 @@
 #ifndef WINGS_BASE_ALLOCATORS_C_
 #define WINGS_BASE_ALLOCATORS_C_
 
+#if !defined(WINGS_BASE_MACROS_C)
 #include "wings/base/macros.c"
+#endif
+#if !defined(WINGS_BASE_TYPES_C)
 #include "wings/base/types.c"
+#endif
+#if !defined(WINGS_BASE_MEMORY_C)
 #include "wings/os/memory.c"
+#endif
 
 struct memory_stack_node
 {

@@ -1,5 +1,5 @@
-#ifndef ERROR_CODES_C_
-#define ERROR_CODES_C_
+#ifndef WINGS_BASE_ERROR_CODES_C_
+#define WINGS_BASE_ERROR_CODES_C_
 
 enum error_codes
 {
