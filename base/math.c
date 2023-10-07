@@ -1262,7 +1262,7 @@ _make_translation_mat4(f32 x, f32 y, f32 z)
 }
 
 struct mat4
-make_translation_matrix(struct v3 v)
+make_translation_mat4(struct v3 v)
 {
     struct mat4 result = { 0 };
     result.m00         = 1.0f;

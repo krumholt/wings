@@ -258,7 +258,7 @@ update_joints_1(struct mat4 *translation, struct skeleton skeleton, struct anima
         struct joint      next_joint = next_pose[joint_index];
         struct v3         position   = lerp_v3(last_joint.position, next_joint.position, fraction);
         struct quaternion rotation   = nlerp(last_joint.rotation, next_joint.rotation, fraction);
-        translation[joint_index]     = mul_mat4(make_translation_matrix(position), quaternion_to_matrix(rotation));
+        translation[joint_index]     = mul_mat4(make_translation_mat4(position), quaternion_to_matrix(rotation));
     }
 }
 
@@ -288,7 +288,7 @@ update_joints(struct skeleton skeleton, struct animation animation, float time)
         struct joint      next_joint                     = next_pose[joint_index];
         struct v3         position                       = lerp_v3(last_joint.position, next_joint.position, fraction);
         struct quaternion rotation                       = nlerp(last_joint.rotation, next_joint.rotation, fraction);
-        struct mat4       local_interpolated_translation = mul_mat4(make_translation_matrix(position), quaternion_to_matrix(rotation));
+        struct mat4       local_interpolated_translation = mul_mat4(make_translation_mat4(position), quaternion_to_matrix(rotation));
 
         skeleton.interpolated_translation[joint_index] = mul_mat4(skeleton.interpolated_translation[skeleton.parent_joint_index[joint_index]],
                                                                   local_interpolated_translation);
