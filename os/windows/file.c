@@ -12,7 +12,7 @@
 #endif
 
 error
-read_file(struct buffer *buffer, char *file_path, b32 zero_terminate,
+read_file(struct buffer *buffer, const char *file_path, b32 zero_terminate,
           struct allocator *allocator)
 {
     HANDLE file_handle = { 0 };

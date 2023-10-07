@@ -197,7 +197,7 @@ make_mesh(struct mesh      *mesh,
             (void *)mesh->joint_weights_offset);
     }
     glBindVertexArray(0);
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
     return (0);
 }
 
@@ -230,7 +230,7 @@ upload_mesh(struct mesh mesh)
 {
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
     glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.size_in_bytes, mesh.data);
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
     return (NO_ERROR);
 }
 
@@ -243,7 +243,7 @@ render_mesh(struct mesh mesh)
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
     glDrawArrays(GL_TRIANGLES, 0, mesh.used);
     glBindVertexArray(0);
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
     return (NO_ERROR);
 }
 

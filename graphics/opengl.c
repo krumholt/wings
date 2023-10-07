@@ -41,7 +41,7 @@ debug_message_callback(GLenum        source,
     printf("gl debug message: (%d) %s\n", source, message);
 }
 
-#define GL_CHECK(err_no)          \
+#define IF_GL_ERROR_RETURN(err_no)          \
     do                            \
     {                             \
         u32 error = glGetError(); \
@@ -121,7 +121,9 @@ PFNGLDEBUGMESSAGECONTROLPROC     glDebugMessageControl;
 PFNGLCLIPCONTROLPROC             glClipControl;
 wgl_swap_interval_ext           *wglSwapIntervalEXT;
 
-HDC _opengl_device_context;
+HDC _opengl_device_context = 0;
+b32 graphics_context_ready = 0;
+
 
 void
 init_opengl(void)
@@ -238,6 +240,7 @@ initialise_graphics_context(HDC device_context)
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, 0, GL_TRUE);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, 0, GL_TRUE);
 
+    graphics_context_ready = 1;
     return (0);
 }
 
@@ -247,11 +250,11 @@ _link_program(u32 program)
     assert(program > 0);
 
     glLinkProgram(program);
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
 
     GLint success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
-    GL_CHECK(2);
+    IF_GL_ERROR_RETURN(2);
     if (success != GL_TRUE)
     {
         GLsizei log_length    = 0;
@@ -268,9 +271,9 @@ _compile_and_attach_shader(u32 program, const char *text, u32 shader_type, u32 *
 {
     *shader = glCreateShader(shader_type);
     glShaderSource(*shader, 1, &text, 0);
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
     glCompileShader(*shader);
-    GL_CHECK(2);
+    IF_GL_ERROR_RETURN(2);
     GLint compiled = 0;
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &compiled);
     if (compiled != GL_TRUE)
@@ -283,10 +286,10 @@ _compile_and_attach_shader(u32 program, const char *text, u32 shader_type, u32 *
     }
 
     glAttachShader(program, *shader);
-    GL_CHECK(4);
+    IF_GL_ERROR_RETURN(4);
 
     glDeleteShader(*shader);
-    GL_CHECK(5);
+    IF_GL_ERROR_RETURN(5);
 
     return (0);
 }

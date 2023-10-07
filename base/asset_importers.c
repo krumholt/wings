@@ -16,10 +16,12 @@
 #if !defined(WINGS_OS_FILE_C)
 #include "wings/os/file.c"
 #endif
+#if !defined(WINGS_GRAPHICS_MESH_C)
 #include "wings/graphics/mesh.c"
+#endif
 
 error
-mesh_from_wings_file(struct mesh *mesh, char *filename, struct allocator *allocator)
+load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
 {
     error         error  = NO_ERROR;
     struct buffer buffer = { 0 };

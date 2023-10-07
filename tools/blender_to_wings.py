@@ -205,8 +205,10 @@ def get_mesh(obj):
             number_of_vertices += 1
             result_mesh.positions.extend(struct.pack("fff", *vertex.co))
             result_mesh.normals.extend(struct.pack("fff", *normals[index]))
+            fliped_uvs = uvs[uv_indices[index]].uv.copy()
+            fliped_uvs.y = 1.0 - fliped_uvs.y
             result_mesh.uvs.extend(struct.pack(
-                "ff", *uvs[uv_indices[index]].uv))
+                "ff", *fliped_uvs))
             if bone_mapping:
                 for group in vertex.groups:
                     g = obj.vertex_groups[group.group]

@@ -180,7 +180,7 @@ render_model_skinned(struct model model, struct skinning_phong_shader shader, st
         glDrawArrays(GL_TRIANGLES, 0, mesh.number_of_vertices);
         glBindVertexArray(0);
     }
-    GL_CHECK(1);
+    IF_GL_ERROR_RETURN(1);
     return (NO_ERROR);
 }
 
