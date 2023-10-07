@@ -11,13 +11,14 @@ string_storage = bytearray()
 
 
 class Mesh:
-    texture_file_name_index = 0
-    positions = bytearray()
-    normals = bytearray()
-    colors = bytearray()
-    uvs = bytearray()
-    joint_ids = bytearray()
-    joint_weights = bytearray()
+    def __init__(self):
+        self.texture_file_name_index = 0
+        self.positions = bytearray()
+        self.normals = bytearray()
+        self.colors = bytearray()
+        self.uvs = bytearray()
+        self.joint_ids = bytearray()
+        self.joint_weights = bytearray()
 
 
 def skeleton_to_bytes(skeleton):
