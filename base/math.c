@@ -1223,10 +1223,11 @@ make_rotation_z_axis_mat4(f32 angle)
     f32 sin_angle = sinf(angle);
 
     struct mat4 result = { 0 };
-    result.m00         = cos_angle;
-    result.m01         = sin_angle;
 
+    result.m00 = cos_angle;
     result.m10 = -sin_angle;
+
+    result.m01 = sin_angle;
     result.m11 = cos_angle;
 
     result.m22 = 1.0f;
