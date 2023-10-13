@@ -168,6 +168,7 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
     case allocator_type_fixed_size_linear:
         return linear_fixed_size_allocator_allocate(memory, allocator, size);
     }
+    return (1);
 }
 
 error
@@ -225,6 +226,7 @@ allocator_clear(struct allocator *allocator)
     }
     break;
     }
+    return (1);
 }
 
 error

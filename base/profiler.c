@@ -39,7 +39,7 @@ struct profiler
     f64                    end_time;
     u32                    parent_index;
 } profiler = {
-    .anchors      = { 0 },
+    .anchors      = { { 0 } },
     .start_tick   = 0,
     .end_tick     = 0,
     .start_time   = 0,
@@ -49,7 +49,7 @@ struct profiler
 
 #if PROFILING == 1
 
-#define add_to_profiling_zone(name)      \
+#define add_to_profiling_zone(name) \
     _start_profiling_zone(#name, name.anchor_index, &name)
 
 #define start_profiling_zone(name)      \
