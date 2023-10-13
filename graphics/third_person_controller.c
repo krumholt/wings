@@ -62,7 +62,7 @@ update_camera_from_controller(struct camera *cam, struct third_person_controller
     cam->right    = normalize_v3(cross_v3(cam->forward, make_v3(0.0f, 0.0f, 1.0f)));
     cam->up       = normalize_v3(cross_v3(cam->right, cam->forward));
     cam->view     = make_look_at_matrix_RH(cam->position, controller->target, cam->up);
-    if (right_mouse_button_held())
+    if (middle_mouse_button_held())
     {
         controller->angle_xy -= mouse.position_delta.x * controller->speed_angle_xy * delta_in_seconds;
         controller->angle_z += mouse.position_delta.y * controller->speed_angle_z * delta_in_seconds;
