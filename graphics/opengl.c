@@ -1,12 +1,8 @@
 #ifndef WINGS_GRAPHICS_OPENGL_C_
 #define WINGS_GRAPHICS_OPENGL_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_OS_WINDOW_)
 #include "wings/os/window.c"
-#endif
 
 #include "GL/gl.h"
 #include "wings/extern/glext.h"
@@ -41,13 +37,13 @@ debug_message_callback(GLenum        source,
     printf("gl debug message: (%d) %s\n", source, message);
 }
 
-#define IF_GL_ERROR_RETURN(err_no)          \
-    do                            \
-    {                             \
-        u32 error = glGetError(); \
-        if (error != GL_NO_ERROR) \
-            return (err_no);      \
-    }                             \
+#define IF_GL_ERROR_RETURN(err_no) \
+    do                             \
+    {                              \
+        u32 error = glGetError();  \
+        if (error != GL_NO_ERROR)  \
+            return (err_no);       \
+    }                              \
     while (0)
 
 PFNGLPUSHDEBUGGROUPPROC          glPushDebugGroup;
@@ -121,9 +117,8 @@ PFNGLDEBUGMESSAGECONTROLPROC     glDebugMessageControl;
 PFNGLCLIPCONTROLPROC             glClipControl;
 wgl_swap_interval_ext           *wglSwapIntervalEXT;
 
-HDC _opengl_device_context = 0;
-b32 graphics_context_ready = 0;
-
+HDC _opengl_device_context  = 0;
+b32 _graphics_context_ready = 0;
 
 void
 init_opengl(void)
@@ -240,7 +235,7 @@ initialise_graphics_context(HDC device_context)
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, 0, GL_TRUE);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, 0, GL_TRUE);
 
-    graphics_context_ready = 1;
+    _graphics_context_ready = 1;
     return (0);
 }
 
@@ -332,8 +327,7 @@ print_attributes(u32 shader_program)
     GLint  size = 0;
     GLenum type = 0;
 
-#define bufSize 256
-    GLchar  name[bufSize]; // variable name in GLSL
+    GLchar  name[256]; // variable name in GLSL
     GLsizei length; // name length
 
     glGetProgramiv(shader_program, GL_ACTIVE_ATTRIBUTES, &count);
@@ -341,7 +335,7 @@ print_attributes(u32 shader_program)
 
     for (i = 0; i < count; i++)
     {
-        glGetActiveAttrib(shader_program, (GLuint)i, bufSize, &length, &size, &type, name);
+        glGetActiveAttrib(shader_program, (GLuint)i, 256, &length, &size, &type, name);
         s32 loc = glGetAttribLocation(shader_program, name);
         printf("Attribute #%d At: %d Type: %u Name: %s\n", i, loc, type, name);
     }
@@ -351,7 +345,7 @@ print_attributes(u32 shader_program)
 
     for (i = 0; i < count; i++)
     {
-        glGetActiveUniform(shader_program, (GLuint)i, bufSize, &length, &size, &type, name);
+        glGetActiveUniform(shader_program, (GLuint)i, 256, &length, &size, &type, name);
         printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
     }
 }

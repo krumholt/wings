@@ -1,7 +1,6 @@
 #ifndef WINGS_OS_FILE_C_
 #define WINGS_OS_FILE_C_
 
-
 #if defined(OS_WINDOWS)
 #include "wings/os/windows/file.c"
 #elif defined(OS_LINUX)

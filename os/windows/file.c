@@ -1,15 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_FILE_C_
 #define WINGS_OS_WINDOWS_FILE_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_ERROR_CODES_C_)
 #include "wings/base/error_codes.c"
-#endif
-#if !defined(WINGS_BASE_ALLOCATORS_C_)
 #include "wings/base/allocators.c"
-#endif
 
 error
 read_file(struct buffer *buffer, const char *file_path, b32 zero_terminate,
