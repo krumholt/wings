@@ -4,6 +4,11 @@
 #include "wings/base/types.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
+#pragma warning(push, 0)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN

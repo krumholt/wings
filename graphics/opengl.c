@@ -8,9 +8,9 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
+#include <wingdi.h>
 #include "GL/gl.h"
 #include "wings/extern/glext.h"
-#include <wingdi.h>
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>

@@ -217,7 +217,7 @@ allocator_clear(struct allocator *allocator)
     case allocator_type_fixed_size_linear:
     {
         linear_fixed_size_allocator_clear(allocator);
-        return (NO_ERROR);
+        return (ec__no_error);
     }
     break;
     }
