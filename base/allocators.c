@@ -1,15 +1,10 @@
 #ifndef WINGS_BASE_ALLOCATORS_C_
 #define WINGS_BASE_ALLOCATORS_C_
 
-#if !defined(WINGS_BASE_MACROS_C)
-#include "wings/base/macros.c"
-#endif
-#if !defined(WINGS_BASE_TYPES_C)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_MEMORY_C)
+#include "wings/base/error_codes.c"
+#include "wings/base/macros.c"
 #include "wings/os/memory.c"
-#endif
 
 struct memory_stack_node
 {
@@ -192,7 +187,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
         node = previous;
     }
     allocator->stack.number_of_nodes = 0;
-    return NO_ERROR;
+    return (NO_ERROR);
 }
 
 void
@@ -222,7 +217,7 @@ allocator_clear(struct allocator *allocator)
     case allocator_type_fixed_size_linear:
     {
         linear_fixed_size_allocator_clear(allocator);
-        return NO_ERROR;
+        return (NO_ERROR);
     }
     break;
     }

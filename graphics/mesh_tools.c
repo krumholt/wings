@@ -238,7 +238,7 @@ push_line(struct mesh *mesh,
           struct v4    color)
 {
     if (mesh->used + 36 > mesh->size)
-        return (ERROR_graphics_mesh_tools__no_space_left_in_mesh);
+        return (ec_graphics_mesh_tools__no_space_left_in_mesh);
     struct v3 forward = normalize_v3(sub_v3(end, start));
     struct v3 up      = { 0.0f, 0.0f, 1.0f };
     if (are_equal_v3(up, forward, 0.001f))
@@ -333,7 +333,7 @@ push_sphere(struct mesh *mesh,
     const s32 number_of_vertices          = number_of_vertical_slices * number_of_horizontal_slices * 3 * 2; // two triangles per horizontal slice
     if (mesh->used + number_of_vertices > mesh->size)
     {
-        return ERROR_graphics_mesh_tools__no_space_left_in_mesh;
+        return ec_graphics_mesh_tools__no_space_left_in_mesh;
     }
 
     for (int altitude_index = 0;

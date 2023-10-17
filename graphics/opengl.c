@@ -2,12 +2,18 @@
 #define WINGS_GRAPHICS_OPENGL_C_
 
 #include "wings/base/types.c"
-#include "wings/os/window.c"
+#include "wings/base/macros.c"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
 #include "GL/gl.h"
 #include "wings/extern/glext.h"
 #include <wingdi.h>
 #include <assert.h>
+#include <stdio.h>
+#include <malloc.h>
 
 typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext,
                                                     const int *attribList);
@@ -37,13 +43,13 @@ debug_message_callback(GLenum        source,
     printf("gl debug message: (%d) %s\n", source, message);
 }
 
-#define IF_GL_ERROR_RETURN(err_no) \
-    do                             \
-    {                              \
-        u32 error = glGetError();  \
-        if (error != GL_NO_ERROR)  \
-            return (err_no);       \
-    }                              \
+#define IF_GL_ERROR_RETURN(err_no)   \
+    do                               \
+    {                                \
+        u32 gl_error = glGetError(); \
+        if (gl_error != GL_NO_ERROR) \
+            return (err_no);         \
+    }                                \
     while (0)
 
 PFNGLPUSHDEBUGGROUPPROC          glPushDebugGroup;
@@ -123,7 +129,6 @@ b32 _graphics_context_ready = 0;
 void
 init_opengl(void)
 {
-#pragma warning(push, 0)
     glPushDebugGroup          = (PFNGLPUSHDEBUGGROUPPROC)wglGetProcAddress("glPushDebugGroup");
     glPopDebugGroup           = (PFNGLPOPDEBUGGROUPPROC)wglGetProcAddress("glPopDebugGroup");
     glCreateProgram           = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
@@ -194,7 +199,6 @@ init_opengl(void)
     glDebugMessageCallback    = (PFNGLDEBUGMESSAGECALLBACKPROC)wglGetProcAddress("glDebugMessageCallback");
     glDebugMessageControl     = (PFNGLDEBUGMESSAGECONTROLPROC)wglGetProcAddress("glDebugMessageControl");
     glClipControl             = (PFNGLCLIPCONTROLPROC)wglGetProcAddress("glClipControl");
-#pragma warning(pop)
 }
 
 b32
