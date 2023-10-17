@@ -4,6 +4,11 @@
 #include "wings/base/types.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
+#pragma warning(push, 0)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
 
 error
 read_file(struct buffer *buffer, const char *file_path, b32 zero_terminate,

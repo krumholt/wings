@@ -2,6 +2,7 @@
 #define WINGS_GRAPHICS_IMAGE_C_
 
 #include "wings/base/types.c"
+#include "wings/base/macros.c"
 #include "wings/base/allocators.c"
 #include "wings/os/file.c"
 

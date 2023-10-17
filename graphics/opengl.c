@@ -4,6 +4,10 @@
 #include "wings/base/types.c"
 #include "wings/os/window.c"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include "windows.h"
 #include "GL/gl.h"
 #include "wings/extern/glext.h"
 #include <wingdi.h>
