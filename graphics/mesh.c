@@ -1,18 +1,11 @@
 #ifndef WINGS_GRAPHICS_EXP_MESH_C_
 #define WINGS_GRAPHICS_EXP_MESH_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_ALLOCATORS_C_)
+#include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
-#endif
-#if !defined(WINGS_BASE_MATH_C_)
 #include "wings/base/math.c"
-#endif
-#if !defined(WINGS_GRAPHICS_OPENGL_C_)
 #include "wings/graphics/opengl.c"
-#endif
 
 #define MESH_ATTRIBUTE_POSITION_LOCATION 0
 #define MESH_ATTRIBUTE_NORMAL_LOCATION 1
@@ -231,7 +224,7 @@ upload_mesh(struct mesh mesh)
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
     glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.size_in_bytes, mesh.data);
     IF_GL_ERROR_RETURN(1);
-    return (NO_ERROR);
+    return (ec__no_error);
 }
 
 error
@@ -244,7 +237,7 @@ render_mesh(struct mesh mesh)
     glDrawArrays(GL_TRIANGLES, 0, mesh.used);
     glBindVertexArray(0);
     IF_GL_ERROR_RETURN(1);
-    return (NO_ERROR);
+    return (ec__no_error);
 }
 
 #endif
