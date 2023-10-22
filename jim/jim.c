@@ -1,13 +1,14 @@
 #ifndef JIM_C_
 #define JIM_C_
 
-#include "wings/base/types.c"
 #include "wings/base/macros.c"
+#include "wings/base/types.c"
 #include "wings/base/units.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
-#include "wings/os/windows/process.c"
 #include "wings/base/strings.c"
+#include "wings/os/windows/process.c"
+#include "wings/os/file.c"
 
 #include <stdio.h>
 
@@ -81,9 +82,11 @@ struct jim
     u32                     number_of_object_files;
     struct jim_object_file *object_files;
     error                   error;
+    struct string           error_message;
     struct jim_compilation  compilation;
     struct string           compilation_result;
     struct jim_library      library;
+    b32                     silent;
 
 } _jim = {
     .default_compiler
@@ -310,7 +313,7 @@ jim_build_library(struct jim_library library, struct allocator *allocator)
             &command,
             &command_length,
             "%s%s ",
-			library.object_files[index].output_directory,
+            library.object_files[index].output_directory,
             library.object_files[index].output_file);
     }
 
@@ -320,8 +323,19 @@ jim_build_library(struct jim_library library, struct allocator *allocator)
     return (error);
 }
 
-// jim_please api
-//
+// --------------------
+// jim please api
+// --------------------
+
+void
+_jim_please_set_error_message(char *format, ...)
+{
+    va_list arg_list;
+    va_start(arg_list, format);
+    vsnprintf(_jim.error_message.first, _jim.error_message.length - 1, format, arg_list);
+    va_end(arg_list);
+}
+
 void
 jim_please_listen(void)
 {
@@ -331,7 +345,18 @@ jim_please_listen(void)
 
     error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
+    error = make_string(&_jim.error_message, 4096 * 10, &_jim.allocator);
+    if (error)
+    {
+        _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
 
     error = allocate_array(
         &_jim.include_directories,
@@ -339,7 +364,11 @@ jim_please_listen(void)
         JIM_MAX_INCLUDE_DIRECTORIES,
         char *);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
 
     error = allocate_array(
         &_jim.object_files,
@@ -347,88 +376,173 @@ jim_please_listen(void)
         JIM_MAX_OBJECT_FILES,
         struct jim_object_file);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
 
     error = jim_make_compilation(&_jim.compilation,
                                  _jim.default_compiler,
                                  &_jim.allocator);
+    if (error)
+    {
+        _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
     error = jim_make_library(&_jim.library, &_jim.allocator);
+    if (error)
+    {
+        _jim.error = error;
+        _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+        return;
+    }
 }
 
 void
 jim_please_add_include_directory(char *path)
 {
+    if (_jim.error)
+        return;
     error error = jim_add_include_directory(&_jim.compilation, path);
     if (error)
     {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_add_include_directory(%s). Too many include directories\n", path);
+        return;
     }
 }
 
 void
 jim_please_add_library_directory(char *path)
 {
+    if (_jim.error)
+        return;
     error error = jim_add_library_directory(&_jim.compilation, path);
     if (error)
     {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_add_library_directory(%s). Too many library directories\n", path);
+        return;
     }
 }
 
 void
 jim_please_use_output_directory(char *path)
 {
+    if (_jim.error)
+        return;
+    error error = create_directory(path);
+    if (error)
+    {
+        _jim.error = error;
+        _jim_please_set_error_message("jim_please_use_output_directory(%s) but it didn't exist and couldn't be created\n",
+                                      path);
+    }
     _jim.compilation.output_directory = path;
 }
 
 void
-jim_please_build_object_file(char *file_name)
+jim_please_build_object_file(char *filename)
 {
+    if (_jim.error)
+        return;
     struct jim_object_file object_file = { 0 };
     _jim.compilation.output_type       = jim_output_type__object_file;
-    _jim.compilation.output_file       = file_name;
+    _jim.compilation.output_file       = filename;
 
     struct string command = jim_make_command(_jim.compilation);
 
-    printf("%s\n", command.first);
+    if (!_jim.silent)
+    {
+        printf("%s\n", command.first);
+    }
     error error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s):\n\t%s\nFailed with %d\n\n\n%s",
+                                      filename,
+                                      command.first,
+                                      error,
+                                      _jim.compilation_result.first);
+        return;
+    }
     error = jim_library_add(&_jim.library, _jim.compilation);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s). Too many libraries\n", filename);
+        return;
+    }
 }
 void
-jim_please_create_executable(char *file_name)
+jim_please_create_executable(char *filename)
 {
+    if (_jim.error)
+        return;
     struct jim_object_file object_file = { 0 };
     _jim.compilation.output_type       = jim_output_type__executable;
-    _jim.compilation.output_file       = file_name;
+    _jim.compilation.output_file       = filename;
 
     jim_add_library(&_jim.compilation, _jim.library.name);
 
     struct string command = jim_make_command(_jim.compilation);
 
-    printf("%s\n", command.first);
+    if (!_jim.silent)
+    {
+        printf("%s\n", command.first);
+    }
     error error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_create_executable(%s):\n\t%s\nFailed with %d\n\n\n%s",
+                                      filename,
+                                      command.first,
+                                      error,
+                                      _jim.compilation_result.first);
+        return;
+    }
 }
 
 void
 jim_please_compile(char *file)
 {
+    if (_jim.error)
+        return;
     _jim.compilation.input_file = file;
 }
 
 void
 jim_please_build_library(char *name)
 {
+    if (_jim.error)
+        return;
     _jim.library.name             = name;
     _jim.library.output_directory = _jim.compilation.output_directory;
     error error                   = jim_build_library(_jim.library, &_jim.allocator);
     if (error)
+    {
         _jim.error = error;
+        _jim_please_set_error_message("[ERROR] jim_please_build(%s). Was unable to build library with %d",
+                                      name,
+                                      error);
+        return;
+    }
+}
+
+s32
+jim_did_we_win(void)
+{
+    if (_jim.error)
+    {
+        printf("I'm sorry sir. We failed because\n");
+        printf("%s\n", _jim.error_message.first);
+        return (_jim.error);
+    }
+    return (ec__no_error);
 }
 
 #endif

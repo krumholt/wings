@@ -145,4 +145,24 @@ file_get_last_write_time(u64 *time, char *file_path)
     return (0);
 }
 
+error
+create_directory(char *file_path)
+{
+    BOOL result = CreateDirectory(file_path, 0);
+    if (result == ERROR_ALREADY_EXISTS)
+        return (0);
+    if (result == ERROR_PATH_NOT_FOUND)
+        return (ec_os_file__not_found);
+    return (0);
+}
+
+b32
+file_exists(char *file_path)
+{
+    DWORD result = GetFileAttributes(file_path);
+    if (result == INVALID_FILE_ATTRIBUTES)
+        return (0);
+    return (1);
+}
+
 #endif

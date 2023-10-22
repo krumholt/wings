@@ -187,7 +187,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
         node = previous;
     }
     allocator->stack.number_of_nodes = 0;
-    return (NO_ERROR);
+    return (ec__no_error);
 }
 
 void

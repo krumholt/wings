@@ -1,6 +1,7 @@
 #ifndef WINGS_OS_MEMORY_C_
 #define WINGS_OS_MEMORY_C_
 
+#include "wings/base/macros.c"
 #include "wings/base/types.c"
 
 enum memory_state
