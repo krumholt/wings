@@ -68,6 +68,9 @@ struct jim
 {
     struct allocator    allocator;
     struct jim_compiler default_compiler;
+    u32                 number_of_include_directories;
+    char              **include_directories;
+
 } _jim = {
     .default_compiler
     = {
@@ -85,7 +88,10 @@ struct jim
 void
 jim_please_listen(void)
 {
-    _jim.allocator = make_growing_linear_allocator(mebibytes(1));
+    _jim.allocator                     = make_growing_linear_allocator(mebibytes(1));
+    _jim.number_of_include_directories = 0;
+    error error                        = allocate_array(&_jim.include_directories, &_jim.allocator,
+                                                        JIM_MAX_INCLUDE_DIRECTORIES, struct char);
 }
 
 error
@@ -289,8 +295,15 @@ jim_add_library(struct jim_compilation *compilation,
 }
 
 void
-jim_please_compile(struct jim_compilation compilation)
+jim_please_use_include_directory(char *path)
 {
+}
+
+void
+jim_please_compile(char *file)
+{
+    struct jim_compilation compilation = { 0 };
+
     struct string command = jim_make_command(compilation);
     error         error   = 0;
     struct string result  = { 0 };
@@ -333,7 +346,7 @@ jim_build_library(struct jim_library library, struct allocator *allocator)
             library.object_files[index].output_file);
     }
 
-	printf("%s\n", command.first);
+    printf("%s\n", command.first);
     error = run_command(command.first, result.first, result.length);
 
     return (error);
@@ -342,10 +355,9 @@ jim_build_library(struct jim_library library, struct allocator *allocator)
 void
 jim_please_build_library(struct jim_library library)
 {
-	error error = jim_build_library(library, &_jim.allocator);
-	if (error)
-		printf("la;ksjfdalksjfd;lkasjfd;alkjfds\n");
+    error error = jim_build_library(library, &_jim.allocator);
+    if (error)
+        printf("la;ksjfdalksjfd;lkasjfd;alkjfds\n");
 }
-
 
 #endif
