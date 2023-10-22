@@ -11,6 +11,7 @@
 #include "wings/os/file.c"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define JIM_MAX_OBJECT_FILES_PER_LIBRARY 100
 #define JIM_MAX_INCLUDE_DIRECTORIES 100
@@ -408,11 +409,15 @@ jim_please_listen(void)
     u64 last_write_time_jims_brain = 0;
     file_get_last_write_time(&last_write_time_jim, "jim.exe");
     file_get_last_write_time(&last_write_time_jims_brain, "jims_brain.c");
-	if (last_write_time_jim < last_write_time_jims_brain)
-	{
-		printf("Jim needs to update\n");
-		_jim_update_yourself();
-	}
+    if (last_write_time_jim < last_write_time_jims_brain)
+    {
+        printf("Jim needs to update\n");
+        _jim_update_yourself();
+    }
+    if (file_exists("old_jim.exe"))
+    {
+        file_delete("old_jim.exe");
+    }
 }
 
 void
@@ -448,7 +453,7 @@ jim_please_use_output_directory(char *path)
 {
     if (_jim.error)
         return;
-    error error = create_directory(path);
+    error error = file_create_directory(path);
     if (error)
     {
         _jim.error = error;
@@ -463,8 +468,8 @@ jim_please_build_object_file(char *filename)
 {
     if (_jim.error)
         return;
-    _jim.compilation.output_type       = jim_output_type__object_file;
-    _jim.compilation.output_file       = filename;
+    _jim.compilation.output_type = jim_output_type__object_file;
+    _jim.compilation.output_file = filename;
 
     struct string command = jim_make_command(_jim.compilation);
 
@@ -496,12 +501,12 @@ jim_please_create_executable(char *filename)
 {
     if (_jim.error)
         return;
-    _jim.compilation.output_type       = jim_output_type__executable;
-    _jim.compilation.output_file       = filename;
+    _jim.compilation.output_type = jim_output_type__executable;
+    _jim.compilation.output_file = filename;
 
-	//@TODO doesn't handle multiple libraries
-	if (_jim.library.number_of_object_files != 0)
-		jim_add_library(&_jim.compilation, _jim.library.name);
+    //@TODO doesn't handle multiple libraries
+    if (_jim.library.number_of_object_files != 0)
+        jim_add_library(&_jim.compilation, _jim.library.name);
 
     struct string command = jim_make_command(_jim.compilation);
 
@@ -563,11 +568,18 @@ jim_did_we_win(void)
 void
 _jim_update_yourself(void)
 {
-	jim_please_use_output_directory("./");
-	jim_please_add_include_directory("./");
-	jim_please_compile("jims_brain.c");
-	jim_please_create_executable("new_jim.exe");
-	jim_did_we_win();
+    jim_please_use_output_directory("./");
+    jim_please_add_include_directory("./");
+    jim_please_compile("jims_brain.c");
+    jim_please_create_executable("new_jim.exe");
+    error error = jim_did_we_win();
+    if (!error)
+    {
+        file_move("jim.exe", "old_jim.exe");
+        file_move("new_jim.exe", "jim.exe");
+        process_new("jim.exe", 0);
+    }
+    exit(0);
 }
 
 #endif

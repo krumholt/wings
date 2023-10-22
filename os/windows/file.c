@@ -16,7 +16,7 @@
 #include <Windows.h>
 
 error
-read_file(struct buffer *buffer, const char *file_path, b32 zero_terminate,
+file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
           struct allocator *allocator)
 {
     HANDLE file_handle = { 0 };
@@ -48,7 +48,7 @@ read_file(struct buffer *buffer, const char *file_path, b32 zero_terminate,
 }
 
 error
-write_file(struct buffer buffer, char *file_path, b32 create)
+file_write(struct buffer buffer, char *file_path, b32 create)
 {
     u32    create_flags = create ? CREATE_ALWAYS : OPEN_EXISTING;
     PSTR   filename     = file_path;
@@ -76,7 +76,7 @@ write_file(struct buffer buffer, char *file_path, b32 create)
 }
 
 error
-delete_file(char *file_name)
+file_delete(char *file_name)
 {
     u32 success = DeleteFile(file_name);
     if (!success)
@@ -91,7 +91,7 @@ delete_file(char *file_name)
 }
 
 error
-move_file(char *from_file_name, char *to_file_name)
+file_move(char *from_file_name, char *to_file_name)
 {
     u32 success = MoveFile(from_file_name, to_file_name);
     if (!success)
@@ -106,7 +106,7 @@ move_file(char *from_file_name, char *to_file_name)
 }
 
 error
-copy_file(char *from_file_name, char *to_file_name)
+file_copy(char *from_file_name, char *to_file_name)
 {
     u32 success = CopyFile(from_file_name, to_file_name, 1);
     if (!success)
@@ -146,7 +146,7 @@ file_get_last_write_time(u64 *time, char *file_path)
 }
 
 error
-create_directory(char *file_path)
+file_create_directory(char *file_path)
 {
     BOOL result = CreateDirectory(file_path, 0);
     if (result == ERROR_ALREADY_EXISTS)

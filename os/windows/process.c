@@ -37,12 +37,12 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         return (ec_os_process__failed_to_create_pipe);
 
     STARTUPINFO         startup_info = { 0 };
-    PROCESS_INFORMATION process_info;
-    startup_info.cb         = sizeof(STARTUPINFO);
-    startup_info.hStdError  = out_pipe_write;
-    startup_info.hStdOutput = out_pipe_write;
-    startup_info.hStdInput  = in_pipe_read;
-    startup_info.dwFlags    = STARTF_USESTDHANDLES;
+    PROCESS_INFORMATION process_info = { 0 };
+    startup_info.cb                  = sizeof(STARTUPINFO);
+    startup_info.hStdError           = out_pipe_write;
+    startup_info.hStdOutput          = out_pipe_write;
+    startup_info.hStdInput           = in_pipe_read;
+    startup_info.dwFlags             = STARTF_USESTDHANDLES;
 
     int result = CreateProcess(
         0,
@@ -95,6 +95,39 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     CloseHandle(process_info.hThread);
     if (exit_code != 0)
         return (ec_os_process__command_failed);
+
+    return (NO_ERROR);
+}
+
+error
+process_new(char *command, char *path)
+{
+    error error = ec__no_error;
+
+    STARTUPINFO         startup_info = { 0 };
+    PROCESS_INFORMATION process_info = { 0 };
+    startup_info.cb                  = sizeof(STARTUPINFO);
+
+    int result = CreateProcess(
+        0,
+        command,
+        0,
+        0,
+        TRUE,
+        0,
+        0,
+        path,
+        &startup_info,
+        &process_info);
+    if (result == 0)
+    {
+        s32 last_error = GetLastError();
+        if (last_error == 2)
+            error = ec_os_process__command_not_found;
+        else
+            error = ec_os_process__creation_failed;
+        return (error);
+    }
 
     return (NO_ERROR);
 }
