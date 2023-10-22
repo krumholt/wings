@@ -28,13 +28,13 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
                          &pipe_security_attributes,
                          0);
     if (!success)
-        return (process_error_failed_to_create_pipe);
+        return (ec_os_process__failed_to_create_pipe);
     error = CreatePipe(&out_pipe_read,
                        &out_pipe_write,
                        &pipe_security_attributes,
                        0);
     if (!success)
-        return (process_error_failed_to_create_pipe);
+        return (ec_os_process__failed_to_create_pipe);
 
     STARTUPINFO         startup_info = { 0 };
     PROCESS_INFORMATION process_info;
@@ -59,9 +59,9 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     {
         s32 last_error = GetLastError();
         if (last_error == 2)
-            error = process_error_command_not_found;
+            error = ec_os_process__command_not_found;
         else
-            error = process_error_creation_failed;
+            error = ec_os_process__creation_failed;
         return (error);
     }
     WaitForSingleObject(process_info.hProcess, INFINITE);
@@ -94,7 +94,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
     if (exit_code != 0)
-        return process_command_failed;
+        return (ec_os_process__command_failed);
 
     return (NO_ERROR);
 }

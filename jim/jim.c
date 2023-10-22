@@ -1,309 +1,228 @@
 #ifndef JIM_C_
 #define JIM_C_
 
-#include "wings/base/allocators.c"
 #include "wings/base/types.c"
+#include "wings/base/macros.c"
 #include "wings/base/units.c"
-#include "wings/os/file.c"
-#include "wings/os/process.c"
+#include "wings/base/error_codes.c"
+#include "wings/base/allocators.c"
+#include "wings/os/windows/process.c"
+#include "wings/base/strings.c"
 
-#include <stdlib.h>
+#include <stdio.h>
 
-struct arguments
+#define JIM_MAX_INCLUDE_DIRECTORIES 100
+#define JIM_MAX_LIBRARY_DIRECTORIES 100
+#define JIM_MAX_LIBRARIES 100
+
+enum jim_output_type
 {
-    char **arguments;
-    u32    argument_count;
+    jim_output_type__executable,
+    jim_output_type__object_file,
 };
 
-struct command_definition
-{
-    char *name;
-};
-
-struct compiler
+struct jim_compiler
 {
     char *command;
-    char *produce_debug_info_gdb;
-    char *produce_debug_info_msvc;
+    char *debug_flags;
+    char *output_format;
     char *add_library_search_path_format;
     char *add_link_library_format;
     char *add_include_directory_format;
-    char *use_c_mode;
-    char *extra_command_line_arguments;
+    char *compile_no_link;
+    char *flags;
 };
 
-struct program
+struct jim_compilation_parameters
 {
-    struct compiler compiler;
-    char           *source;
-    char           *executable;
-    char           *output_folder;
-    char           *compile_flags;
-    b32             debug;
-    b32             include_wings;
+    struct jim_compiler  compiler;
+    enum jim_output_type type;
+    char                *input_file;
+    char                *output_file;
 };
 
-struct compiler default_clang = {
-    .command                        = "clang",
-    .produce_debug_info_gdb         = "-g",
-    .produce_debug_info_msvc        = "-gcodeview",
-    .add_library_search_path_format = "-L%s",
-    .add_link_library_format        = "-l%s",
-    .add_include_directory_format   = "-I%s",
-    .use_c_mode                     = "-x c",
-    .extra_command_line_arguments   = 0,
-};
-
-struct program jims_brain = {
-    .source        = "./jims_brain.c",
-    .executable    = "new_jim.exe",
-    .output_folder = "./",
-    .compile_flags = "",
-    .debug         = 0,
-    .include_wings = 1,
-};
-
-typedef error (*command_function)(char **arguments, u32 arguments_length);
-
-struct
+struct jim_compilation
 {
-    struct allocator static_memory;
-    u32              argument_count;
-    char           **arguments;
-    error            last_error;
-    u32              output_size;
-    char            *output;
-} jim = { 0 };
+    struct jim_compiler  compiler;
+    u32                  command_length;
+    struct string        command;
+    enum jim_output_type output_type;
+    char                *output_file;
+    char                *input_file;
+    u32                  number_of_library_directories;
+    char               **library_directories;
+    u32                  number_of_libraries;
+    char               **libraries;
+    u32                  number_of_include_directories;
+    char               **include_directories;
+};
+
+struct jim
+{
+    struct allocator allocator;
+} _jim;
+
+void
+jim_please_listen(void)
+{
+    _jim.allocator = make_growing_linear_allocator(mebibytes(1));
+}
 
 error
-move(char **arguments, u32 arguments_length)
+jim_make_compilation(struct jim_compilation *compilation,
+                     struct jim_compiler     compiler,
+                     struct allocator       *allocator)
 {
-    if (arguments_length != 2)
-    {
-        printf("I only move one thing to another place!\njim move <from> <to>\n");
-        return (1);
-    }
-    error error = move_file(arguments[0], arguments[1]);
-    if (error)
-    {
-        printf("I tried, but i was too hard....\n");
-    }
+    error error = ec__no_error;
+
+    compilation->command_length = 0;
+    compilation->compiler       = compiler;
+
+    error = make_string(&compilation->command, 4096 * 10, allocator);
+    IF_ERROR_RETURN(error);
+    error = allocate_array(&compilation->library_directories, allocator, JIM_MAX_LIBRARY_DIRECTORIES, char *);
+    IF_ERROR_RETURN(error);
+    error = allocate_array(&compilation->libraries, allocator, JIM_MAX_LIBRARIES, char *);
+    IF_ERROR_RETURN(error);
+    error = allocate_array(&compilation->include_directories, allocator, JIM_MAX_INCLUDE_DIRECTORIES, char *);
+    IF_ERROR_RETURN(error);
 
     return (error);
 }
 
-error
-copy(char **arguments, u32 arguments_length)
+struct jim_compilation
+jim_please_make_compilation(struct jim_compilation_parameters parameters)
 {
-    if (arguments_length != 2)
+    error                  error       = 0;
+    struct jim_compilation compilation = { 0 };
+
+    error = jim_make_compilation(
+        &compilation,
+        parameters.compiler,
+        &_jim.allocator);
+
+    compilation.output_type = parameters.type;
+    compilation.input_file  = parameters.input_file;
+    compilation.output_file = parameters.output_file;
+    return (compilation);
+}
+
+void
+_jim_command_append(struct jim_compilation *compilation, char *format, ...)
+{
+    va_list arg_list;
+    va_start(arg_list, format);
+    compilation->command_length
+        += vsnprintf(compilation->command.first
+                         + compilation->command_length,
+                     compilation->command.length
+                         - compilation->command_length
+                         - 1,
+                     format,
+                     arg_list);
+    va_end(arg_list);
+}
+
+struct string
+jim_make_command(struct jim_compilation compilation)
+{
+    _jim_command_append(&compilation, "gcc ");
+    if (compilation.output_type == jim_output_type__object_file)
     {
-        printf("I only move one thing to another place!\njim move <from> <to>\n");
-        return (1);
-    }
-    error error = copy_file(arguments[0], arguments[1]);
-    if (error)
-    {
-        printf("I tried, but i was too hard....\n");
+        _jim_command_append(&compilation, "-c ");
     }
 
-    return (NO_ERROR);
+    for (u32 index = 0;
+         index < compilation.number_of_include_directories;
+         ++index)
+    {
+        _jim_command_append(&compilation,
+                            compilation.compiler.add_include_directory_format,
+                            compilation.include_directories[index]);
+    }
+
+    for (u32 index = 0;
+         index < compilation.number_of_library_directories;
+         ++index)
+    {
+        _jim_command_append(&compilation,
+                            compilation.compiler.add_library_search_path_format,
+                            compilation.library_directories[index]);
+    }
+
+    _jim_command_append(&compilation,
+                        compilation.compiler.output_format,
+                        compilation.output_file);
+
+    _jim_command_append(&compilation,
+                        "%s ",
+                        compilation.input_file);
+
+    for (u32 index = 0;
+         index < compilation.number_of_libraries;
+         ++index)
+    {
+        _jim_command_append(&compilation,
+                            compilation.compiler.add_link_library_format,
+                            compilation.libraries[index]);
+    }
+
+    return (compilation.command);
 }
 
 error
-time(char **arguments, u32 arguments_length)
+jim_add_include_directory(struct jim_compilation *compilation, char *include_directory)
 {
-    if (arguments_length != 1)
+    if (compilation->number_of_include_directories == JIM_MAX_INCLUDE_DIRECTORIES)
     {
-        printf("Only one you shall provide...\n");
         return (1);
     }
-
-    u64   the_time = 0;
-    error error    = file_get_last_write_time(&the_time, arguments[0]);
-    if (error)
-    {
-        printf("I tried, but i was too hard....\n");
-        return (1);
-    }
-    printf("Sir, the time is %zu\n", the_time);
-
-    return (error);
-}
-
-struct command_mapping
-{
-    const char      *name;
-    command_function function;
-};
-
-struct command_mappings
-{
-    u32                     used;
-    u32                     size;
-    struct command_mapping *array;
-} command_mappings = { 0 };
-
-#define EXIT_IF_ERROR()                       \
-    do                                        \
-    {                                         \
-        if (error)                            \
-        {                                     \
-            printf("Why u no giv memory?\n"); \
-            exit(-1);                         \
-        }                                     \
-    }                                         \
-    while (0)
-
-error
-make_command_mappings(u32 max_number_of_commands, struct allocator *allocator)
-{
-    command_mappings.used = 0;
-    command_mappings.size = max_number_of_commands;
-
-    error error = allocate_array(&command_mappings.array, allocator, max_number_of_commands, struct command_mapping);
-    return (error);
+    u32 new_index                               = compilation->number_of_include_directories++;
+    compilation->include_directories[new_index] = include_directory;
+    return (0);
 }
 
 error
-add_command_mapping(const char *name, command_function function)
+jim_add_library_directory(struct jim_compilation *compilation,
+                          char                   *library_directory)
 {
-    if (command_mappings.used + 1 > command_mappings.size)
+    if (compilation->number_of_library_directories == JIM_MAX_LIBRARY_DIRECTORIES)
+    {
         return (1);
+    }
+    u32 new_index = compilation->number_of_library_directories++;
 
-    u32 new_mapping_index = command_mappings.used++;
-
-    command_mappings.array[new_mapping_index].name     = name;
-    command_mappings.array[new_mapping_index].function = function;
-
+    compilation->library_directories[new_index] = library_directory;
+    return (0);
+}
+error
+jim_add_library(struct jim_compilation *compilation,
+                char                   *library)
+{
+    if (compilation->number_of_libraries == JIM_MAX_LIBRARIES)
+    {
+        return (1);
+    }
+    u32 new_index                     = compilation->number_of_libraries++;
+    compilation->libraries[new_index] = library;
     return (0);
 }
 
 void
-print_commands()
+jim_please_compile(struct jim_compilation compilation)
 {
-    for (u32 index = 0;
-         index < command_mappings.used;
-         ++index)
-    {
-        printf("%s\n", command_mappings.array[index].name);
-    }
-}
-
-void
-execute_command(char **arguments, s32 argument_count)
-{
-    for (u32 index = 0;
-         index < command_mappings.used;
-         ++index)
-    {
-        if (strcmp(arguments[1], command_mappings.array[index].name) == 0)
-        {
-            command_mappings.array[index].function(arguments + 2, argument_count - 2);
-            return;
-        }
-    }
-    printf("I don't know how to '%s'.\n", arguments[1]);
-}
-
-error
-jim_please_compile(struct program *program)
-{
-    char command_text[1024] = { 0 };
-    snprintf(command_text, 1024, "%s -DOS_WINDOWS -I . -o %s %s",
-             program->compiler.command,
-             program->executable,
-             program->source);
-    jim.last_error = run_command(command_text,
-                                 (char *)jim.output, jim.output_size);
-    if (jim.last_error == process_error_command_not_found)
-    {
-        printf("Sir, I couldn't find your '%s' compiler\n", program->compiler.command);
-        printf("I will go and check the garage.");
-        return (1);
-    }
-    else if (jim.last_error)
-    {
-        printf("%s\n", jim.output);
-    }
-    return (0);
-}
-
-void
-jim_please_run(struct program *program)
-{
-    char command_text[1024] = { 0 };
-    snprintf(command_text, 1024, "./%s",
-             program->executable);
-    jim.last_error = run_command(command_text,
-                                 jim.output, jim.output_size);
-}
-
-error
-we_failed_jim()
-{
-    return jim.last_error;
-}
-
-void
-jim_what_was_the_output()
-{
-    printf("%s\n", jim.output);
-}
-
-error
-jim_get(struct compiler compiler, s32 argc, char **argv)
-{
-    jims_brain.compiler = compiler;
-    jim.static_memory   = make_growing_linear_allocator(mebibytes(1));
-
-    jim.output_size = 1024 * 1024;
-    error error     = allocate_array(&jim.output, &jim.static_memory, jim.output_size, char);
+    struct string command = jim_make_command(compilation);
+    error         error   = 0;
+    struct string result  = { 0 };
+    //@TODO: handle errors
+    printf("%s\n", command.first);
+    error = make_string(&result, 4096 * 10, &_jim.allocator);
     if (error)
-        return error;
+        printf("Yalalalala\n");
 
-    u64 jim_last_write_time        = 0;
-    u64 jims_brain_last_write_time = 0;
-
-    error = file_get_last_write_time(&jim_last_write_time, "./jim.exe");
+    error = run_command(command.first, result.first, result.length);
     if (error)
-        return error;
-    error = file_get_last_write_time(&jims_brain_last_write_time, "./jims_brain.c");
-    if (error)
-        return error;
-    if (jims_brain_last_write_time > jim_last_write_time)
-    {
-        error = jim_please_compile(&jims_brain);
-        if (error)
-            return error;
-        delete_file("./.jim_old.exe");
-        error = move_file("./jim.exe", "./.jim_old.exe");
-        if (error)
-        {
-            return error;
-        }
-        error = move_file("new_jim.exe", "jim.exe");
-        if (error)
-        {
-            error = move_file("./.jim_old.exe", "./jim.exe");
-            return error;
-        }
-		char jim_command[1024] = {0};
-		s32 jim_command_size = 1024;
-		char *tmp = jim_command;
-		u32 chars_written = snprintf(tmp, jim_command_size, "./jim.exe ");
-		tmp += chars_written;
-		jim_command_size -= chars_written;
-		for (u32 index = 0; index < argc; ++index)
-		{
-			chars_written = snprintf(tmp, jim_command_size, "%s ", argv[index]);
-			tmp += chars_written;
-			jim_command_size -= chars_written;
-		}
-		run_command(jim_command, jim.output, jim.output_size);
-		printf("%s", jim.output);
-		exit(0);
-    }
-    return (error);
+        printf("Yalalalala\n");
 }
 
 #endif
