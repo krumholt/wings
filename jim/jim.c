@@ -575,6 +575,7 @@ _jim_update_yourself(void)
     error error = jim_did_we_win();
     if (!error)
     {
+        file_delete("old_jim.exe");
         file_move("jim.exe", "old_jim.exe");
         file_move("new_jim.exe", "jim.exe");
         process_new("jim.exe", 0);
