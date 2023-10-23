@@ -1,13 +1,14 @@
 #ifndef WINGS_OS_WINDOWS_PROCESS_C_
 #define WINGS_OS_WINDOWS_PROCESS_C_
 
+#include "wings/base/macros.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/types.c"
-#include <winuser.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <stdio.h>
+#include <winuser.h>
 
 error
 run_command_at(char *command, char *directory, char *result_buffer, u32 result_buffer_size)
