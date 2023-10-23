@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 error
-run_command(char *command, char *result_buffer, u32 result_buffer_size)
+run_command_at(char *command, char *directory, char *result_buffer, u32 result_buffer_size)
 {
     SECURITY_ATTRIBUTES pipe_security_attributes = { 0 };
     pipe_security_attributes.nLength             = sizeof(SECURITY_ATTRIBUTES);
@@ -53,7 +53,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         TRUE,
         CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
         0,
-        0,
+        directory,
         &startup_info,
         &process_info);
     if (result == 0)
@@ -96,6 +96,12 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         return (ec_os_process__command_failed);
 
     return (NO_ERROR);
+}
+
+error
+run_command(char *command, char *result_buffer, u32 result_buffer_size)
+{
+	return (run_command_at(command, "./", result_buffer, result_buffer_size));
 }
 
 error
