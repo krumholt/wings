@@ -1,24 +1,12 @@
 #ifndef WINGS_BASE_ASSET_IMPORTERS_C_
 #define WINGS_BASE_ASSET_IMPORTERS_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_COLORS_C_)
 #include "wings/base/colors.c"
-#endif
-#if !defined(WINGS_BASE_ALLOCATORS_C_)
 #include "wings/base/allocators.c"
-#endif
-#if !defined(WINGS_BASE_WINGS_FILE_READER_C_)
 #include "wings/base/wings_file_reader.c"
-#endif
-#if !defined(WINGS_OS_FILE_C)
 #include "wings/os/file.c"
-#endif
-#if !defined(WINGS_GRAPHICS_MESH_C)
 #include "wings/graphics/mesh.c"
-#endif
 
 error
 load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
@@ -26,7 +14,7 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
     error         error  = NO_ERROR;
     struct buffer buffer = { 0 };
 
-    error = read_file(&buffer, filename, 0, allocator);
+    error = file_read(&buffer, filename, 0, allocator);
     if (error)
         return (1);
 

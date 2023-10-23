@@ -3,6 +3,7 @@
 
 #include "wings/base/error_codes.c"
 #include "wings/base/types.c"
+#include <winuser.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -50,7 +51,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         0,
         0,
         TRUE,
-        0,
+        CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
         0,
         0,
         &startup_info,
@@ -64,11 +65,10 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
             error = ec_os_process__creation_failed;
         return (error);
     }
-    WaitForSingleObject(process_info.hProcess, INFINITE);
+    DWORD chars_read = 0;
     CloseHandle(in_pipe_read);
     CloseHandle(out_pipe_write);
 
-    DWORD chars_read = 0;
     for (;;)
     {
         success = ReadFile(out_pipe_read,
@@ -81,8 +81,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         if (!success)
         {
             u32 last_error = GetLastError();
-            printf("bad %d happend\n", last_error);
-            break;
+            return (ec_os_process__command_failed);
         }
         result_buffer += chars_read;
         result_buffer_size -= chars_read;

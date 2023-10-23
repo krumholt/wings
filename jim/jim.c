@@ -536,6 +536,12 @@ jim_please_compile(char *file)
 }
 
 void
+jim_please_add_library(char *name)
+{
+    jim_add_library(&_jim.compilation, name);
+}
+
+void
 jim_please_build_library(char *name)
 {
     if (_jim.error)
