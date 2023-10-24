@@ -19,6 +19,8 @@
 #define JIM_MAX_LIBRARIES 100
 #define JIM_MAX_OBJECT_FILES 1000
 
+char *jims_brain = "jims_brain.c";
+
 enum jim_output_type
 {
     jim_output_type__executable,
@@ -341,6 +343,7 @@ _jim_please_set_error_message(char *format, ...)
 void
 _jim_update_yourself(void);
 
+
 void
 jim_please_listen(void)
 {
@@ -408,7 +411,7 @@ jim_please_listen(void)
     u64 last_write_time_jim        = 0;
     u64 last_write_time_jims_brain = 0;
     file_get_last_write_time(&last_write_time_jim, "jim.exe");
-    file_get_last_write_time(&last_write_time_jims_brain, "jims_brain.c");
+    file_get_last_write_time(&last_write_time_jims_brain, jims_brain);
     if (last_write_time_jim < last_write_time_jims_brain)
     {
         printf("Jim needs to update\n");
@@ -570,7 +573,7 @@ _jim_update_yourself(void)
 {
     jim_please_use_output_directory("./");
     jim_please_add_include_directory("./");
-    jim_please_compile("jims_brain.c");
+    jim_please_compile(jims_brain);
     jim_please_create_executable("new_jim.exe");
     error error = jim_did_we_win();
     if (!error)
@@ -580,6 +583,332 @@ _jim_update_yourself(void)
         process_new("jim.exe", 0);
     }
     exit(0);
+}
+
+char *_jim_default_compile_flags_txt
+    = ""
+      "-Isource\n"
+      "-I./\n";
+
+char *_jim_default_clang_format
+    = ""
+      "---\n"
+      "Language:        Cpp\n"
+      "# BasedOnStyle:  WebKit\n"
+      "AccessModifierOffset: -4\n"
+      "AlignAfterOpenBracket: Align\n"
+      "AlignArrayOfStructures: Left\n"
+      "AlignConsecutiveAssignments:\n"
+      "  Enabled:         true\n"
+      "  AcrossEmptyLines: false\n"
+      "  AcrossComments:  false\n"
+      "  AlignCompound:   false\n"
+      "  PadOperators:    true\n"
+      "AlignConsecutiveBitFields:\n"
+      "  Enabled:         false\n"
+      "  AcrossEmptyLines: false\n"
+      "  AcrossComments:  false\n"
+      "  AlignCompound:   false\n"
+      "  PadOperators:    false\n"
+      "AlignConsecutiveDeclarations:\n"
+      "  Enabled:         true\n"
+      "  AcrossEmptyLines: false\n"
+      "  AcrossComments:  false\n"
+      "  AlignCompound:   true\n"
+      "  PadOperators:    true\n"
+      "AlignConsecutiveMacros:\n"
+      "  Enabled:         false\n"
+      "  AcrossEmptyLines: false\n"
+      "  AcrossComments:  false\n"
+      "  AlignCompound:   true\n"
+      "  PadOperators:    true\n"
+      "AlignEscapedNewlines: Right\n"
+      "AlignOperands:   Align\n"
+      "AlignTrailingComments: false\n"
+      "AllowAllArgumentsOnNextLine: true\n"
+      "AllowAllParametersOfDeclarationOnNextLine: true\n"
+      "AllowShortEnumsOnASingleLine: true\n"
+      "AllowShortBlocksOnASingleLine: Empty\n"
+      "AllowShortCaseLabelsOnASingleLine: false\n"
+      "AllowShortFunctionsOnASingleLine: All\n"
+      "AllowShortLambdasOnASingleLine: All\n"
+      "AllowShortIfStatementsOnASingleLine: Never\n"
+      "AllowShortLoopsOnASingleLine: false\n"
+      "AlwaysBreakAfterDefinitionReturnType: All\n"
+      "AlwaysBreakAfterReturnType: None\n"
+      "AlwaysBreakBeforeMultilineStrings: false\n"
+      "AlwaysBreakTemplateDeclarations: MultiLine\n"
+      "AttributeMacros:\n"
+      "  - __capability\n"
+      "BinPackArguments: true\n"
+      "BinPackParameters: true\n"
+      "BraceWrapping:\n"
+      "  AfterCaseLabel:  true\n"
+      "  AfterClass:      true\n"
+      "  AfterControlStatement: Always\n"
+      "  AfterEnum:       true\n"
+      "  AfterFunction:   true\n"
+      "  AfterNamespace:  false\n"
+      "  AfterObjCDeclaration: false\n"
+      "  AfterStruct:     true\n"
+      "  AfterUnion:      true\n"
+      "  AfterExternBlock: false\n"
+      "  BeforeCatch:     false\n"
+      "  BeforeElse:      true\n"
+      "  BeforeLambdaBody: false\n"
+      "  BeforeWhile:     true\n"
+      "  IndentBraces:    false\n"
+      "  SplitEmptyFunction: true\n"
+      "  SplitEmptyRecord: true\n"
+      "  SplitEmptyNamespace: true\n"
+      "BreakBeforeBinaryOperators: All\n"
+      "BreakBeforeConceptDeclarations: Always\n"
+      "BreakBeforeBraces: Custom\n"
+      "BreakBeforeInheritanceComma: false\n"
+      "BreakInheritanceList: BeforeColon\n"
+      "BreakBeforeTernaryOperators: true\n"
+      "BreakConstructorInitializersBeforeComma: true\n"
+      "BreakConstructorInitializers: BeforeComma\n"
+      "BreakAfterJavaFieldAnnotations: false\n"
+      "BreakStringLiterals: true\n"
+      "ColumnLimit:     0\n"
+      "CommentPragmas:  '^ IWYU pragma:'\n"
+      "QualifierAlignment: Leave\n"
+      "CompactNamespaces: false\n"
+      "ConstructorInitializerIndentWidth: 4\n"
+      "ContinuationIndentWidth: 4\n"
+      "Cpp11BracedListStyle: false\n"
+      "DeriveLineEnding: true\n"
+      "DerivePointerAlignment: false\n"
+      "DisableFormat:   false\n"
+      "EmptyLineAfterAccessModifier: Never\n"
+      "EmptyLineBeforeAccessModifier: LogicalBlock\n"
+      "ExperimentalAutoDetectBinPacking: false\n"
+      "PackConstructorInitializers: BinPack\n"
+      "BasedOnStyle:    ''\n"
+      "ConstructorInitializerAllOnOneLineOrOnePerLine: false\n"
+      "AllowAllConstructorInitializersOnNextLine: true\n"
+      "FixNamespaceComments: false\n"
+      "ForEachMacros:\n"
+      "  - foreach\n"
+      "  - Q_FOREACH\n"
+      "  - BOOST_FOREACH\n"
+      "IfMacros:\n"
+      "  - KJ_IF_MAYBE\n"
+      "IncludeBlocks:   Preserve\n"
+      "IncludeCategories:\n"
+      "  - Regex:           '^\"(llvm|llvm-c|clang|clang-c)/'\n"
+      "    Priority:        2\n"
+      "    SortPriority:    0\n"
+      "    CaseSensitive:   false\n"
+      "  - Regex:           '^(<|\"(gtest|gmock|isl|json)/)'\n"
+      "    Priority:        3\n"
+      "    SortPriority:    0\n"
+      "    CaseSensitive:   false\n"
+      "  - Regex:           '.*'\n"
+      "    Priority:        1\n"
+      "    SortPriority:    0\n"
+      "    CaseSensitive:   false\n"
+      "IncludeIsMainRegex: '(Test)?$'\n"
+      "IncludeIsMainSourceRegex: ''\n"
+      "IndentAccessModifiers: false\n"
+      "IndentCaseLabels: false\n"
+      "IndentCaseBlocks: false\n"
+      "IndentGotoLabels: true\n"
+      "IndentPPDirectives: None\n"
+      "IndentExternBlock: AfterExternBlock\n"
+      "IndentRequiresClause: true\n"
+      "IndentWidth:     4\n"
+      "IndentWrappedFunctionNames: false\n"
+      "InsertBraces:    false\n"
+      "InsertTrailingCommas: None\n"
+      "JavaScriptQuotes: Leave\n"
+      "JavaScriptWrapImports: true\n"
+      "KeepEmptyLinesAtTheStartOfBlocks: true\n"
+      "LambdaBodyIndentation: Signature\n"
+      "MacroBlockBegin: ''\n"
+      "MacroBlockEnd:   ''\n"
+      "MaxEmptyLinesToKeep: 1\n"
+      "NamespaceIndentation: Inner\n"
+      "ObjCBinPackProtocolList: Auto\n"
+      "ObjCBlockIndentWidth: 4\n"
+      "ObjCBreakBeforeNestedBlockParam: true\n"
+      "ObjCSpaceAfterProperty: true\n"
+      "ObjCSpaceBeforeProtocolList: true\n"
+      "PenaltyBreakAssignment: 2\n"
+      "PenaltyBreakBeforeFirstCallParameter: 19\n"
+      "PenaltyBreakComment: 300\n"
+      "PenaltyBreakFirstLessLess: 120\n"
+      "PenaltyBreakOpenParenthesis: 0\n"
+      "PenaltyBreakString: 1000\n"
+      "PenaltyBreakTemplateDeclaration: 10\n"
+      "PenaltyExcessCharacter: 1000000\n"
+      "PenaltyReturnTypeOnItsOwnLine: 60\n"
+      "PenaltyIndentedWhitespace: 0\n"
+      "PointerAlignment: Right\n"
+      "PPIndentWidth:   -1\n"
+      "ReferenceAlignment: Pointer\n"
+      "ReflowComments:  true\n"
+      "RemoveBracesLLVM: false\n"
+      "RequiresClausePosition: OwnLine\n"
+      "SeparateDefinitionBlocks: Leave\n"
+      "ShortNamespaceLines: 1\n"
+      "SortIncludes: false\n"
+      "SortJavaStaticImport: Before\n"
+      "SortUsingDeclarations: true\n"
+      "SpaceAfterCStyleCast: false\n"
+      "SpaceAfterLogicalNot: false\n"
+      "SpaceAfterTemplateKeyword: true\n"
+      "SpaceBeforeAssignmentOperators: true\n"
+      "SpaceBeforeCaseColon: false\n"
+      "SpaceBeforeCpp11BracedList: true\n"
+      "SpaceBeforeCtorInitializerColon: true\n"
+      "SpaceBeforeInheritanceColon: true\n"
+      "SpaceBeforeParens: ControlStatements\n"
+      "SpaceBeforeParensOptions:\n"
+      "  AfterControlStatements: true\n"
+      "  AfterForeachMacros: true\n"
+      "  AfterFunctionDefinitionName: false\n"
+      "  AfterFunctionDeclarationName: false\n"
+      "  AfterIfMacros:   true\n"
+      "  AfterOverloadedOperator: false\n"
+      "  AfterRequiresInClause: false\n"
+      "  AfterRequiresInExpression: false\n"
+      "  BeforeNonEmptyParentheses: false\n"
+      "SpaceAroundPointerQualifiers: Default\n"
+      "SpaceBeforeRangeBasedForLoopColon: true\n"
+      "SpaceInEmptyBlock: true\n"
+      "SpaceInEmptyParentheses: false\n"
+      "SpacesBeforeTrailingComments: 1\n"
+      "SpacesInAngles:  Never\n"
+      "SpacesInConditionalStatement: false\n"
+      "SpacesInContainerLiterals: true\n"
+      "SpacesInCStyleCastParentheses: false\n"
+      "SpacesInLineCommentPrefix:\n"
+      "  Minimum:         1\n"
+      "  Maximum:         -1\n"
+      "SpacesInParentheses: false\n"
+      "SpacesInSquareBrackets: false\n"
+      "SpaceBeforeSquareBrackets: false\n"
+      "BitFieldColonSpacing: Both\n"
+      "Standard:        Latest\n"
+      "StatementAttributeLikeMacros:\n"
+      "  - Q_EMIT\n"
+      "StatementMacros:\n"
+      "  - Q_UNUSED\n"
+      "  - QT_REQUIRE_VERSION\n"
+      "TabWidth:        8\n"
+      "UseCRLF:         false\n"
+      "UseTab:          Never\n"
+      "WhitespaceSensitiveMacros:\n"
+      "  - STRINGIZE\n"
+      "  - PP_STRINGIZE\n"
+      "  - BOOST_PP_STRINGIZE\n"
+      "  - NS_SWIFT_NAME\n"
+      "  - CF_SWIFT_NAME\n"
+      "...\n";
+
+char *_jim_default_jims_brain
+    = ""
+      "#include \"wings/base/error_codes.c\"\n"
+      "#include \"wings/jim/jim.c\"\n"
+      "#include \"wings/os/file.c\"\n"
+      "\n"
+      "s32\n"
+      "main(void)\n"
+      "{\n"
+      "    jim_please_listen();\n"
+      "    jim_please_add_include_directory(\"./\");\n"
+      "    jim_please_use_output_directory(\".build/\");\n"
+      "\n"
+      "    jim_please_compile(\"source/main.c\");\n"
+      "    //jim_please_add_library(\"opengl32\");\n"
+      "    jim_please_create_executable(\"main.exe\");\n"
+      "    error error = file_copy(\".build/main.exe\", \"executable/main.exe\");\n"
+      "    if (error)\n"
+      "    {\n"
+      "        printf(\"Failed to copy executable\\n\");\n"
+      "        return (-1);\n"
+      "    }\n"
+      "\n"
+      "    error = jim_did_we_win();\n"
+      "    if (!error)\n"
+      "    {\n"
+	  "        printf(\"Starting main\\n\");\n"
+      "        process_new(\"./executable/main.exe\", \"./executable\");\n"
+      "    }\n"
+      "\n"
+      "    return (0);\n"
+      "}\n";
+
+char *_jim_default_main_c
+    = ""
+      "#include <stdio.h>\n"
+	  "\n"
+	  "int\n"
+	  "main(void)\n"
+	  "{\n"
+	  "    printf(\"Hello, worlor\\n\");\n"
+	  "    return (0);\n"
+	  "}\n";
+
+#define jim_please_setup_a_new_project()   \
+    do                                     \
+    {                                      \
+        jims_brain = __FILE__;             \
+        printf("%s\n", jims_brain);        \
+        _jim_please_setup_a_new_project(); \
+    }                                      \
+    while (0)
+
+void
+_jim_please_setup_a_new_project(void)
+{
+    printf("\n");
+    printf("********************************************************************************\n");
+    printf("* ATTENTION                     PLEASE READ                          ATTENTION *\n");
+    printf("********************************************************************************\n");
+    printf("\n");
+    printf("This will override the following files:\n");
+    printf("\t - %s\n", jims_brain);
+    printf("\t - create directory source/\n");
+    printf("\t - create directory .build/\n");
+    printf("\t - create directory executable/\n");
+    printf("\t - override .clang-format\n");
+    printf("\t - override compile_flags.txt\n");
+    printf("\t - override source/main.c\n");
+    printf("Are you sure sir (y/n)?\n");
+    printf("\n");
+    printf("********************************************************************************\n");
+    printf("* ATTENTION                     PLEASE READ                          ATTENTION *\n");
+    printf("********************************************************************************\n");
+    printf("\n");
+    char answer = 0;
+    scanf_s("%c", &answer);
+    if (answer == 'y')
+    {
+        file_create_directory("source");
+        file_create_directory(".build");
+        file_create_directory("executable");
+        struct buffer buffer = { 0 };
+        buffer.base          = (u8 *)_jim_default_jims_brain;
+        buffer.used          = strlen(_jim_default_jims_brain);
+        buffer.size          = buffer.used;
+        file_write(buffer, jims_brain, 1);
+        buffer.base = (u8 *)_jim_default_clang_format;
+        buffer.used = strlen(_jim_default_clang_format);
+        buffer.size = buffer.used;
+        file_write(buffer, ".clang-format", 1);
+        buffer.base = (u8 *)_jim_default_compile_flags_txt;
+        buffer.used = strlen(_jim_default_compile_flags_txt);
+        buffer.size = buffer.used;
+        file_write(buffer, "compile_flags.txt", 1);
+        buffer.base = (u8 *)_jim_default_main_c;
+        buffer.used = strlen(_jim_default_main_c);
+        buffer.size = buffer.used;
+        file_write(buffer, "source/main.c", 1);
+    }
+	jim_please_listen();
 }
 
 #endif

@@ -108,7 +108,7 @@ file_move(char *from_file_name, char *to_file_name)
 error
 file_copy(char *from_file_name, char *to_file_name)
 {
-    u32 success = CopyFile(from_file_name, to_file_name, 1);
+    u32 success = CopyFile(from_file_name, to_file_name, 0);
     if (!success)
     {
         DWORD last_error = GetLastError();
@@ -116,6 +116,7 @@ file_copy(char *from_file_name, char *to_file_name)
             return ec_os_file__not_found;
         if (last_error == 5)
             return ec_os_file__access_denied;
+		printf("error: %lu\n", last_error);
     }
     return (!success);
 }
