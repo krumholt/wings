@@ -6,8 +6,7 @@
 #if defined(OS_WINDOWS)
 #include "wings/os/windows/process.c"
 #elif defined(OS_LINUX)
-//#include "wings/os/linux/process.c"
-#error "Linux not implemented... yet"
+#include "wings/os/linux/process.c"
 #else
 #error "Operating system not set #define OS_WINDOWS or OS_LINUX. Yes FU Apple."
 #endif

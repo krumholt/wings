@@ -2,6 +2,7 @@
 #define WINGS_OS_LINUX_MEMORY_C_
 
 #include "wings/base/types.c"
+#include "wings/base/error_codes.c"
 #include "wings/base/macros.c"
 
 #include <stdio.h>
@@ -64,7 +65,7 @@ os_reserve_and_commit_memory(struct os_allocation *block, u64 size)
     if (error)
         return error;
 
-    return (NO_ERROR);
+    return (ec__no_error);
 }
 
 error

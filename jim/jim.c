@@ -7,11 +7,12 @@
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
 #include "wings/base/strings.c"
-#include "wings/os/windows/process.c"
+#include "wings/os/process.c"
 #include "wings/os/file.c"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define JIM_MAX_OBJECT_FILES_PER_LIBRARY 100
 #define JIM_MAX_INCLUDE_DIRECTORIES 100
