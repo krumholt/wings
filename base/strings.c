@@ -1,5 +1,5 @@
-#ifndef WINGS_first_STRINGS_C_
-#define WINGS_first_STRINGS_C_
+#ifndef WINGS_BASE_STRINGS_C_
+#define WINGS_BASE_STRINGS_C_
 
 #include "wings/base/types.c"
 #include "wings/base/error_codes.c"

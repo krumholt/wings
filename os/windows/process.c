@@ -1,15 +1,17 @@
 #ifndef WINGS_OS_WINDOWS_PROCESS_C_
 #define WINGS_OS_WINDOWS_PROCESS_C_
 
+#include "wings/base/macros.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/types.c"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <stdio.h>
+#include <winuser.h>
 
 error
-run_command(char *command, char *result_buffer, u32 result_buffer_size)
+run_command_at(char *command, char *directory, char *result_buffer, u32 result_buffer_size)
 {
     SECURITY_ATTRIBUTES pipe_security_attributes = { 0 };
     pipe_security_attributes.nLength             = sizeof(SECURITY_ATTRIBUTES);
@@ -50,9 +52,9 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         0,
         0,
         TRUE,
+        CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
         0,
-        0,
-        0,
+        directory,
         &startup_info,
         &process_info);
     if (result == 0)
@@ -64,11 +66,10 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
             error = ec_os_process__creation_failed;
         return (error);
     }
-    WaitForSingleObject(process_info.hProcess, INFINITE);
+    DWORD chars_read = 0;
     CloseHandle(in_pipe_read);
     CloseHandle(out_pipe_write);
 
-    DWORD chars_read = 0;
     for (;;)
     {
         success = ReadFile(out_pipe_read,
@@ -81,8 +82,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         if (!success)
         {
             u32 last_error = GetLastError();
-            printf("bad %d happend\n", last_error);
-            break;
+            return (ec_os_process__command_failed);
         }
         result_buffer += chars_read;
         result_buffer_size -= chars_read;
@@ -97,6 +97,12 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
         return (ec_os_process__command_failed);
 
     return (NO_ERROR);
+}
+
+error
+run_command(char *command, char *result_buffer, u32 result_buffer_size)
+{
+	return (run_command_at(command, "./", result_buffer, result_buffer_size));
 }
 
 error

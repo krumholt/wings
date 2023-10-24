@@ -37,7 +37,7 @@ load_image(struct image *image, char *path, struct allocator *allocator)
     error         error  = 0;
     struct buffer buffer = { 0 };
 
-    error = read_file(&buffer, path, 0, allocator);
+    error = file_read(&buffer, path, 0, allocator);
     IF_ERROR_RETURN(error);
 
     error = load_image_from_memory(image, buffer);

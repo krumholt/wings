@@ -106,12 +106,12 @@ load_skinning_phong_shader(struct allocator *allocator)
     struct buffer buffer    = { 0 };
     b32           error     = 0;
     char         *file_name = "skinning_phong.vs";
-    error                   = read_file(&buffer, file_name, 1, allocator);
+    error                   = file_read(&buffer, file_name, 1, allocator);
     if (error)
         return (error);
     char *vs  = (char *)buffer.base;
     file_name = "skinning_phong.fs";
-    error     = read_file(&buffer, file_name, 1, allocator);
+    error     = file_read(&buffer, file_name, 1, allocator);
     if (error)
         return (error);
     char *fs = (char *)buffer.base;
