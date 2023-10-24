@@ -1,12 +1,12 @@
 *       text=auto
-*.txt   auto
-*.c		auto
-*.h		auto
-*.sh	auto
-*.ps1	auto
-*.md	auto
-*.frag	auto
-*.vert	auto
+*.txt   text eol=lf
+*.c		text eol=lf
+*.h		text eol=lf
+*.sh	text eol=lf
+*.ps1	text eol=lf
+*.md	text eol=lf
+*.frag	text eol=lf
+*.vert	text eol=lf
 
 *.png	binary
 *.jpeg	binary
