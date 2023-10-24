@@ -1,0 +1,15 @@
+*       text=auto
+*.txt   auto
+*.c		auto
+*.h		auto
+*.sh	auto
+*.ps1	auto
+*.md	auto
+*.frag	auto
+*.vert	auto
+
+*.png	binary
+*.jpeg	binary
+*.jpg	binary
+*.wings	binary
+*.blend	binary
