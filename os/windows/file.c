@@ -116,9 +116,34 @@ file_copy(char *from_file_name, char *to_file_name)
             return ec_os_file__not_found;
         if (last_error == 5)
             return ec_os_file__access_denied;
-		printf("error: %lu\n", last_error);
+        printf("error: %lu\n", last_error);
     }
     return (!success);
+}
+
+error
+file_get_last_write_time(u64 *time, char *file_path)
+{
+    HANDLE file_handle = { 0 };
+    file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
+                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if (!file_handle)
+    {
+        return (1);
+    }
+    u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
+    u32 success = GetFileTime(
+        file_handle,
+        (FILETIME *)&creation_time,
+        (FILETIME *)&last_access_time,
+        (FILETIME *)&last_write_time);
+    if (!success)
+    {
+        return (1);
+    }
+    CloseHandle(file_handle);
+    *time = last_write_time;
+    return (0);
 }
 
 error
@@ -164,6 +189,23 @@ file_exists(char *file_path)
     if (result == INVALID_FILE_ATTRIBUTES)
         return (0);
     return (1);
+}
+
+error
+file_copy_if_newer(char *from_file_name, char *to_file_name)
+{
+    if (!file_exists(to_file_name))
+    {
+        return (file_copy(from_file_name, to_file_name));
+    }
+    u64 from_file_time = 0;
+    file_get_last_write_time(&from_file_time, from_file_name);
+    u64 to_file_time = 0;
+    file_get_last_write_time(&to_file_time, to_file_time);
+    if (from_file_time < to_file_time)
+    {
+		file_copy(from_file_name, to_file_name);
+    }
 }
 
 #endif
