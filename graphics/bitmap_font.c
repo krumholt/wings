@@ -95,13 +95,13 @@ load_bitmap_font(struct bitmap_font *font, char *path, struct allocator *allocat
     b32           error  = 0;
     error                = file_read(&buffer, path, 1, allocator);
     if (error)
-        return 1;
+        return (error);
     struct string text = { (char *)buffer.base, buffer.size - 1 };
     bitmap_font_from_text(font, text, allocator);
 
     error = load_image(&font->image, font->image_name, allocator);
     if (error)
-        return 2;
+        return (error);
     return 0;
 }
 

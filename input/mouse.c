@@ -7,9 +7,13 @@
 
 enum mouse_button
 {
-    _mouse_button_left,
-    _mouse_button_right,
-    _mouse_button_middle,
+    mouse_button__left,
+    mouse_button__right,
+    mouse_button__middle,
+    mouse_button__four,
+    mouse_button__five,
+    mouse_button__six,
+    mouse_button__seven,
 };
 
 struct mouse
@@ -23,57 +27,63 @@ struct mouse
 } mouse = { 0 };
 
 b32
+mouse_button_pressed(enum  mouse_button button)
+{
+    return (mouse.button[button] && !mouse.button_last_frame[button]);
+}
+
+b32
 left_mouse_button_pressed(void)
 {
-    return (mouse.button[_mouse_button_left] && !mouse.button_last_frame[_mouse_button_left]);
+    return (mouse.button[mouse_button__left] && !mouse.button_last_frame[mouse_button__left]);
 }
 
 b32
 left_mouse_button_held(void)
 {
-    return (mouse.button[_mouse_button_left]);
+    return (mouse.button[mouse_button__left]);
 }
 
 b32
 left_mouse_button_released(void)
 {
-    return (!mouse.button[_mouse_button_left] && mouse.button_last_frame[_mouse_button_left]);
+    return (!mouse.button[mouse_button__left] && mouse.button_last_frame[mouse_button__left]);
 }
 
 b32
 right_mouse_button_pressed(void)
 {
-    return (mouse.button[_mouse_button_right] && !mouse.button_last_frame[_mouse_button_right]);
+    return (mouse.button[mouse_button__right] && !mouse.button_last_frame[mouse_button__right]);
 }
 
 b32
 right_mouse_button_held(void)
 {
-    return (mouse.button[_mouse_button_right]);
+    return (mouse.button[mouse_button__right]);
 }
 
 b32
 right_mouse_button_released(void)
 {
-    return (!mouse.button[_mouse_button_right] && mouse.button_last_frame[_mouse_button_right]);
+    return (!mouse.button[mouse_button__right] && mouse.button_last_frame[mouse_button__right]);
 }
 
 b32
 middle_mouse_button_pressed(void)
 {
-    return mouse.button[_mouse_button_middle] && !mouse.button_last_frame[_mouse_button_middle];
+    return mouse.button[mouse_button__middle] && !mouse.button_last_frame[mouse_button__middle];
 }
 
 b32
 middle_mouse_button_held(void)
 {
-    return mouse.button[_mouse_button_middle];
+    return mouse.button[mouse_button__middle];
 }
 
 b32
 middle_mouse_button_released(void)
 {
-    return !mouse.button[_mouse_button_middle] && mouse.button_last_frame[_mouse_button_middle];
+    return !mouse.button[mouse_button__middle] && mouse.button_last_frame[mouse_button__middle];
 }
 
 #endif

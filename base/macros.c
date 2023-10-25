@@ -24,6 +24,13 @@
     if ((x))               \
         return x;
 
+#define IF_ERROR_PRINT_AND_RETURN(x)                                                    \
+    if ((x))                                                                            \
+    {                                                                                   \
+        printf("ERROR(%d) %s:%d: %s\n", (x), __FILE__, __LINE__, error_code_lookup(x)); \
+        return (x);                                                                     \
+    }
+
 #ifndef ASSERT
 #ifdef NO_ASSERTS
 #define ASSERT(argument)

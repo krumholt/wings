@@ -178,35 +178,35 @@ update_window(void)
         case WM_LBUTTONDOWN:
         {
             SetCapture(window.handle);
-            mouse.button[_mouse_button_left] = 1;
+            mouse.button[mouse_button__left] = 1;
         }
         break;
         case WM_LBUTTONUP:
         {
             ReleaseCapture();
-            mouse.button[_mouse_button_left] = 0;
+            mouse.button[mouse_button__left] = 0;
         }
         break;
         case WM_RBUTTONDOWN:
         {
             SetCapture(window.handle);
-            mouse.button[_mouse_button_right] = 1;
+            mouse.button[mouse_button__right] = 1;
         }
         break;
         case WM_RBUTTONUP:
         {
             ReleaseCapture();
-            mouse.button[_mouse_button_right] = 0;
+            mouse.button[mouse_button__right] = 0;
         }
         break;
         case WM_MBUTTONDOWN:
         {
-            mouse.button[_mouse_button_middle] = 1;
+            mouse.button[mouse_button__middle] = 1;
         }
         break;
         case WM_MBUTTONUP:
         {
-            mouse.button[_mouse_button_middle] = 0;
+            mouse.button[mouse_button__middle] = 0;
         }
         break;
         case WM_CHAR:

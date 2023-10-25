@@ -71,25 +71,25 @@ update_camera_from_controller(struct camera *cam, struct third_person_controller
     forward.z         = 0;
     forward           = normalize_v3(forward);
     struct v3 right   = cam->right;
-    if (key_held(keycode_A))
+    if (key_held(keycode_S))
     {
         controller->target
             = add_v3(controller->target,
                      mul_f32_v3(-controller->speed * delta_in_seconds, right));
     }
-    if (key_held(keycode_W))
+    if (key_held(keycode_E))
     {
         controller->target
             = add_v3(controller->target,
                      mul_f32_v3(controller->speed * delta_in_seconds, forward));
     }
-    if (key_held(keycode_S))
+    if (key_held(keycode_D))
     {
         controller->target
             = add_v3(controller->target,
                      mul_f32_v3(-controller->speed * delta_in_seconds, forward));
     }
-    if (key_held(keycode_D))
+    if (key_held(keycode_F))
     {
         controller->target
             = add_v3(controller->target,
