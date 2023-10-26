@@ -13,6 +13,7 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
 {
 	char final_command[2048] = {0};
 	snprintf(final_command, 2047, "cd %s; %s", directory, command);
+	printf("%s\n", final_command);
 	FILE *file = popen(final_command, "r");
 	char *result = fgets(result_buffer, result_buffer_size, file);
 	if (result != result_buffer)

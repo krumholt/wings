@@ -892,7 +892,7 @@ _jim_please_setup_a_new_project(void)
     printf("********************************************************************************\n");
     printf("\n");
     char answer = 0;
-    scanf_s("%c", &answer);
+    scanf("%c", &answer);
     if (answer == 'y')
     {
         file_create_directory("source");
