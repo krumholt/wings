@@ -54,7 +54,7 @@ make_mesh(struct mesh      *mesh,
           u32               max_number_of_vertices,
           struct allocator *allocator)
 {
-    error error      = NO_ERROR;
+    error error      = ec__no_error;
     mesh->attributes = attributes;
     mesh->size       = max_number_of_vertices;
 
