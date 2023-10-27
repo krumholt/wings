@@ -4,7 +4,7 @@
 #include "wings/base/macros.c"
 
 #if defined(OS_WINDOWS)
-#include "wings/os/windows/file.c"
+#include "wings/graphics/windows/opengl.c"
 #elif defined(OS_LINUX)
 #include "wings/os/linux/file.c"
 #else

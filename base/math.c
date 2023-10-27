@@ -2483,7 +2483,6 @@ make_rotation_quaternion(struct v3 axis, f32 angle)
     return (result);
 }
 
-#include <stdio.h>
 struct ray_v3
 screen_position_to_camera_ray(struct v3   camera_position,
                               struct mat4 projection,

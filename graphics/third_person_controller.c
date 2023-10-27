@@ -49,6 +49,42 @@ struct third_person_controller
 };
 
 void
+rotate_up(struct third_person_controller *controller, f32 amount)
+{
+    controller->angle_z += controller->speed_angle_z * amount;
+}
+
+void
+rotate_down(struct third_person_controller *controller, f32 amount)
+{
+    controller->angle_z -= controller->speed_angle_z * amount;
+}
+
+void
+rotate_left(struct third_person_controller *controller, f32 amount)
+{
+    controller->angle_xy -= controller->speed_angle_xy * amount;
+}
+
+void
+rotate_right(struct third_person_controller *controller, f32 amount)
+{
+    controller->angle_xy += controller->speed_angle_xy * amount;
+}
+
+void
+move_closer(struct third_person_controller *controller, f32 amount)
+{
+    controller->distance -= controller->speed_distance * amount;
+}
+
+void
+move_away(struct third_person_controller *controller, f32 amount)
+{
+    controller->distance += controller->speed_distance * amount;
+}
+
+void
 update_camera_from_controller(struct camera *cam, struct third_person_controller *controller, f32 delta_in_seconds)
 {
     controller->angle_z  = clamp_f32(controller->angle_z, controller->min_angle_z, controller->max_angle_z);
@@ -95,42 +131,24 @@ update_camera_from_controller(struct camera *cam, struct third_person_controller
             = add_v3(controller->target,
                      mul_f32_v3(controller->speed * delta_in_seconds, right));
     }
+    if (key_held(keycode_I))
+    {
+        rotate_up(controller, delta_in_seconds);
+    }
+    if (key_held(keycode_K))
+    {
+        rotate_down(controller, delta_in_seconds);
+    }
+    if (key_held(keycode_J))
+    {
+        rotate_left(controller, delta_in_seconds);
+    }
+    if (key_held(keycode_L))
+    {
+        rotate_right(controller, delta_in_seconds);
+    }
+
     controller->distance -= controller->speed_distance * mouse.wheel_delta;
 }
 
-void
-rotate_up(struct third_person_controller *controller, f32 amount)
-{
-    controller->angle_z += controller->speed_angle_z * amount;
-}
-
-void
-rotate_down(struct third_person_controller *controller, f32 amount)
-{
-    controller->angle_z -= controller->speed_angle_z * amount;
-}
-
-void
-rotate_left(struct third_person_controller *controller, f32 amount)
-{
-    controller->angle_xy -= controller->speed_angle_xy * amount;
-}
-
-void
-rotate_right(struct third_person_controller *controller, f32 amount)
-{
-    controller->angle_xy += controller->speed_angle_xy * amount;
-}
-
-void
-move_closer(struct third_person_controller *controller, f32 amount)
-{
-    controller->distance -= controller->speed_distance * amount;
-}
-
-void
-move_away(struct third_person_controller *controller, f32 amount)
-{
-    controller->distance += controller->speed_distance * amount;
-}
 #endif

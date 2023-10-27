@@ -5,10 +5,6 @@
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
 #pragma warning(push, 0)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN
@@ -169,7 +165,7 @@ file_exists(char *file_path)
 error
 file_copy_if_newer(char *from_file_name, char *to_file_name)
 {
-	printf("copying %s to %s\n", from_file_name, to_file_name);
+    printf("copying %s to %s\n", from_file_name, to_file_name);
     if (!file_exists(to_file_name))
     {
         return (file_copy(from_file_name, to_file_name));
@@ -180,7 +176,7 @@ file_copy_if_newer(char *from_file_name, char *to_file_name)
     file_get_last_write_time(&to_file_time, to_file_name);
     if (from_file_time > to_file_time)
     {
-		printf("actually need to copy\n");
+        printf("actually need to copy\n");
         return (file_copy(from_file_name, to_file_name));
     }
     return (ec__no_error);
