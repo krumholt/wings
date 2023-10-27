@@ -169,6 +169,7 @@ file_exists(char *file_path)
 error
 file_copy_if_newer(char *from_file_name, char *to_file_name)
 {
+	printf("copying %s to %s\n", from_file_name, to_file_name);
     if (!file_exists(to_file_name))
     {
         return (file_copy(from_file_name, to_file_name));
@@ -179,6 +180,7 @@ file_copy_if_newer(char *from_file_name, char *to_file_name)
     file_get_last_write_time(&to_file_time, to_file_name);
     if (from_file_time > to_file_time)
     {
+		printf("actually need to copy\n");
         return (file_copy(from_file_name, to_file_name));
     }
     return (ec__no_error);
