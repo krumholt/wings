@@ -24,11 +24,11 @@
 
 enum error_codes
 {
-   ERROR_CODES_TABLE(NAME_AND_COMMA)
+   ERROR_CODES_TABLE(FIRST_AND_COMMA)
 };
 
 char *error_code_as_text[] = {
-   ERROR_CODES_TABLE(NAME_AS_STRING_AND_COMMA)
+   ERROR_CODES_TABLE(FIRST_AS_STRING_AND_COMMA)
 };
 
 char *

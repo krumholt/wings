@@ -40,7 +40,7 @@
 #endif
 #endif
 
-#define NAME_AND_COMMA(Token) Token,
-#define NAME_AS_STRING_AND_COMMA(Token) #Token,
+#define FIRST_AND_COMMA(Token, ...) Token,
+#define FIRST_AS_STRING_AND_COMMA(Token, ...) #Token,
 
 #endif

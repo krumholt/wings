@@ -40,18 +40,6 @@ struct jim_compiler
    char *flags;
 };
 
-struct jim_compilation_parameters
-{
-   enum jim_output_type type;
-   char                *input_file;
-   char                *output_file;
-};
-
-struct jim_object_file
-{
-   s32 foo;
-};
-
 struct jim_compilation
 {
    struct jim_compiler  compiler;
@@ -67,6 +55,7 @@ struct jim_compilation
    char               **libraries;
    u32                  number_of_include_directories;
    char               **include_directories;
+   b32                  debug;
 };
 
 struct jim_library
@@ -83,8 +72,6 @@ struct jim
    struct jim_compiler     default_compiler;
    u32                     number_of_include_directories;
    char                  **include_directories;
-   u32                     number_of_object_files;
-   struct jim_object_file *object_files;
    error                   error;
    struct string           error_message;
    struct jim_compilation  compilation;
@@ -212,6 +199,11 @@ jim_make_command(struct jim_compilation compilation)
    if (compilation.output_type == jim_output_type__object_file)
    {
       _jim_command_append(&compilation, "-c ");
+   }
+
+   if (compilation.debug)
+   {
+      _jim_command_append(&compilation, _jim.default_compiler.debug_flags);
    }
 
    for (u32 index = 0;
@@ -378,18 +370,6 @@ jim_please_listen(void)
       return;
    }
 
-   error = allocate_array(
-       &_jim.object_files,
-       &_jim.allocator,
-       JIM_MAX_OBJECT_FILES,
-       struct jim_object_file);
-   if (error)
-   {
-      _jim.error = error;
-      _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
-      return;
-   }
-
    error = jim_make_compilation(&_jim.compilation,
                                 _jim.default_compiler,
                                 &_jim.allocator);
@@ -499,6 +479,7 @@ jim_please_build_object_file(char *filename)
       return;
    }
 }
+
 void
 jim_please_create_executable(char *filename)
 {
@@ -528,6 +509,13 @@ jim_please_create_executable(char *filename)
                                     _jim.compilation_result.first);
       return;
    }
+}
+
+void
+jim_please_create_debug_executable(char *filename)
+{
+   _jim.compilation.debug = 1;
+   jim_please_create_executable(filename);
 }
 
 void
