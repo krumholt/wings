@@ -20,9 +20,9 @@ typedef error    merror;
 
 struct buffer
 {
-    u8 *base;
-    u64 used;
-    u64 size;
+   u8 *base;
+   u64 used;
+   u64 size;
 };
 
 #endif

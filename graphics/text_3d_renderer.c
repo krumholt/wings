@@ -51,58 +51,58 @@ const char *text_3d_renderer_fragment_shader_text
 
 struct text_3d_renderer_context
 {
-    u32                shader_program;
-    s32                projection;
-    s32                view;
-    b32                y_up;
-    u32                font_texture;
-    struct bitmap_font font;
+   u32                shader_program;
+   s32                projection;
+   s32                view;
+   b32                y_up;
+   u32                font_texture;
+   struct bitmap_font font;
 } text_3d_renderer_context;
 
 error
 initialise_text_3d_renderer(struct bitmap_font font)
 {
-    error error = compile_shader_program(
-        &text_3d_renderer_context.shader_program,
-        text_3d_renderer_vertex_shader_text,
-        text_3d_renderer_fragment_shader_text);
-    if (error)
-        return (1);
+   error error = compile_shader_program(
+       &text_3d_renderer_context.shader_program,
+       text_3d_renderer_vertex_shader_text,
+       text_3d_renderer_fragment_shader_text);
+   if (error)
+      return (1);
 
-    text_3d_renderer_context.font       = font;
-    text_3d_renderer_context.view       = glGetUniformLocation(text_3d_renderer_context.shader_program, "view");
-    text_3d_renderer_context.projection = glGetUniformLocation(text_3d_renderer_context.shader_program, "projection");
-    if (text_3d_renderer_context.view == -1 || text_3d_renderer_context.projection == -1)
-    {
-        return (2);
-    }
+   text_3d_renderer_context.font       = font;
+   text_3d_renderer_context.view       = glGetUniformLocation(text_3d_renderer_context.shader_program, "view");
+   text_3d_renderer_context.projection = glGetUniformLocation(text_3d_renderer_context.shader_program, "projection");
+   if (text_3d_renderer_context.view == -1 || text_3d_renderer_context.projection == -1)
+   {
+      return (2);
+   }
 
-    glGenTextures(1, &text_3d_renderer_context.font_texture);
-    glBindTexture(GL_TEXTURE_2D, text_3d_renderer_context.font_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, font.image.width, font.image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, font.image.raw_data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+   glGenTextures(1, &text_3d_renderer_context.font_texture);
+   glBindTexture(GL_TEXTURE_2D, text_3d_renderer_context.font_texture);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, font.image.width, font.image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, font.image.raw_data);
+   glGenerateMipmap(GL_TEXTURE_2D);
 
-    return (0);
+   return (0);
 }
 
 void
 render_text_3d(struct mesh mesh, struct mat4 projection, struct mat4 view)
 {
-    if (mesh.used == 0)
-        return;
-    glUseProgram(text_3d_renderer_context.shader_program);
-    glUniformMatrix4fv(text_3d_renderer_context.projection, 1, GL_FALSE, (f32 *)&projection);
-    glUniformMatrix4fv(text_3d_renderer_context.view, 1, GL_FALSE, (f32 *)&view);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, text_3d_renderer_context.font_texture);
+   if (mesh.used == 0)
+      return;
+   glUseProgram(text_3d_renderer_context.shader_program);
+   glUniformMatrix4fv(text_3d_renderer_context.projection, 1, GL_FALSE, (f32 *)&projection);
+   glUniformMatrix4fv(text_3d_renderer_context.view, 1, GL_FALSE, (f32 *)&view);
+   glEnable(GL_BLEND);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, text_3d_renderer_context.font_texture);
 
-    render_mesh(mesh);
+   render_mesh(mesh);
 }
 
 void
@@ -115,51 +115,51 @@ push_text_3d(struct mesh *mesh,
              int          text_length,
              struct v4    color)
 {
-    ASSERT(mesh->used + (text_length * 6) <= mesh->size);
-    right = mul_f32_v3(scale, normalize_v3(right));
-    up    = mul_f32_v3(scale, normalize_v3(up));
+   ASSERT(mesh->used + (text_length * 6) <= mesh->size);
+   right = mul_f32_v3(scale, normalize_v3(right));
+   up    = mul_f32_v3(scale, normalize_v3(up));
 
-    struct glyph glyph = { 0 };
-    for (; *text && text_length > 0; text += 1, text_length -= 1)
-    {
-        glyph = get_glyph(text_3d_renderer_context.font, *text);
+   struct glyph glyph = { 0 };
+   for (; *text && text_length > 0; text += 1, text_length -= 1)
+   {
+      glyph = get_glyph(text_3d_renderer_context.font, *text);
 
-        struct v3 glyph_offset_right = mul_f32_v3(glyph.offset.x, right);
-        f32       y_offset           = text_3d_renderer_context.font.base_line_height - glyph.offset.y - glyph.size.y;
-        struct v3 glyph_offset_up    = mul_f32_v3(y_offset, up);
-        struct v3 glyph_offset       = add_v3(glyph_offset_right, glyph_offset_up);
-        struct v3 glyph_size_right   = mul_f32_v3(glyph.size.x, right);
-        struct v3 glyph_size_up      = mul_f32_v3(glyph.size.y, up);
+      struct v3 glyph_offset_right = mul_f32_v3(glyph.offset.x, right);
+      f32       y_offset           = text_3d_renderer_context.font.base_line_height - glyph.offset.y - glyph.size.y;
+      struct v3 glyph_offset_up    = mul_f32_v3(y_offset, up);
+      struct v3 glyph_offset       = add_v3(glyph_offset_right, glyph_offset_up);
+      struct v3 glyph_size_right   = mul_f32_v3(glyph.size.x, right);
+      struct v3 glyph_size_up      = mul_f32_v3(glyph.size.y, up);
 
-        struct v3 offset[] = {
-            glyph_offset,
-            add_v3(glyph_offset, glyph_size_right),
-            add_v3(glyph_offset, glyph_size_up),
-            add_v3(add_v3(glyph_offset, glyph_size_right), glyph_size_up),
-            add_v3(glyph_offset, glyph_size_up),
-            add_v3(glyph_offset, glyph_size_right),
-        };
+      struct v3 offset[] = {
+         glyph_offset,
+         add_v3(glyph_offset, glyph_size_right),
+         add_v3(glyph_offset, glyph_size_up),
+         add_v3(add_v3(glyph_offset, glyph_size_right), glyph_size_up),
+         add_v3(glyph_offset, glyph_size_up),
+         add_v3(glyph_offset, glyph_size_right),
+      };
 
-        struct v2 uv[] = {
-            {glyph.uv_min.x,  glyph.uv_max.y},
-            { glyph.uv_max.x, glyph.uv_max.y},
-            { glyph.uv_min.x, glyph.uv_min.y},
-            { glyph.uv_max.x, glyph.uv_min.y},
-            { glyph.uv_min.x, glyph.uv_min.y},
-            { glyph.uv_max.x, glyph.uv_max.y},
-        };
-        struct v3 *positions = (struct v3 *)(mesh->data + mesh->positions_offset);
-        struct v2 *uvs       = (struct v2 *)(mesh->data + mesh->uvs_offset);
-        struct v4 *colors    = (struct v4 *)(mesh->data + mesh->colors_offset);
-        for (u32 index = 0; index < 6; ++index)
-        {
-            positions[mesh->used + index] = add_v3(pen_position, offset[index]);
-            uvs[mesh->used + index]       = uv[index];
-            colors[mesh->used + index]    = color;
-        }
-        mesh->used += 6;
-        pen_position = add_v3(pen_position, mul_f32_v3(glyph.advance, right));
-    }
+      struct v2 uv[] = {
+         {glyph.uv_min.x,  glyph.uv_max.y},
+         { glyph.uv_max.x, glyph.uv_max.y},
+         { glyph.uv_min.x, glyph.uv_min.y},
+         { glyph.uv_max.x, glyph.uv_min.y},
+         { glyph.uv_min.x, glyph.uv_min.y},
+         { glyph.uv_max.x, glyph.uv_max.y},
+      };
+      struct v3 *positions = (struct v3 *)(mesh->data + mesh->positions_offset);
+      struct v2 *uvs       = (struct v2 *)(mesh->data + mesh->uvs_offset);
+      struct v4 *colors    = (struct v4 *)(mesh->data + mesh->colors_offset);
+      for (u32 index = 0; index < 6; ++index)
+      {
+         positions[mesh->used + index] = add_v3(pen_position, offset[index]);
+         uvs[mesh->used + index]       = uv[index];
+         colors[mesh->used + index]    = color;
+      }
+      mesh->used += 6;
+      pen_position = add_v3(pen_position, mul_f32_v3(glyph.advance, right));
+   }
 }
 
 /*

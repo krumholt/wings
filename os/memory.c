@@ -6,23 +6,23 @@
 
 enum memory_state
 {
-    memory_state_commited,
-    memory_state_reserved,
-    memory_state_free,
+   memory_state_commited,
+   memory_state_reserved,
+   memory_state_free,
 };
 
 struct os_allocation
 {
-    u8 *base;
-    u64 size;
+   u8 *base;
+   u64 size;
 };
 
 struct memory_info
 {
-    void             *base_adress;
-    void             *allocation_adress;
-    u64               region_size;
-    enum memory_state state;
+   void             *base_adress;
+   void             *allocation_adress;
+   u64               region_size;
+   enum memory_state state;
 };
 
 #if defined(OS_WINDOWS)

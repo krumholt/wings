@@ -15,171 +15,171 @@ error
 file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
           struct allocator *allocator)
 {
-    HANDLE file_handle = { 0 };
-    file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
-                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+   HANDLE file_handle = { 0 };
+   file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
+                                   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
-    if (file_handle == INVALID_HANDLE_VALUE)
-        return (ec_os_file__not_found);
+   if (file_handle == INVALID_HANDLE_VALUE)
+      return (ec_os_file__not_found);
 
-    u32 size_on_disk = GetFileSize(file_handle, 0);
+   u32 size_on_disk = GetFileSize(file_handle, 0);
 
-    buffer->size = size_on_disk + (zero_terminate ? 1 : 0);
-    buffer->used = buffer->size;
-    error error  = allocate_array(&buffer->base, allocator, buffer->size, u8);
-    if (error)
-        return (error);
+   buffer->size = size_on_disk + (zero_terminate ? 1 : 0);
+   buffer->used = buffer->size;
+   error error  = allocate_array(&buffer->base, allocator, buffer->size, u8);
+   if (error)
+      return (error);
 
-    DWORD size_read = 0;
-    b32   success   = 0;
-    success         = ReadFile(file_handle, buffer->base, buffer->size, &size_read, 0);
-    if (!success || (buffer->size != size_read + (zero_terminate ? 1 : 0)))
-    {
-        CloseHandle(file_handle);
-        return (ec_os_file__not_found);
-    }
-    CloseHandle(file_handle);
+   DWORD size_read = 0;
+   b32   success   = 0;
+   success         = ReadFile(file_handle, buffer->base, buffer->size, &size_read, 0);
+   if (!success || (buffer->size != size_read + (zero_terminate ? 1 : 0)))
+   {
+      CloseHandle(file_handle);
+      return (ec_os_file__not_found);
+   }
+   CloseHandle(file_handle);
 
-    return (NO_ERROR);
+   return (NO_ERROR);
 }
 
 error
 file_write(struct buffer buffer, char *file_path, b32 create)
 {
-    u32    create_flags = create ? CREATE_ALWAYS : OPEN_EXISTING;
-    PSTR   filename     = file_path;
-    HANDLE hFile;
+   u32    create_flags = create ? CREATE_ALWAYS : OPEN_EXISTING;
+   PSTR   filename     = file_path;
+   HANDLE hFile;
 
-    hFile = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, 0, 0,
-                       create_flags, FILE_ATTRIBUTE_NORMAL, 0);
+   hFile = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, 0, 0,
+                      create_flags, FILE_ATTRIBUTE_NORMAL, 0);
 
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(hFile);
-        return (ec_os_file__not_found);
-    }
+   if (hFile == INVALID_HANDLE_VALUE)
+   {
+      CloseHandle(hFile);
+      return (ec_os_file__not_found);
+   }
 
-    DWORD size_written = 0;
-    b32   success      = WriteFile(hFile, (void *)buffer.base, (DWORD)buffer.size, &size_written, 0) ? 1u : 0u;
-    if (!success)
-    {
-        CloseHandle(hFile);
-        return (ec_os_file__write_failed);
-    }
+   DWORD size_written = 0;
+   b32   success      = WriteFile(hFile, (void *)buffer.base, (DWORD)buffer.size, &size_written, 0) ? 1u : 0u;
+   if (!success)
+   {
+      CloseHandle(hFile);
+      return (ec_os_file__write_failed);
+   }
 
-    CloseHandle(hFile);
-    return (0);
+   CloseHandle(hFile);
+   return (0);
 }
 
 error
 file_delete(char *file_name)
 {
-    u32 success = DeleteFile(file_name);
-    if (!success)
-    {
-        DWORD last_error = GetLastError();
-        if (last_error == 2)
-            return ec_os_file__not_found;
-        if (last_error == 5)
-            return ec_os_file__access_denied;
-    }
-    return (!success);
+   u32 success = DeleteFile(file_name);
+   if (!success)
+   {
+      DWORD last_error = GetLastError();
+      if (last_error == 2)
+         return ec_os_file__not_found;
+      if (last_error == 5)
+         return ec_os_file__access_denied;
+   }
+   return (!success);
 }
 
 error
 file_move(char *from_file_name, char *to_file_name)
 {
-    u32 success = MoveFile(from_file_name, to_file_name);
-    if (!success)
-    {
-        DWORD last_error = GetLastError();
-        if (last_error == 2)
-            return ec_os_file__not_found;
-        if (last_error == 5)
-            return ec_os_file__access_denied;
-    }
-    return (!success);
+   u32 success = MoveFile(from_file_name, to_file_name);
+   if (!success)
+   {
+      DWORD last_error = GetLastError();
+      if (last_error == 2)
+         return ec_os_file__not_found;
+      if (last_error == 5)
+         return ec_os_file__access_denied;
+   }
+   return (!success);
 }
 
 error
 file_copy(char *from_file_name, char *to_file_name)
 {
-    u32 success = CopyFile(from_file_name, to_file_name, 0);
-    if (!success)
-    {
-        DWORD last_error = GetLastError();
-        if (last_error == 2)
-            return ec_os_file__not_found;
-        if (last_error == 5)
-            return ec_os_file__access_denied;
-        return (ec_os_file__not_found);
-    }
-    return (ec__no_error);
+   u32 success = CopyFile(from_file_name, to_file_name, 0);
+   if (!success)
+   {
+      DWORD last_error = GetLastError();
+      if (last_error == 2)
+         return ec_os_file__not_found;
+      if (last_error == 5)
+         return ec_os_file__access_denied;
+      return (ec_os_file__not_found);
+   }
+   return (ec__no_error);
 }
 
 error
 file_get_last_write_time(u64 *time, char *file_path)
 {
-    HANDLE file_handle = { 0 };
-    file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
-                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if (!file_handle)
-    {
-        return (1);
-    }
-    u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
-    u32 success = GetFileTime(
-        file_handle,
-        (FILETIME *)&creation_time,
-        (FILETIME *)&last_access_time,
-        (FILETIME *)&last_write_time);
-    if (!success)
-    {
-        return (1);
-    }
-    CloseHandle(file_handle);
-    *time = last_write_time;
-    return (0);
+   HANDLE file_handle = { 0 };
+   file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
+                                   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+   if (!file_handle)
+   {
+      return (1);
+   }
+   u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
+   u32 success = GetFileTime(
+       file_handle,
+       (FILETIME *)&creation_time,
+       (FILETIME *)&last_access_time,
+       (FILETIME *)&last_write_time);
+   if (!success)
+   {
+      return (1);
+   }
+   CloseHandle(file_handle);
+   *time = last_write_time;
+   return (0);
 }
 
 error
 file_create_directory(char *file_path)
 {
-    BOOL result = CreateDirectory(file_path, 0);
-    if (result == ERROR_ALREADY_EXISTS)
-        return (0);
-    if (result == ERROR_PATH_NOT_FOUND)
-        return (ec_os_file__not_found);
-    return (0);
+   BOOL result = CreateDirectory(file_path, 0);
+   if (result == ERROR_ALREADY_EXISTS)
+      return (0);
+   if (result == ERROR_PATH_NOT_FOUND)
+      return (ec_os_file__not_found);
+   return (0);
 }
 
 b32
 file_exists(char *file_path)
 {
-    DWORD result = GetFileAttributes(file_path);
-    if (result == INVALID_FILE_ATTRIBUTES)
-        return (0);
-    return (1);
+   DWORD result = GetFileAttributes(file_path);
+   if (result == INVALID_FILE_ATTRIBUTES)
+      return (0);
+   return (1);
 }
 
 error
 file_copy_if_newer(char *from_file_name, char *to_file_name)
 {
-    printf("copying %s to %s\n", from_file_name, to_file_name);
-    if (!file_exists(to_file_name))
-    {
-        return (file_copy(from_file_name, to_file_name));
-    }
-    u64 from_file_time = 0;
-    file_get_last_write_time(&from_file_time, from_file_name);
-    u64 to_file_time = 0;
-    file_get_last_write_time(&to_file_time, to_file_name);
-    if (from_file_time > to_file_time)
-    {
-        printf("actually need to copy\n");
-        return (file_copy(from_file_name, to_file_name));
-    }
-    return (ec__no_error);
+   printf("copying %s to %s\n", from_file_name, to_file_name);
+   if (!file_exists(to_file_name))
+   {
+      return (file_copy(from_file_name, to_file_name));
+   }
+   u64 from_file_time = 0;
+   file_get_last_write_time(&from_file_time, from_file_name);
+   u64 to_file_time = 0;
+   file_get_last_write_time(&to_file_time, to_file_name);
+   if (from_file_time > to_file_time)
+   {
+      printf("actually need to copy\n");
+      return (file_copy(from_file_name, to_file_name));
+   }
+   return (ec__no_error);
 }
 
 #endif
