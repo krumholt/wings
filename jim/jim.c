@@ -514,6 +514,8 @@ jim_please_create_executable(char *filename)
 void
 jim_please_create_debug_executable(char *filename)
 {
+   if (_jim.error)
+      return;
    _jim.compilation.debug = 1;
    jim_please_create_executable(filename);
 }

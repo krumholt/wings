@@ -31,10 +31,10 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
                         0);
    if (!success)
       return (ec_os_process__failed_to_create_pipe);
-   error = CreatePipe(&out_pipe_read,
-                      &out_pipe_write,
-                      &pipe_security_attributes,
-                      0);
+   success = CreatePipe(&out_pipe_read,
+                        &out_pipe_write,
+                        &pipe_security_attributes,
+                        0);
    if (!success)
       return (ec_os_process__failed_to_create_pipe);
 
