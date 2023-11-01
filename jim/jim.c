@@ -394,8 +394,13 @@ jim_please_listen(void)
    file_get_last_write_time(&last_write_time_jims_brain, jims_brain);
    if (last_write_time_jim < last_write_time_jims_brain)
    {
-      printf("Jim needs to update\n");
+      printf("I need to update myself\n");
       _jim_update_yourself();
+      if (file_exists("old_jim.exe"))
+      {
+         file_delete("old_jim.exe");
+      }
+      exit(0);
    }
    if (file_exists("old_jim.exe"))
    {
@@ -577,9 +582,10 @@ _jim_update_yourself(void)
       file_delete("old_jim.exe");
       file_move("jim.exe", "old_jim.exe");
       file_move("new_jim.exe", "jim.exe");
-      process_new("jim.exe", 0);
+      error = process_new("jim.exe", 0);
+      if (error)
+         printf("I couldn't call the new jim\n");
    }
-   exit(0);
 }
 
 char *_jim_default_compile_flags_txt
@@ -881,7 +887,7 @@ _jim_please_setup_a_new_project(void)
    printf("********************************************************************************\n");
    printf("\n");
    char answer = 0;
-   scanf("%c", &answer);
+   answer = getchar();
    if (answer == 'y')
    {
       file_create_directory("source");

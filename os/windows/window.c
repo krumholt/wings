@@ -610,7 +610,7 @@ open_window(char *title, s32 width, s32 height)
       return 2;
    window.running = 1;
 
-   ShowWindow(window.handle, SW_SHOW);
+   ShowWindow(window.handle, SW_NORMAL);
    UpdateWindow(window.handle);
    SetForegroundWindow(window.handle);
    window.width  = width;

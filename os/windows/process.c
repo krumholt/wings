@@ -113,6 +113,7 @@ process_new(char *command, char *path)
    STARTUPINFO         startup_info = { 0 };
    PROCESS_INFORMATION process_info = { 0 };
    startup_info.cb                  = sizeof(STARTUPINFO);
+   //startup_info.dwFlags             = STARTF_USESHOWWINDOW;
 
    int result = CreateProcess(
        0,
