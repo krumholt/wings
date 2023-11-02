@@ -557,6 +557,58 @@ jim_please_build_library(char *name)
    }
 }
 
+void
+jim_please_copy(char *from, char *to)
+{
+   if (_jim.error)
+      return;
+    error error = file_copy(from, to);
+    if (error)
+    {
+       _jim.error = error;
+       _jim_please_set_error_message("Failed to copy %s to %s", from, to);
+    }
+}
+
+void
+jim_please_move(char *from, char *to)
+{
+   if (_jim.error)
+      return;
+    error error = file_move(from, to);
+    if (error)
+    {
+       _jim.error = error;
+       _jim_please_set_error_message("Failed to move %s to %s", from, to);
+    }
+}
+
+void
+jim_please_delete(char *filename)
+{
+   if (_jim.error)
+      return;
+    error error = file_delete(filename);
+    if (error)
+    {
+       _jim.error = error;
+       _jim_please_set_error_message("Failed to delete %s", filename);
+    }
+}
+
+void
+jim_please_run(char *command, char *working_directory)
+{
+   if (_jim.error)
+      return;
+   error error = process_new(command, working_directory);
+    if (error)
+    {
+       _jim.error = error;
+       _jim_please_set_error_message("Failed to run %s in directory %s", command, working_directory);
+    }
+}
+
 s32
 jim_did_we_win(void)
 {
