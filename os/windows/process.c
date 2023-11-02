@@ -135,6 +135,8 @@ process_new(char *command, char *path)
          error = ec_os_process__creation_failed;
       return (error);
    }
+   CloseHandle(process_info.hProcess);
+   CloseHandle(process_info.hThread);
 
    return (NO_ERROR);
 }
