@@ -26,11 +26,7 @@ char *jims_brain = "jims_brain.c";
 struct jim_compilation
 {
    char   *source_directory;
-   char   *output_file;
    char   *output_directory;
-   char   *source_file;
-   u32     number_of_include_directories;
-   char  **include_directories;
    b32     debug;
 };
 
@@ -40,6 +36,17 @@ struct jim_library
    char                   *output_directory;
    u32                     number_of_object_files;
    struct jim_compilation *object_files;
+};
+
+struct jim_object_file
+{
+   char  *object_file;
+   char  *object_file_directory;
+   char  *source_file;
+   char  *source_file_directory;
+   u32    number_of_include_directories;
+   char **include_directories;
+   b32    compiled;
 };
 
 struct jim_executable
@@ -56,7 +63,16 @@ struct jim_executable
 
 struct jim_compiler
 {
-   error (*compile)(u32 length_of_target, char *target, struct jim_compilation);
+   error (*compile)(
+         u32 length_of_output_command,
+         char *output_command,
+         char *object_file,
+         char *output_directory,
+         char *source_file,
+         char *source_directory,
+         b32 debug,
+         u32 number_of_include_directories,
+         char **include_directories);
    error (*link)(u32 length_of_target, char *target, struct jim_executable);
    error (*create_library)(u32 length_of_target, char *target, struct jim_library);
 };
@@ -75,10 +91,12 @@ struct jim
    struct jim_library      library;
    b32                     silent;
    b32                     default_compiler_set;
+   char *output_directory;
+   char *source_directory;
 
 } _jim = { 0 };
 
-void
+error
 _jim_string_append_vaargs(
     struct string *string,
     char          *format,
@@ -88,38 +106,58 @@ _jim_string_append_vaargs(
          string->length - 1,
          format,
          arg_list);
+   if (chars_written > string->length)
+   {
+      return (1);
+   }
    string->length -= chars_written;
    string->first += chars_written;
+
+   return (ec__no_error);
 }
 
-void
+error
 _jim_string_append(struct string *string, char *format, ...)
 {
    va_list arg_list;
    va_start(arg_list, format);
-   _jim_string_append_vaargs(string, format, arg_list);
+   error error = _jim_string_append_vaargs(string, format, arg_list);
    va_end(arg_list);
+   return (error);
 }
 
 error
-_jim_msvc_compile(u32 length_of_target, char *target, struct jim_compilation compilation)
+_jim_msvc_compile(
+      struct string *command_result,
+      char *object_file,
+      char *output_directory,
+      char *source_file,
+      char *source_directory,
+      b32 debug,
+      u32 number_of_include_directories,
+      char **include_directories)
 {
-   struct string command = {.first = target, .length = length_of_target};
-   _jim_string_append(&command, "cl /c %s /nologo ", compilation.debug ? "/Zi /Od" : "/O2");
+   struct string command = *command_result;
+   error error = 0;
+   error = _jim_string_append(&command, "cl /c %s /nologo ", debug ? "/Zi /Od" : "/O2");
+   IF_ERROR_RETURN(error);
 
    for (u32 index = 0;
-         index < compilation.number_of_include_directories;
+         index < number_of_include_directories;
          ++index)
    {
-      _jim_string_append(&command, "/I %s ", compilation.include_directories[index]);
+      error = _jim_string_append(&command, "/I %s ", include_directories[index]);
+      IF_ERROR_RETURN(error);
    }
-   _jim_string_append(&command,
+   error = _jim_string_append(
+         &command,
          "/Fo%s%s %s%s",
-         compilation.output_directory,
-         compilation.output_file,
-         compilation.source_directory,
-         compilation.source_file
+         output_directory,
+         object_file,
+         source_directory,
+         source_file
          );
+   IF_ERROR_RETURN(error);
 
    return (ec__no_error);
 }
@@ -484,7 +522,7 @@ jim_please_use_output_directory(char *path)
       _jim_please_set_error_message("jim_please_use_output_directory(%s) but it didn't exist and couldn't be created\n",
                                     path);
    }
-   _jim.compilation.output_directory = path;
+   _jim.output_directory = path;
 }
 
 void
@@ -496,26 +534,27 @@ jim_please_use_source_directory(char *path)
 }
 
 void
-jim_please_compile(char *source, char *target)
+jim_please_compile(struct jim_object_file object_file)
 {
    if (_jim.error)
       return;
-   _jim.compilation.source_file = source;
-   _jim.compilation.output_file = target;
 
    struct string command = {0};
    error error = make_string(&command, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+      _jim_please_set_error_message("[ERROR] jim_please_compile(%s) ran out of memory.");
    }
 
-   error = _jim.default_compiler.compile(command.length, command.first, _jim.compilation);
+   error = _jim.default_compiler.compile(
+         command.length,
+         command.first,
+         object_file);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+      _jim_please_set_error_message("[ERROR] jim_please_compile(%s) ran out of memory.");
    }
 
    if (!_jim.silent)
@@ -526,7 +565,7 @@ jim_please_compile(char *source, char *target)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s, %s):\n\t%s\nFailed with %d\n\n\n%s",
+      _jim_please_set_error_message("[ERROR] jim_please_compile(%s, %s):\n\t%s\nFailed with %d\n\n\n%s",
                                     source, target,
                                     command.first,
                                     error,
