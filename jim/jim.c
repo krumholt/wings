@@ -22,75 +22,248 @@
 
 char *jims_brain = "jims_brain.c";
 
-enum jim_output_type
-{
-   jim_output_type__executable,
-   jim_output_type__object_file,
-};
-
-struct jim_compiler
-{
-   char *command;
-   char *debug_flags;
-   char *output_format;
-   char *add_library_search_path_format;
-   char *add_link_library_format;
-   char *add_include_directory_format;
-   char *compile_no_link;
-   char *flags;
-};
 
 struct jim_compilation
 {
-   struct jim_compiler  compiler;
-   u64                  command_length;
-   struct string        command;
-   enum jim_output_type output_type;
-   char                *output_file;
-   char                *output_directory;
-   char                *input_file;
-   u32                  number_of_library_directories;
-   char               **library_directories;
-   u32                  number_of_libraries;
-   char               **libraries;
-   u32                  number_of_include_directories;
-   char               **include_directories;
-   b32                  debug;
+   char   *source_directory;
+   char   *output_file;
+   char   *output_directory;
+   char   *source_file;
+   u32     number_of_include_directories;
+   char  **include_directories;
+   b32     debug;
 };
 
 struct jim_library
 {
-   char                   *name;
+   char                   *output_file;
    char                   *output_directory;
    u32                     number_of_object_files;
    struct jim_compilation *object_files;
 };
+
+struct jim_executable
+{
+   char   *output_file;
+   char   *output_directory;
+   u32     number_of_object_files;
+   char  **object_files;
+   u32     number_of_library_directories;
+   char  **library_directories;
+   u32     number_of_libraries;
+   char  **libraries;
+};
+
+struct jim_compiler
+{
+   error (*compile)(u32 length_of_target, char *target, struct jim_compilation);
+   error (*link)(u32 length_of_target, char *target, struct jim_executable);
+   error (*create_library)(u32 length_of_target, char *target, struct jim_library);
+};
+
 
 struct jim
 {
    struct allocator        allocator;
    struct jim_compiler     default_compiler;
    u32                     number_of_include_directories;
-   char                  **include_directories;
    error                   error;
    struct string           error_message;
    struct jim_compilation  compilation;
+   struct jim_executable   executable;
    struct string           compilation_result;
    struct jim_library      library;
    b32                     silent;
+   b32                     default_compiler_set;
 
-} _jim = {
-   .default_compiler
-   = {
-      .command                        = "gcc",
-      .debug_flags                    = "-g ",
-      .output_format                  = "-o %s%s ",
-      .add_library_search_path_format = "-L %s ",
-      .add_link_library_format        = "-l %s ",
-      .add_include_directory_format   = "-I %s ",
-      .compile_no_link                = "-c ",
-      .flags                          = 0,
-      },
+} _jim = { 0 };
+
+void
+_jim_string_append_vaargs(
+    struct string *string,
+    char          *format,
+    va_list        arg_list)
+{
+   s32 chars_written = vsnprintf(string->first,
+         string->length - 1,
+         format,
+         arg_list);
+   string->length -= chars_written;
+   string->first += chars_written;
+}
+
+void
+_jim_string_append(struct string *string, char *format, ...)
+{
+   va_list arg_list;
+   va_start(arg_list, format);
+   _jim_string_append_vaargs(string, format, arg_list);
+   va_end(arg_list);
+}
+
+error
+_jim_msvc_compile(u32 length_of_target, char *target, struct jim_compilation compilation)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command, "cl /c %s /nologo ", compilation.debug ? "/Zi /Od" : "/O2");
+
+   for (u32 index = 0;
+         index < compilation.number_of_include_directories;
+         ++index)
+   {
+      _jim_string_append(&command, "/I %s ", compilation.include_directories[index]);
+   }
+   _jim_string_append(&command,
+         "/Fo%s%s %s%s",
+         compilation.output_directory,
+         compilation.output_file,
+         compilation.source_directory,
+         compilation.source_file
+         );
+
+   return (ec__no_error);
+}
+
+error
+_jim_msvc_link(u32 length_of_target, char *target, struct jim_executable executable)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command,
+         "link /nologo /out:%s%s ",
+         executable.output_directory,
+         executable.output_file
+         );
+
+   for (u32 index = 0;
+         index < executable.number_of_library_directories;
+         ++index)
+   {
+      _jim_string_append(&command, "/libpath:%s ", executable.library_directories[index]);
+   }
+   for (u32 index = 0;
+         index < executable.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command, "%s ", executable.object_files[index]);
+   }
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      _jim_string_append(&command, "%s ", executable.libraries[index]);
+   }
+   return (ec__no_error);
+}
+
+error
+_jim_gcc_compile(u32 length_of_target, char *target, struct jim_compilation compilation)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command, "gcc -c -O2 ");
+
+   for (u32 index = 0;
+         index < compilation.number_of_include_directories;
+         ++index)
+   {
+      _jim_string_append(&command, "-I %s ", compilation.include_directories[index]);
+   }
+   _jim_string_append(&command,
+      "-o %s%s %s%s ",
+      compilation.output_directory,
+      compilation.output_file,
+      compilation.source_directory,
+      compilation.source_file);
+
+   return (ec__no_error);
+}
+
+error
+_jim_gcc_link(u32 length_of_target, char *target, struct jim_executable executable)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command,
+         "gcc -O2 %s%s ",
+         executable.output_directory,
+         executable.output_file);
+
+   for (u32 index = 0;
+         index < executable.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command, "%s ", executable.object_files[index]);
+   }
+
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      _jim_string_append(&command, "%s ", executable.libraries[index]);
+   }
+
+   return (ec__no_error);
+}
+
+
+error
+_jim_gcc_create_library(u32 length_of_target, char *target, struct jim_library library)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command,
+         "ar rcs %s%s ",
+         library.output_directory,
+         library.output_file
+         );
+
+   for (u32 index = 0;
+         library.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command,
+            "%s%s ",
+            library.object_files[index].output_directory,
+            library.object_files[index].output_file
+            );
+   }
+
+   return (ec__no_error);
+}
+
+error
+_jim_msvc_create_library(u32 length_of_target, char *target, struct jim_library library)
+{
+   struct string command = {.first = target, .length = length_of_target};
+   _jim_string_append(&command,
+         "lib /OUT:%s%s ",
+         library.output_directory,
+         library.output_file
+         );
+
+   for (u32 index = 0;
+         index < library.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command,
+            "%s%s ",
+            library.object_files[index].output_directory,
+            library.object_files[index].output_file
+            );
+   }
+
+   return (ec__no_error);
+}
+
+
+struct jim_compiler jim_gcc_compiler = {
+   .compile = _jim_gcc_compile,
+   .link = _jim_gcc_link,
+   .create_library = _jim_gcc_create_library,
+};
+
+
+struct jim_compiler jim_msvc_compiler = {
+   .compile = _jim_msvc_compile,
+   .link = _jim_msvc_link,
+   .create_library = _jim_msvc_create_library,
 };
 
 error
@@ -104,13 +277,25 @@ jim_make_library(struct jim_library *library,
        allocator,
        JIM_MAX_OBJECT_FILES_PER_LIBRARY,
        struct jim_compilation);
+   IF_ERROR_RETURN(error);
 
-   return (error);
+   return (ec__no_error);
+}
+error
+jim_make_executable(struct jim_executable *executable,
+                    struct allocator *allocator)
+{
+   error error = allocate_array(&executable->library_directories, allocator, JIM_MAX_LIBRARY_DIRECTORIES, char *);
+   IF_ERROR_RETURN(error);
+   error = allocate_array(&executable->libraries, allocator, JIM_MAX_LIBRARIES, char *);
+   IF_ERROR_RETURN(error);
+
+   return (ec__no_error);
 }
 
 error
-jim_library_add(struct jim_library    *library,
-                struct jim_compilation compilation)
+jim_add_object_file_to_library(struct jim_library    *library,
+                               struct jim_compilation compilation)
 {
    if (library->number_of_object_files == JIM_MAX_LIBRARY_DIRECTORIES)
       return (1);
@@ -123,126 +308,14 @@ jim_library_add(struct jim_library    *library,
 
 error
 jim_make_compilation(struct jim_compilation *compilation,
-                     struct jim_compiler     compiler,
                      struct allocator       *allocator)
 {
    error error = ec__no_error;
 
-   compilation->command_length = 0;
-   compilation->compiler       = compiler;
-
-   error = make_string(&compilation->command, 4096 * 10, allocator);
-   IF_ERROR_RETURN(error);
-   error = allocate_array(&compilation->library_directories, allocator, JIM_MAX_LIBRARY_DIRECTORIES, char *);
-   IF_ERROR_RETURN(error);
-   error = allocate_array(&compilation->libraries, allocator, JIM_MAX_LIBRARIES, char *);
-   IF_ERROR_RETURN(error);
    error = allocate_array(&compilation->include_directories, allocator, JIM_MAX_INCLUDE_DIRECTORIES, char *);
    IF_ERROR_RETURN(error);
 
    return (error);
-}
-
-void
-jim_reset_compilation(struct jim_compilation *compilation)
-{
-   compilation->number_of_include_directories = 0;
-   compilation->number_of_libraries           = 0;
-   compilation->output_type                   = 0;
-   compilation->output_file                   = 0;
-   compilation->output_directory              = 0;
-   compilation->command_length                = 0;
-   compilation->input_file                    = 0;
-}
-
-void
-_jim_string_append_vaargs(
-    struct string *string,
-    u64           *length,
-    char          *format,
-    va_list        arg_list)
-{
-   *length
-       += vsnprintf(string->first
-                        + (*length),
-                    string->length
-                        - (*length)
-                        - 1,
-                    format,
-                    arg_list);
-}
-void
-_jim_string_append(struct string *string, u64 *length, char *format, ...)
-{
-   va_list arg_list;
-   va_start(arg_list, format);
-   _jim_string_append_vaargs(string, length, format, arg_list);
-   va_end(arg_list);
-}
-
-void
-_jim_command_append(struct jim_compilation *compilation, char *format, ...)
-{
-   va_list arg_list;
-   va_start(arg_list, format);
-   _jim_string_append_vaargs(&compilation->command,
-                             &compilation->command_length,
-                             format,
-                             arg_list);
-   va_end(arg_list);
-}
-
-struct string
-jim_make_command(struct jim_compilation compilation)
-{
-   _jim_command_append(&compilation, "gcc ");
-   if (compilation.output_type == jim_output_type__object_file)
-   {
-      _jim_command_append(&compilation, "-c ");
-   }
-
-   if (compilation.debug)
-   {
-      _jim_command_append(&compilation, _jim.default_compiler.debug_flags);
-   }
-
-   for (u32 index = 0;
-        index < compilation.number_of_include_directories;
-        ++index)
-   {
-      _jim_command_append(&compilation,
-                          compilation.compiler.add_include_directory_format,
-                          compilation.include_directories[index]);
-   }
-
-   for (u32 index = 0;
-        index < compilation.number_of_library_directories;
-        ++index)
-   {
-      _jim_command_append(&compilation,
-                          compilation.compiler.add_library_search_path_format,
-                          compilation.library_directories[index]);
-   }
-
-   _jim_command_append(&compilation,
-                       compilation.compiler.output_format,
-                       compilation.output_directory,
-                       compilation.output_file);
-
-   _jim_command_append(&compilation,
-                       "%s ",
-                       compilation.input_file);
-
-   for (u32 index = 0;
-        index < compilation.number_of_libraries;
-        ++index)
-   {
-      _jim_command_append(&compilation,
-                          compilation.compiler.add_link_library_format,
-                          compilation.libraries[index]);
-   }
-
-   return (compilation.command);
 }
 
 error
@@ -258,66 +331,31 @@ jim_add_include_directory(struct jim_compilation *compilation, char *include_dir
 }
 
 error
-jim_add_library_directory(struct jim_compilation *compilation,
-                          char                   *library_directory)
+jim_add_library_directory(struct jim_executable *executable,
+                          char                  *library_directory)
 {
-   if (compilation->number_of_library_directories == JIM_MAX_LIBRARY_DIRECTORIES)
+   if (executable->number_of_library_directories == JIM_MAX_LIBRARY_DIRECTORIES)
    {
       return (1);
    }
-   u32 new_index = compilation->number_of_library_directories++;
 
-   compilation->library_directories[new_index] = library_directory;
+   u32 new_index = executable->number_of_library_directories++;
+   executable->library_directories[new_index] = library_directory;
    return (0);
 }
 
 error
-jim_add_library(struct jim_compilation *compilation,
+jim_add_library(struct jim_executable *executable,
                 char                   *library)
 {
-   if (compilation->number_of_libraries == JIM_MAX_LIBRARIES)
+   if (executable->number_of_libraries == JIM_MAX_LIBRARIES)
    {
       return (1);
    }
-   u32 new_index                     = compilation->number_of_libraries++;
-   compilation->libraries[new_index] = library;
+
+   u32 new_index = executable->number_of_libraries++;
+   executable->libraries[new_index] = library;
    return (0);
-}
-
-error
-jim_build_library(struct jim_library library, struct allocator *allocator)
-{
-   error         error          = 0;
-   struct string command        = { 0 };
-   struct string result         = { 0 };
-   u64           command_length = 0;
-   error                        = make_string(&command, 4096 * 10, allocator);
-   IF_ERROR_RETURN(error);
-   error = make_string(&result, 4096 * 10, allocator);
-   IF_ERROR_RETURN(error);
-
-   _jim_string_append(&command,
-                      &command_length,
-                      "ar rcs %s%s.lib ",
-                      library.output_directory,
-                      library.name);
-
-   for (u32 index = 0;
-        index < library.number_of_object_files;
-        ++index)
-   {
-      _jim_string_append(
-          &command,
-          &command_length,
-          "%s%s ",
-          library.object_files[index].output_directory,
-          library.object_files[index].output_file);
-   }
-
-   printf("%s\n", command.first);
-   error = run_command(command.first, result.first, result.length);
-
-   return (error);
 }
 
 // --------------------
@@ -331,6 +369,13 @@ _jim_please_set_error_message(char *format, ...)
    va_start(arg_list, format);
    vsnprintf(_jim.error_message.first, _jim.error_message.length - 1, format, arg_list);
    va_end(arg_list);
+}
+
+void
+jim_please_use_msvc(void)
+{
+   _jim.default_compiler_set = 1;
+   _jim.default_compiler = jim_msvc_compiler;
 }
 
 void
@@ -358,20 +403,11 @@ jim_please_listen(void)
       return;
    }
 
-   error = allocate_array(
-       &_jim.include_directories,
-       &_jim.allocator,
-       JIM_MAX_INCLUDE_DIRECTORIES,
-       char *);
-   if (error)
+   if (!_jim.default_compiler_set)
    {
-      _jim.error = error;
-      _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
-      return;
+      _jim.default_compiler = jim_gcc_compiler;
    }
-
    error = jim_make_compilation(&_jim.compilation,
-                                _jim.default_compiler,
                                 &_jim.allocator);
    if (error)
    {
@@ -427,7 +463,7 @@ jim_please_add_library_directory(char *path)
 {
    if (_jim.error)
       return;
-   error error = jim_add_library_directory(&_jim.compilation, path);
+   error error = jim_add_library_directory(&_jim.executable, path);
    if (error)
    {
       _jim.error = error;
@@ -452,58 +488,99 @@ jim_please_use_output_directory(char *path)
 }
 
 void
-jim_please_build_object_file(char *filename)
+jim_please_use_source_directory(char *path)
 {
    if (_jim.error)
       return;
-   _jim.compilation.output_type = jim_output_type__object_file;
-   _jim.compilation.output_file = filename;
+   _jim.compilation.source_directory = path;
+}
 
-   struct string command = jim_make_command(_jim.compilation);
+void
+jim_please_compile(char *source, char *target)
+{
+   if (_jim.error)
+      return;
+   _jim.compilation.source_file = source;
+   _jim.compilation.output_file = target;
+
+   struct string command = {0};
+   error error = make_string(&command, 4096 * 10, &_jim.allocator);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+   }
+
+   error = _jim.default_compiler.compile(command.length, command.first, _jim.compilation);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+   }
 
    if (!_jim.silent)
    {
       printf("%s\n", command.first);
    }
-   error error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
+   error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s):\n\t%s\nFailed with %d\n\n\n%s",
-                                    filename,
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s, %s):\n\t%s\nFailed with %d\n\n\n%s",
+                                    source, target,
                                     command.first,
                                     error,
                                     _jim.compilation_result.first);
       return;
    }
-   error = jim_library_add(&_jim.library, _jim.compilation);
-   if (error)
-   {
-      _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s). Too many libraries\n", filename);
-      return;
-   }
 }
 
 void
-jim_please_create_executable(char *filename)
+jim_please_link(char *filename)
 {
    if (_jim.error)
       return;
-   _jim.compilation.output_type = jim_output_type__executable;
    _jim.compilation.output_file = filename;
 
-   //@TODO doesn't handle multiple libraries
-   if (_jim.library.number_of_object_files != 0)
-      jim_add_library(&_jim.compilation, _jim.library.name);
+   error error = 0;
+   error = jim_add_library(&_jim.executable, _jim.library.output_file);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) couldn't add libraries.");
+   }
+   for (u32 index = 0;
+        index < _jim.library.number_of_object_files;
+        ++index)
+   {
+      error = jim_add_library(&_jim.executable, _jim.library.object_files[index].output_file);
+      if (error)
+      {
+         _jim.error = error;
+         _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) couldn't add libraries.");
+      }
+   }
 
-   struct string command = jim_make_command(_jim.compilation);
+   struct string command = {0};
+   error = make_string(&command, 4096 * 10, &_jim.allocator);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+   }
+
+   error = _jim.default_compiler.link(command.length, command.first, _jim.executable);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+   }
 
    if (!_jim.silent)
    {
       printf("%s\n", command.first);
    }
-   error error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
+   error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
    if (error)
    {
       _jim.error = error;
@@ -526,17 +603,9 @@ jim_please_create_debug_executable(char *filename)
 }
 
 void
-jim_please_compile(char *file)
-{
-   if (_jim.error)
-      return;
-   _jim.compilation.input_file = file;
-}
-
-void
 jim_please_add_library(char *name)
 {
-   jim_add_library(&_jim.compilation, name);
+   jim_add_library(&_jim.executable, name);
 }
 
 void
@@ -544,9 +613,17 @@ jim_please_build_library(char *name)
 {
    if (_jim.error)
       return;
-   _jim.library.name             = name;
+   _jim.library.output_file      = name;
    _jim.library.output_directory = _jim.compilation.output_directory;
-   error error                   = jim_build_library(_jim.library, &_jim.allocator);
+
+   struct string command = {0};
+   error error = make_string(&command, 4096 * 10, &_jim.allocator);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_library(%s) ran out of memory.");
+   }
+   error = _jim.default_compiler.create_library(command.length, command.first, _jim.library);
    if (error)
    {
       _jim.error = error;
@@ -626,8 +703,8 @@ _jim_update_yourself(void)
 {
    jim_please_use_output_directory("./");
    jim_please_add_include_directory("./");
-   jim_please_compile(jims_brain);
-   jim_please_create_executable("new_jim.exe");
+   jim_please_compile(jims_brain, "new_jim.o");
+   jim_please_link("new_jim.exe");
    error error = jim_did_we_win();
    if (!error)
    {
