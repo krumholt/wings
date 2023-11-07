@@ -414,13 +414,7 @@ jim_please_compile(struct jim_object_file object_file)
 }
 
 void
-jim_please_link(
-      char *directory,
-      char *filename,
-      u32 number_of_libraries,
-      struct jim_library *libraries,
-      u32 number_of_object_files,
-      struct jim_object_file *object_files)
+jim_please_link(struct jim_executable executable)
 {
    if (_jim.error)
       return;
@@ -432,14 +426,6 @@ jim_please_link(
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link(%s) ran out of memory.");
    }
-   struct jim_executable executable = {
-      .output_directory = directory,
-      .output_file = filename,
-      .number_of_object_files = number_of_object_files,
-      .object_files = object_files,
-      .number_of_libraries = number_of_libraries,
-      .libraries = libraries,
-   };
 
    error = _jim.default_compiler.link(command, executable);
    if (error)
