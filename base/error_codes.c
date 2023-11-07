@@ -19,7 +19,12 @@
    _(ec_os_process__creation_failed)                \
    _(ec_os_process__command_failed)                 \
                                                     \
+   _(ec_base_asset_importers__failed_to_read_file)  \
+   _(ec_base_asset_importers__failed_to_parse_file) \
+                                                    \
+   _(ec_graphics_mesh__failed_to_upload_mesh)       \
    _(ec_graphics_mesh_tools__no_space_left_in_mesh) \
+                                                    \
    _(ec__number_of_error_codes)
 
 enum error_codes

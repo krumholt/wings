@@ -223,7 +223,7 @@ upload_mesh(struct mesh mesh)
 {
    glBindBuffer(GL_ARRAY_BUFFER, mesh.vb);
    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.size_in_bytes, mesh.data);
-   IF_GL_ERROR_RETURN(1);
+   IF_GL_ERROR_RETURN(ec_graphics_mesh__failed_to_upload_mesh);
    return (ec__no_error);
 }
 

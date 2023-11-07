@@ -52,6 +52,7 @@ struct jim_executable
    struct jim_library      *libraries;
    u32                      number_of_object_files;
    u32                      number_of_libraries;
+   b32                      debug;
 };
 
 struct jim_compiler
@@ -141,12 +142,19 @@ _jim_msvc_link(struct string command, struct jim_executable executable)
          executable.output_directory,
          executable.output_file
          );
+   if (executable.debug)
+   {
+      _jim_string_append(&command,
+            "/debug "
+            );
+   }
 
    for (u32 index = 0;
          index < executable.number_of_libraries;
          ++index)
    {
-      _jim_string_append(&command, "/libpath:%s ", executable.libraries[index].directory);
+      if (executable.libraries[index].directory)
+         _jim_string_append(&command, "/libpath:%s ", executable.libraries[index].directory);
    }
    for (u32 index = 0;
          index < executable.number_of_object_files;
@@ -173,7 +181,7 @@ _jim_gcc_compile(
       struct jim_object_file object_file)
 {
    error error = 0;
-   error = _jim_string_append(&command, "gcc -c %s ", object_file.debug ? "-g -Od " : "-O2 ");
+   error = _jim_string_append(&command, "gcc -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
    IF_ERROR_RETURN(error);
 
    for (u32 index = 0;
@@ -200,13 +208,27 @@ error
 _jim_gcc_link(struct string command, struct jim_executable executable)
 {
    _jim_string_append(&command,
-         "gcc -O2 ");
+         "gcc ");
+
+   if (executable.debug)
+   {
+      _jim_string_append(&command,
+            "-O0 -g "
+            );
+   }
+   else
+   {
+      _jim_string_append(&command,
+            "-O2 "
+            );
+   }
 
    for (u32 index = 0;
          index < executable.number_of_libraries;
          ++index)
    {
-      _jim_string_append(&command, "-L%s ",  executable.libraries[index].directory);
+      if (executable.libraries[index].directory)
+         _jim_string_append(&command, "-L%s ",  executable.libraries[index].directory);
    }
 
    _jim_string_append(&command,

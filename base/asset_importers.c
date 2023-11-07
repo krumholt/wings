@@ -3,6 +3,7 @@
 
 #include "wings/base/types.c"
 #include "wings/base/colors.c"
+#include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
 #include "wings/base/wings_file_reader.c"
 #include "wings/os/file.c"
@@ -16,21 +17,21 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
 
    error = file_read(&buffer, filename, 0, allocator);
    if (error)
-      return (1);
+      return (ec_base_asset_importers__failed_to_read_file);
 
    struct wings_file_parser parser = { 0 };
 
    error = make_wings_file_parser(&parser, buffer);
    if (error)
-      return (2);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    error = set_to_next_chunk_with_name(&parser, "blender");
    if (error)
-      return (3);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    error = set_to_next_chunk_with_name(&parser, "mesh");
    if (error)
-      return (4);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    struct wings_file_mesh_chunk *mesh_chunk = parser.mesh_chunk;
    enum mesh_attribute           attributes = 0;
@@ -56,7 +57,7 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
 
    error = set_to_next_chunk_with_name(&parser, "positions");
    if (error)
-      return (5);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    struct v3 *positions = (struct v3 *)(mesh->data + mesh->positions_offset);
    for (u32 index = 0; index < mesh->used; ++index)
@@ -66,7 +67,7 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
 
    error = set_to_next_chunk_with_name(&parser, "normals");
    if (error)
-      return (6);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    struct v3 *normals = (struct v3 *)(mesh->data + mesh->normals_offset);
    for (u32 index = 0; index < mesh->used; ++index)
@@ -76,7 +77,7 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
 
    error = set_to_next_chunk_with_name(&parser, "uvs");
    if (error)
-      return (7);
+      return (ec_base_asset_importers__failed_to_parse_file);
 
    struct v2 *uvs = (struct v2 *)(mesh->data + mesh->uvs_offset);
    for (u32 index = 0; index < mesh->used; ++index)
@@ -90,7 +91,7 @@ load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)
       colorios[index] = color_pink;
    }
 
-   return (0);
+   return (ec__no_error);
 }
 
 #endif
