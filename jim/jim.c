@@ -442,8 +442,8 @@ jim_please_link(struct jim_executable executable)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_create_executable(%s):\n\t%s\nFailed with %d\n\n\n%s",
-                                    filename,
+      _jim_please_set_error_message("[ERROR] jim_please_link(%s):\n\t%s\nFailed with %d\n\n\n%s",
+                                    executable.output_file,
                                     command.first,
                                     error,
                                     _jim.compilation_result.first);
@@ -580,14 +580,17 @@ _jim_update_yourself(void)
       .include_directories = &include_directory,
    };
    jim_please_compile(self);
-   jim_please_link(
-         "./",
-         "new_jim.exe",
-         0,
-         0,
-         1,
-         &self
-         );
+
+   struct jim_executable jim_exe =
+   {
+      .output_directory = "./",
+      .output_file = "new_jim.exe",
+      .number_of_libraries = 0,
+      .libraries = 0,
+      .number_of_object_files = 1,
+      .object_files = &self,
+   };
+   jim_please_link(jim_exe);
    error error = jim_did_we_win();
    if (!error)
    {
