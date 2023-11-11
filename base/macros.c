@@ -27,7 +27,7 @@
 #define IF_ERROR_PRINT_AND_RETURN(x)                                                  \
    if ((x))                                                                           \
    {                                                                                  \
-      printf("ERROR(%d) %s:%d: %s\n", (x), __FILE__, __LINE__, error_code_lookup(x)); \
+      printf("%s:%d:0: error: %s\n", __FILE__, __LINE__, error_code_lookup(x));       \
       return (x);                                                                     \
    }
 
