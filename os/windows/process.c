@@ -81,7 +81,6 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
          break;
       if (!success)
       {
-         u32 last_error = GetLastError();
          return (ec_os_process__command_failed);
       }
       result_buffer += chars_read;

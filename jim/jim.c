@@ -81,13 +81,16 @@ _jim_string_append_vaargs(
     char          *format,
     va_list        arg_list)
 {
-   s32 chars_written = vsnprintf(string->first,
-         string->length - 1,
-         format,
-         arg_list);
-   if (chars_written > string->length)
+   s32 chars_written = vsnprintf(
+      string->first,
+      string->length - 1,
+      format,
+      arg_list);
+   if (chars_written < 0)
+      return (ec_jim__string_append_failed);
+   if ((u32)chars_written > string->length)
    {
-      return (1);
+      return (ec_jim__string_append_failed);
    }
    string->length -= chars_written;
    string->first += chars_written;
@@ -337,24 +340,25 @@ jim_please_use_msvc(void)
 void
 _jim_update_yourself(void);
 
+#define jim_please_listen() \
+   _jim_please_listen(__FILE__, __LINE__);
 void
-jim_please_listen(void)
+_jim_please_listen(char *file, s32 line)
 {
    error error                        = 0;
    _jim.allocator                     = make_growing_linear_allocator(mebibytes(1));
 
-   error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
-   if (error)
-   {
-      _jim.error = error;
-      _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
-      return;
-   }
    error = make_string(&_jim.error_message, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[internal error(sry)] Failed to jim_please_listen():%d\n", __LINE__);
+      return;
+   }
+   error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("%s:%d:0: error: compilation_result allocation failed\n", file, line);
       return;
    }
 
@@ -368,7 +372,7 @@ jim_please_listen(void)
          if (error)
          {
             _jim.error = error;
-            _jim_please_set_error_message("[ERROR] Couldn't use gcc or cl\n");
+            _jim_please_set_error_message("%s:%d:0: error: Couldn't use gcc or cl\n");
             return;
          }
          _jim.default_compiler = jim_msvc_compiler;
@@ -394,6 +398,9 @@ jim_please_listen(void)
       file_delete("old_jim.exe");
    }
 }
+
+#define jim_please_compile(Object_file)\
+   _jim_pleaes_compile(Object_file)
 
 void
 jim_please_compile(struct jim_object_file object_file)
@@ -474,8 +481,11 @@ jim_please_link(struct jim_executable executable)
 }
 
 
+#define jim_please_build_library(Name, Directory, Number_of_object_files, Object_files) \
+   _jim_please_build_library(Name, Directory, Number_of_object_files, Object_files, __FILE__, __LINE__)
+
 struct jim_library
-jim_please_build_library(char *name, char *directory, u32 number_of_object_files, struct jim_object_file *object_files)
+_jim_please_build_library(char *name, char *directory, u32 number_of_object_files, struct jim_object_file *object_files, char *file, s32 line)
 {
    if (_jim.error)
       return (struct jim_library){0};
@@ -494,14 +504,15 @@ jim_please_build_library(char *name, char *directory, u32 number_of_object_files
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_library(%s) ran out of memory.");
+      _jim_please_set_error_message("%s:%d:0: error: failed to allocate string command.", file, line);
    }
    error = _jim.default_compiler.create_library(command, library);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build(%s). Was unable to build library with %d",
-                                    name,
+      _jim_please_set_error_message("%s:%d:0: error: Was unable to build library with %d",
+                                    file,
+                                    line,
                                     error);
       return (struct jim_library){0};
    }
@@ -513,8 +524,9 @@ jim_please_build_library(char *name, char *directory, u32 number_of_object_files
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_build_library(%s):\n\t%s\nFailed with %d\n\n\n%s",
-                                    name,
+      _jim_please_set_error_message("%s:%d:0: error:\n\t%s\nFailed with %d\n\n\n%s",
+                                    file,
+                                    line,
                                     command.first,
                                     error,
                                     _jim.compilation_result.first);
@@ -524,8 +536,27 @@ jim_please_build_library(char *name, char *directory, u32 number_of_object_files
    return (library);
 }
 
+#define jim_please_copy_if_newer(From, To) \
+   _jim_please_copy_if_newer(From, To, __FILE__, __LINE__);
+
 void
-jim_please_copy(char *from, char *to)
+_jim_please_copy_if_newer(char *from, char *to, char *file, s32 line)
+{
+   if (_jim.error)
+      return;
+    error error = file_copy_if_newer(from, to);
+    if (error)
+    {
+       _jim.error = error;
+       _jim_please_set_error_message("%s:%d:0 error: Failed to copy %s to %s: %s", file, line, from, to, error_code_as_text[error]);
+    }
+}
+
+#define jim_please_copy(From, To) \
+   _jim_please_copy(From, To, __FILE__, __LINE__)
+
+void
+_jim_please_copy(char *from, char *to, char *file, s32 line)
 {
    if (_jim.error)
       return;
@@ -533,12 +564,15 @@ jim_please_copy(char *from, char *to)
     if (error)
     {
        _jim.error = error;
-       _jim_please_set_error_message("Failed to copy %s to %s", from, to);
+       _jim_please_set_error_message("%s:%d:0: error: Failed to copy %s to %s", file, line, from, to);
     }
 }
 
+#define jim_please_move(From, To) \
+   _jim_please_move(From, To, __FILE__, __LINE__)
+
 void
-jim_please_move(char *from, char *to)
+_jim_please_move(char *from, char *to, char *file, s32 line)
 {
    if (_jim.error)
       return;
@@ -546,12 +580,15 @@ jim_please_move(char *from, char *to)
     if (error)
     {
        _jim.error = error;
-       _jim_please_set_error_message("Failed to move %s to %s", from, to);
+       _jim_please_set_error_message("%s:%d:0: error: Failed to move %s to %s", file, line, from, to);
     }
 }
 
+#define jim_please_create_directory(Name) \
+   _jim_please_create_directory(Name, __FILE__, __LINE__)
+
 void
-jim_please_create_directory(char *name)
+_jim_please_create_directory(char *name, char *file, s32 line)
 {
    if (_jim.error)
       return;
@@ -559,25 +596,31 @@ jim_please_create_directory(char *name)
     if (error)
     {
        _jim.error = error;
-       _jim_please_set_error_message("Failed to create directory %s", name);
+       _jim_please_set_error_message("%s:%d:0: error: Failed to create directory %s", file, line, name);
     }
 }
 
+#define jim_please_delete(Name) \
+   _jim_please_delete(Name, __FILE__, __LINE__)
+
 void
-jim_please_delete(char *filename)
+_jim_please_delete(char *name, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_delete(filename);
+    error error = file_delete(name);
     if (error)
     {
        _jim.error = error;
-       _jim_please_set_error_message("Failed to delete %s", filename);
+       _jim_please_set_error_message("%s:%d:0: error: Failed to delete %s", file, line, name);
     }
 }
 
+#define jim_please_run(Command, Working_directory) \
+   _jim_please_run(Command, Working_directory, __FILE__, __LINE__)
+
 void
-jim_please_run(char *command, char *working_directory)
+_jim_please_run(char *command, char *working_directory, char *file, s32 line)
 {
    if (_jim.error)
       return;
@@ -585,7 +628,7 @@ jim_please_run(char *command, char *working_directory)
     if (error)
     {
        _jim.error = error;
-       _jim_please_set_error_message("Failed to run %s in directory %s", command, working_directory);
+       _jim_please_set_error_message("%s:%d:0: error: Failed to run %s in directory %s", file, line, command, working_directory);
     }
 }
 

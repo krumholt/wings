@@ -68,18 +68,19 @@ cstring_end_pointer(char *s)
    return (tmp);
 }
 
-s32
-split_cstring(char *s, char c, struct string *left, struct string *right)
+u32
+split_cstring(char *s, char c, struct string *left, struct string *right) // @TODO: this is wrong
 {
-   s32 count       = 0;
-   s32 left_length = 0;
+   u32 count       = 0;
+   u32 left_length = 0;
    left->first     = s;
    while (*s)
    {
       count += 1;
       if (*s == c)
       {
-         left_length = count;
+         if (left_length == 0)
+            left_length = count;
       }
       s += 1;
    }
@@ -89,15 +90,15 @@ split_cstring(char *s, char c, struct string *left, struct string *right)
    left->length  = left_length - 1;
    right->first  = left->first + left_length;
    right->length = count - left_length;
-   if (right->length == -1)
-      right->length = 0;
+   //if (right->length == -1)
+   //   right->length = 0;
    return left_length;
 }
 
 b32
 compare_string_cstring(struct string a, char *b)
 {
-   for (int index = 0; index < a.length && *b; ++index, ++b)
+   for (u32 index = 0; index < a.length && *b; ++index, ++b)
    {
       if (a.first[index] != *b)
          return 1;
@@ -292,7 +293,7 @@ next_word(struct string *context)
 {
    struct string word = *context;
    word.length        = 0;
-   for (int at = 0; at < context->length; ++at)
+   for (u32 at = 0; at < context->length; ++at)
    {
       if (is_whitespace(context->first[at]))
       {
@@ -429,7 +430,7 @@ next_token_with_separator(struct string *context, seperator_fn is_token_separato
    }
    b32 only_numbers = 1;
    b32 contains_dot = 0;
-   for (int at = 0; at < context->length; ++at)
+   for (u32 at = 0; at < context->length; ++at)
    {
       if (is_token_separator(context->first[at]) || context->first[at] == '\n' || context->first[at] == '\r')
       {
