@@ -184,7 +184,7 @@ _jim_gcc_compile(
       struct jim_object_file object_file)
 {
    error error = 0;
-   error = _jim_string_append(&command, "gcc -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
+   error = _jim_string_append(&command, "gcc -Wall -Wextra -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
    IF_ERROR_RETURN(error, "");
 
    for (u32 index = 0;
@@ -400,10 +400,10 @@ _jim_please_listen(char *file, s32 line)
 }
 
 #define jim_please_compile(Object_file)\
-   _jim_pleaes_compile(Object_file)
+   _jim_please_compile(Object_file, __FILE__, __LINE__)
 
 void
-jim_please_compile(struct jim_object_file object_file)
+_jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
 {
    if (_jim.error)
       return;
@@ -413,7 +413,7 @@ jim_please_compile(struct jim_object_file object_file)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_compile(%s) ran out of memory.");
+      _jim_please_set_error_message("%s:%d:0: error: Ran out of memory.", file, line);
    }
 
    error = _jim.default_compiler.compile(
@@ -422,7 +422,7 @@ jim_please_compile(struct jim_object_file object_file)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_compile(%s) ran out of memory.");
+      _jim_please_set_error_message("%s:%d:0: error: Ran out of memory.", file, line);
    }
 
    if (!_jim.silent)
@@ -433,7 +433,8 @@ jim_please_compile(struct jim_object_file object_file)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("[ERROR] jim_please_compile(%s, %s):\n\t%s\nFailed with %d\n\n\n%s",
+      _jim_please_set_error_message("%s:%d:0: error: \n\t%s\nFailed with %d\n\n\n%s",
+                                    file, line,
                                     object_file.source_file, object_file.name,
                                     command.first,
                                     error,
@@ -616,22 +617,22 @@ _jim_please_delete(char *name, char *file, s32 line)
     }
 }
 
-#define jim_please_run(Command, Working_directory) \
-   _jim_please_run(Command, Working_directory, __FILE__, __LINE__)
+#define jim_please_run(Command, Working_directory, New_console) \
+   _jim_please_run(Command, Working_directory, New_console, __FILE__, __LINE__)
 
 void
-_jim_please_run(char *command, char *working_directory, char *file, s32 line)
+_jim_please_run(char *command, char *working_directory, b32 new_console, char *file, s32 line)
 {
    if (!_jim.silent)
       printf("%s\n", command);
    if (_jim.error)
       return;
-   error error = process_new(command, working_directory);
-    if (error)
-    {
-       _jim.error = error;
-       _jim_please_set_error_message("%s:%d:0: error: Failed to run %s in directory %s", file, line, command, working_directory);
-    }
+   error error = process_new(command, working_directory, new_console);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("%s:%d:0: error: Failed to run %s in directory %s", file, line, command, working_directory);
+   }
 }
 
 s32
@@ -677,7 +678,7 @@ _jim_update_yourself(void)
       file_delete("old_jim.exe");
       file_move("jim.exe", "old_jim.exe");
       file_move("new_jim.exe", "jim.exe");
-      error = process_new("jim.exe", 0);
+      error = process_new("jim.exe", 0, 1);
       if (error)
          printf("I couldn't call the new jim\n");
    }

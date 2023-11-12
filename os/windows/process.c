@@ -105,7 +105,7 @@ run_command(char *command, char *result_buffer, u32 result_buffer_size)
 }
 
 error
-process_new(char *command, char *path)
+process_new(char *command, char *path, b32 new_console)
 {
    error error = ec__no_error;
 
@@ -120,7 +120,7 @@ process_new(char *command, char *path)
        0,
        0,
        TRUE,
-       0,
+       (new_console ? CREATE_NEW_CONSOLE : 0),
        0,
        path,
        &startup_info,
