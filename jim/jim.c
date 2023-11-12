@@ -115,14 +115,14 @@ _jim_msvc_compile(
 {
    error error = 0;
    error = _jim_string_append(&command, "cl /c %s /nologo ", object_file.debug ? "/Zi /Od" : "/O2");
-   IF_ERROR_RETURN(error);
+   IF_ERROR_RETURN(error, "");
 
    for (u32 index = 0;
          index < object_file.number_of_include_directories;
          ++index)
    {
       error = _jim_string_append(&command, "/I %s ", object_file.include_directories[index]);
-      IF_ERROR_RETURN(error);
+      IF_ERROR_RETURN(error, "");
    }
    error = _jim_string_append(
          &command,
@@ -132,7 +132,7 @@ _jim_msvc_compile(
          object_file.source_file_directory,
          object_file.source_file
          );
-   IF_ERROR_RETURN(error);
+   IF_ERROR_RETURN(error, "");
 
    return (ec__no_error);
 }
@@ -185,14 +185,14 @@ _jim_gcc_compile(
 {
    error error = 0;
    error = _jim_string_append(&command, "gcc -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
-   IF_ERROR_RETURN(error);
+   IF_ERROR_RETURN(error, "");
 
    for (u32 index = 0;
          index < object_file.number_of_include_directories;
          ++index)
    {
       error = _jim_string_append(&command, "-I %s ", object_file.include_directories[index]);
-      IF_ERROR_RETURN(error);
+      IF_ERROR_RETURN(error, "");
    }
    error = _jim_string_append(
          &command,
@@ -202,7 +202,7 @@ _jim_gcc_compile(
          object_file.source_file_directory,
          object_file.source_file
          );
-   IF_ERROR_RETURN(error);
+   IF_ERROR_RETURN(error, "");
 
    return (ec__no_error);
 }
@@ -622,6 +622,8 @@ _jim_please_delete(char *name, char *file, s32 line)
 void
 _jim_please_run(char *command, char *working_directory, char *file, s32 line)
 {
+   if (!_jim.silent)
+      printf("%s\n", command);
    if (_jim.error)
       return;
    error error = process_new(command, working_directory);

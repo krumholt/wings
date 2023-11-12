@@ -20,15 +20,20 @@
 #define WARN(x) \
    printf("[WARNING] %s\n", x)
 
-#define IF_ERROR_RETURN(x) \
-   if ((x))                \
-      return x;
+#define IF_ERROR_RETURN(Error, Format, ...)   \
+   do {                                   \
+      if ((Error))                            \
+      {                                   \
+         error_code_set_message(Format __VA_OPT__(,) __VA_ARGS__);  \
+         return Error;                        \
+      }                                   \
+   } while (0)
 
-#define IF_ERROR_PRINT_AND_RETURN(x)                                                  \
-   if ((x))                                                                           \
-   {                                                                                  \
-      printf("%s:%d:0: error: %s\n", __FILE__, __LINE__, error_code_lookup(x));       \
-      return (x);                                                                     \
+#define IF_ERROR_PRINT_AND_RETURN(x) \
+   if ((x))       \
+   {              \
+      printf("%s:%d:0: error: %s: %s\n", __FILE__, __LINE__, error_code_lookup(x), _ec__last_error_message);       \
+      return (x); \
    }
 
 #ifndef ASSERT

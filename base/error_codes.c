@@ -2,6 +2,9 @@
 #define WINGS_BASE_ERROR_CODES_C_
 
 #include "wings/base/macros.c"
+#include <malloc.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #define ERROR_CODES_TABLE(_)                        \
    _(ec__no_error)                                  \
@@ -28,6 +31,18 @@
    _(ec_graphics_mesh_tools__no_space_left_in_mesh) \
                                                     \
    _(ec__number_of_error_codes)
+
+char *_ec__last_error_message;
+void
+error_code_set_message(char *format, ...)
+{
+   if (!_ec__last_error_message)
+      _ec__last_error_message = (char *)calloc(40960, 1);
+   va_list arg_list;
+   va_start(arg_list, format);
+   vsnprintf(_ec__last_error_message, 40960 - 1, format, arg_list);
+   va_end(arg_list);
+}
 
 enum error_codes
 {
