@@ -72,7 +72,7 @@ struct jim
    struct string           compilation_result;
    b32                     silent;
    b32                     default_compiler_set;
-
+   b32                     on_windows;
 } _jim = { 0 };
 
 error
@@ -179,6 +179,35 @@ _jim_msvc_link(struct string command, struct jim_executable executable)
 }
 
 error
+_jim_clang_compile(
+      struct string command,
+      struct jim_object_file object_file)
+{
+   error error = 0;
+   error = _jim_string_append(&command, "clang -Wall -Wextra -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
+   IF_ERROR_RETURN(error);
+
+   for (u32 index = 0;
+         index < object_file.number_of_include_directories;
+         ++index)
+   {
+      error = _jim_string_append(&command, "-I %s ", object_file.include_directories[index]);
+      IF_ERROR_RETURN(error);
+   }
+   error = _jim_string_append(
+         &command,
+         "-o%s%s %s%s",
+         object_file.directory,
+         object_file.name,
+         object_file.source_file_directory,
+         object_file.source_file
+         );
+   IF_ERROR_RETURN(error);
+
+   return (ec__no_error);
+}
+
+error
 _jim_gcc_compile(
       struct string command,
       struct jim_object_file object_file)
@@ -203,6 +232,55 @@ _jim_gcc_compile(
          object_file.source_file
          );
    IF_ERROR_RETURN(error);
+
+   return (ec__no_error);
+}
+
+error
+_jim_clang_link(struct string command, struct jim_executable executable)
+{
+   _jim_string_append(&command,
+         "clang ");
+
+   if (executable.debug)
+   {
+      _jim_string_append(&command,
+            "-O0 -g "
+            );
+   }
+   else
+   {
+      _jim_string_append(&command,
+            "-O2 "
+            );
+   }
+
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      if (executable.libraries[index].directory)
+         _jim_string_append(&command, "-L%s ",  executable.libraries[index].directory);
+   }
+
+   _jim_string_append(&command,
+         "-o %s%s ",
+         executable.output_directory,
+         executable.output_file);
+
+   for (u32 index = 0;
+         index < executable.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command, "%s%s ", executable.object_files[index].directory, executable.object_files[index].name);
+   }
+
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      _jim_string_append(&command, "-l%s ",  executable.libraries[index].name);
+   }
 
    return (ec__no_error);
 }
@@ -258,6 +336,51 @@ _jim_gcc_link(struct string command, struct jim_executable executable)
 
 
 error
+_jim_clang_create_library(struct string command, struct jim_library library)
+{
+   if(_jim.on_windows)
+   {
+      _jim_string_append(&command,
+                         "lib /OUT:%s%s.lib ",
+                         library.directory,
+                         library.name
+                        );
+
+      for (u32 index = 0;
+           index < library.number_of_object_files;
+           ++index)
+      {
+         _jim_string_append(&command,
+                            "%s%s ",
+                            library.object_files[index].directory,
+                            library.object_files[index].name
+                           );
+      }
+   }
+   else
+   {
+      _jim_string_append(&command,
+                         "ar rcs %s%s.lib ",
+                         library.directory,
+                         library.name
+                        );
+
+      for (u32 index = 0;
+           index < library.number_of_object_files;
+           ++index)
+      {
+         _jim_string_append(&command,
+                            "%s%s ",
+                            library.object_files[index].directory,
+                            library.object_files[index].name
+                           );
+      }
+   }
+
+   return (ec__no_error);
+}
+
+error
 _jim_gcc_create_library(struct string command, struct jim_library library)
 {
    _jim_string_append(&command,
@@ -305,16 +428,22 @@ _jim_msvc_create_library(struct string command, struct jim_library library)
 
 
 struct jim_compiler jim_gcc_compiler = {
-   .compile = _jim_gcc_compile,
-   .link = _jim_gcc_link,
+   .compile        = _jim_gcc_compile,
+   .link           = _jim_gcc_link,
    .create_library = _jim_gcc_create_library,
 };
 
 
 struct jim_compiler jim_msvc_compiler = {
-   .compile = _jim_msvc_compile,
-   .link = _jim_msvc_link,
+   .compile        = _jim_msvc_compile,
+   .link           = _jim_msvc_link,
    .create_library = _jim_msvc_create_library,
+};
+
+struct jim_compiler jim_clang_compiler = {
+   .compile        = _jim_clang_compile,
+   .link           = _jim_clang_link,
+   .create_library = _jim_clang_create_library,
 };
 
 // --------------------
@@ -348,6 +477,12 @@ _jim_please_listen(char *file, s32 line)
    error error                        = 0;
    _jim.allocator                     = make_growing_linear_allocator(mebibytes(1));
 
+#ifdef _WIN32
+   _jim.on_windows = 1;
+#else
+   _jim.on_windows = 0;
+#endif
+
    error = make_string(&_jim.error_message, 4096 * 10, &_jim.allocator);
    if (error)
    {
@@ -371,11 +506,22 @@ _jim_please_listen(char *file, s32 line)
          error = run_command("cl", _jim.compilation_result.first, _jim.compilation_result.length);
          if (error)
          {
-            _jim.error = error;
-            _jim_please_set_error_message("./%s:%d:0: error: Couldn't use gcc or cl\n");
-            return;
+            error = run_command("clang --version", _jim.compilation_result.first, _jim.compilation_result.length);
+            if (error)
+            {
+               _jim.error = error;
+               _jim_please_set_error_message("./%s:%d:0: error: Couldn't use gcc or cl\n", file, line);
+               return;
+            }
+            else
+            {
+               _jim.default_compiler = jim_clang_compiler;
+            }
          }
-         _jim.default_compiler = jim_msvc_compiler;
+         else
+         {
+            _jim.default_compiler = jim_msvc_compiler;
+         }
       }
    }
    // check if we need to rebuild ourselves
