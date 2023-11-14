@@ -127,9 +127,6 @@ wgl_create_context_attribs_arb  *wglCreateContextAttribsARB;
 HDC _opengl_device_context  = 0;
 b32 _graphics_context_ready = 0;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wcast-function-type"
 void
 init_opengl(void)
 {
@@ -205,7 +202,6 @@ init_opengl(void)
    glClipControl             = (PFNGLCLIPCONTROLPROC)wglGetProcAddress("glClipControl");
    wglCreateContextAttribsARB = (wgl_create_context_attribs_arb *)wglGetProcAddress("wglCreateContextAttribsARB");
 }
-#pragma GCC diagnostic pop
 
 b32
 initialise_graphics_context(HDC device_context)

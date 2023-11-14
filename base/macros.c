@@ -24,16 +24,16 @@
    do {                        \
       if ((Error))             \
       {                        \
-         return Error;         \
+         return (Error);         \
       }                        \
    } while (0)
 
-#define IF_ERROR_RETURN_AND_LOG(Error, Format, ...)   \
+#define IF_ERROR_RETURN_AND_LOG(Error, ...)   \
    do {                                   \
       if ((Error))                            \
       {                                   \
-         error_code_set_message(Format __VA_OPT__(,) __VA_ARGS__);  \
-         return Error;                        \
+         error_code_set_message(__VA_ARGS__);  \
+         return (Error);                        \
       }                                   \
    } while (0)
 
