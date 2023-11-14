@@ -20,7 +20,15 @@
 #define WARN(x) \
    printf("[WARNING] %s\n", x)
 
-#define IF_ERROR_RETURN(Error, Format, ...)   \
+#define IF_ERROR_RETURN(Error) \
+   do {                        \
+      if ((Error))             \
+      {                        \
+         return Error;         \
+      }                        \
+   } while (0)
+
+#define IF_ERROR_RETURN_AND_LOG(Error, Format, ...)   \
    do {                                   \
       if ((Error))                            \
       {                                   \

@@ -38,10 +38,10 @@ load_image(struct image *image, char *path, struct allocator *allocator)
    struct buffer buffer = { 0 };
 
    error = file_read(&buffer, path, 0, allocator);
-   IF_ERROR_RETURN(error, "Failed to read file");
+   IF_ERROR_RETURN_AND_LOG(error, "Failed to read file");
 
    error = load_image_from_memory(image, buffer);
-   IF_ERROR_RETURN(error, "Failed to load image");
+   IF_ERROR_RETURN_AND_LOG(error, "Failed to load image");
 
    return (0);
 }
