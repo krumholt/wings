@@ -435,7 +435,6 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
       _jim.error = error;
       _jim_please_set_error_message("%s:%d:0: error: \n\t%s\nFailed with %d\n\n\n%s",
                                     file, line,
-                                    object_file.source_file, object_file.name,
                                     command.first,
                                     error,
                                     _jim.compilation_result.first);
