@@ -184,7 +184,7 @@ _jim_clang_compile(
       struct jim_object_file object_file)
 {
    error error = 0;
-   error = _jim_string_append(&command, "clang -Wall -Wextra -c %s ", object_file.debug ? "-g -O0 " : "-O2 ");
+   error = _jim_string_append(&command, "clang -Wall -Wextra -c %s ", object_file.debug ? "-g -gcodeview -O0 " : "-O2 ");
    IF_ERROR_RETURN(error);
 
    for (u32 index = 0;

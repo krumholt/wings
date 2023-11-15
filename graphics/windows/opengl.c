@@ -200,7 +200,6 @@ init_opengl(void)
    glDebugMessageCallback    = (PFNGLDEBUGMESSAGECALLBACKPROC)wglGetProcAddress("glDebugMessageCallback");
    glDebugMessageControl     = (PFNGLDEBUGMESSAGECONTROLPROC)wglGetProcAddress("glDebugMessageControl");
    glClipControl             = (PFNGLCLIPCONTROLPROC)wglGetProcAddress("glClipControl");
-   wglCreateContextAttribsARB = (wgl_create_context_attribs_arb *)wglGetProcAddress("wglCreateContextAttribsARB");
 }
 
 b32
@@ -213,6 +212,8 @@ initialise_graphics_context(HDC device_context)
    if (result == 0)
       return 1;
 
+   wglCreateContextAttribsARB = (wgl_create_context_attribs_arb *)wglGetProcAddress("wglCreateContextAttribsARB"); // this has to be here because it has
+                                                                                                                   // to be called after creating a context
 
    int attributes[] = {
       WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
