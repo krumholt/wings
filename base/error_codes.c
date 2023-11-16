@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_ERROR_CODES_C_
 #define WINGS_BASE_ERROR_CODES_C_
 
-#include "wings/base/macros.c"
+#include "macros.c"
 #include <malloc.h>
 #include <stdarg.h>
 #include <stdio.h>

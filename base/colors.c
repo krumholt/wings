@@ -1,15 +1,9 @@
 #ifndef WINGS_BASE_COLORS_C_
 #define WINGS_BASE_COLORS_C_
 
-#if !defined(WINGSS_BASE_MACROS_C_)
-#include "wings/base/macros.c"
-#endif
-#if !defined(WINGSS_BASE_TYPES_C_)
-#include "wings/base/types.c"
-#endif
-#if !defined(WINGSS_BASE_MATH_C_)
-#include "wings/base/math.c"
-#endif
+#include "macros.c"
+#include "types.c"
+#include "math.c"
 
 const struct v4 colors[] = {
    {0xFF / 255.0f,  0x00 / 255.0f, 0x00 / 255.0f, 1.0f},

@@ -2,6 +2,7 @@
 #define WINGS_BASE_BITMAP_FONT_C_
 
 #include "wings/base/types.c"
+#include "wings/base/error_codes.c"
 #include "wings/base/strings.c"
 #include "wings/base/math.c"
 #include "wings/base/allocators.c"
@@ -27,7 +28,7 @@ struct bitmap_font
    struct image  image;
 };
 
-void
+error
 bitmap_font_from_text(struct bitmap_font *font, struct string text, struct allocator *allocator)
 {
    s32 glyph_count = 0;
@@ -71,6 +72,8 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
       }
       else if (begins_with_cstring(line.first, line.length, "char", 4))
       {
+         if (!font->glyph)
+            return (1);
          s16 Id, X, Y, Width, Height, x_offset, y_offset, XAdvance;
          sscanf_s(line.first, "char id=%hd   x=%hd   y=%hd    width=%hd     height=%hd     xoffset=%hd     yoffset=%hd     xadvance=%hd",
                   &Id, &X, &Y, &Width, &Height, &x_offset, &y_offset, &XAdvance);
@@ -86,6 +89,7 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
          glyph_count++;
       }
    }
+   return (ec__no_error);
 }
 
 b32

@@ -1,24 +1,12 @@
-#ifndef MODEL_C_
-#define MODEL_C_
+#ifndef WINGS_GRAPHICS_MODEL_C_
+#define WINGS_GRAPHICS_MODEL_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
 #include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_ALLOCATORS_C_)
 #include "wings/base/allocators.c"
-#endif
-#if !defined(WINGS_BASE_MATH_C_)
 #include "wings/base/math.c"
-#endif
-#if !defined(WINGS_GRAPHICS_MESH_C_)
 #include "wings/graphics/mesh.c"
-#endif
-#if !defined(WINGS_GRAPHICS_OPENGL_C_)
 #include "wings/graphics/opengl.c"
-#endif
-#if !defined(WINGS_OS_FILE_C_)
 #include "wings/os/file.c"
-#endif
 
 struct skinned_mesh_vertex
 {

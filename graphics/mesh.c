@@ -1,11 +1,12 @@
 #ifndef WINGS_GRAPHICS_EXP_MESH_C_
 #define WINGS_GRAPHICS_EXP_MESH_C_
+//@TODO: remove EXP
 
-#include "wings/base/types.c"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/math.c"
-#include "wings/graphics/opengl.c"
+#include "../base/types.c"
+#include "../base/error_codes.c"
+#include "../base/allocators.c"
+#include "../base/math.c"
+#include "opengl.c"
 
 #define MESH_ATTRIBUTE_POSITION_LOCATION 0
 #define MESH_ATTRIBUTE_NORMAL_LOCATION 1

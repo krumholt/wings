@@ -1,18 +1,10 @@
-#ifndef MESH_TOOLS_C_
-#define MESH_TOOLS_C_
+#ifndef WINGS_GRAPHICS_MESH_TOOLS_C_
+#define WINGS_GRAPHICS_MESH_TOOLS_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
-#include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_ERROR_CODES_C_)
-#include "wings/base/error_codes.c"
-#endif
-#if !defined(WINGS_BASE_MATH_C_)
-#include "wings/base/math.c"
-#endif
-#if !defined(WINGS_GRAPHICS_MESH_C_)
-#include "wings/graphics/mesh.c"
-#endif
+#include "../base/types.c"
+#include "../base/error_codes.c"
+#include "../base/math.c"
+#include "mesh.c"
 
 struct v3 unit_cube_positions[] = {
    {-1.0f,  -1.0f, 1.0f },

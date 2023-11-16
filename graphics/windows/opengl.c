@@ -1,16 +1,16 @@
 #ifndef WINGS_GRAPHICS_WINDOWS_OPENGL_C_
 #define WINGS_GRAPHICS_WINDOWS_OPENGL_C_
 
-#include "wings/base/types.c"
-#include "wings/base/macros.c"
+#include "../../base/types.c"
+#include "../../base/macros.c"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
 #include <wingdi.h>
-#include "GL/gl.h"
-#include "wings/extern/glext.h"
+#include <GL/gl.h>
+#include "../../extern/glext.h"
 #include <assert.h>
 #include <stdio.h>
 #include <malloc.h>

@@ -1,12 +1,8 @@
 #ifndef WINGS_BASE_MATH_C_
 #define WINGS_BASE_MATH_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
-#include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_RANDOM_C_)
-#include "wings/base/random.c"
-#endif
+#include "types.c"
+#include "random.c"
 
 #include <float.h>
 #include <limits.h>

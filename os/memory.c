@@ -1,8 +1,8 @@
 #ifndef WINGS_OS_MEMORY_C_
 #define WINGS_OS_MEMORY_C_
 
-#include "wings/base/macros.c"
-#include "wings/base/types.c"
+#include "../base/macros.c"
+#include "../base/types.c"
 
 enum memory_state
 {
@@ -26,9 +26,9 @@ struct memory_info
 };
 
 #if defined(OS_WINDOWS)
-#include "wings/os/windows/memory.c"
+#include "windows/memory.c"
 #elif defined(OS_LINUX)
-#include "wings/os/linux/memory.c"
+#include "linux/memory.c"
 #else
 #error "Operating system not set #define OS_WINDOWS or OS_LINUX"
 #endif

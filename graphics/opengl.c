@@ -1,12 +1,12 @@
 #ifndef WINGS_GRAPHICS_OPENGL_C_
 #define WINGS_GRAPHICS_OPENGL_C_
 
-#include "wings/base/macros.c"
+#include "../base/macros.c"
 
 #if defined(OS_WINDOWS)
-#include "wings/graphics/windows/opengl.c"
+#include "windows/opengl.c"
 #elif defined(OS_LINUX)
-#include "wings/os/linux/file.c"
+#include "linux/opengl.c"
 #else
 #error "Operating system not set #define OS_WINDOWS or OS_LINUX"
 #endif

@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_ALLOCATORS_C_
 #define WINGS_BASE_ALLOCATORS_C_
 
-#include "wings/base/types.c"
-#include "wings/base/error_codes.c"
-#include "wings/base/macros.c"
-#include "wings/os/memory.c"
+#include "types.c"
+#include "error_codes.c"
+#include "macros.c"
+#include "../os/memory.c"
 
 struct memory_stack_node
 {

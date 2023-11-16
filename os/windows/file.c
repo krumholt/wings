@@ -1,9 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_FILE_C_
 #define WINGS_OS_WINDOWS_FILE_C_
 
-#include "wings/base/types.c"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
+#include "../../base/types.c"
+#include "../../base/error_codes.c"
+#include "../../base/allocators.c"
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN

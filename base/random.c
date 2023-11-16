@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_RANDOM_C_
 #define WINGS_BASE_RANDOM_C_
 
-#include "wings/base/macros.c"
-#include "wings/base/types.c"
+#include "macros.c"
+#include "types.c"
 
 #include <limits.h>
 
