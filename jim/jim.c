@@ -757,6 +757,7 @@ _jim_please_delete(char *name, char *file, s32 line)
     error error = file_delete(name);
     if (error)
     {
+        if (error == ec_os_file__not_found) return;
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0: error: Failed to delete %s", file, line, name);
     }
