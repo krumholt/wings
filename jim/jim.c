@@ -1,5 +1,5 @@
-#ifndef JIM_C_
-#define JIM_C_
+#ifndef WINGS_JIM_JIM_C_
+#define WINGS_JIM_JIM_C_
 
 #include "wings/base/macros.c"
 #include "wings/base/types.c"
@@ -23,14 +23,18 @@
 char *jims_brain = "jims_brain.c";
 
 
+struct jim_include_directories
+{
+   char  **directories;
+   u32     number_of_directories;
+};
+
 struct jim_object_file
 {
-   char  *name;
-   char  *directory;
-   char  *source_file;
-   char  *source_file_directory;
-   u32    number_of_include_directories;
-   char **include_directories;
+   char  *target;
+   char  *source;
+   struct jim_include_directories
+          include_directories;
    b32    compiled;
    b32    debug;
 };
@@ -118,19 +122,17 @@ _jim_msvc_compile(
    IF_ERROR_RETURN(error);
 
    for (u32 index = 0;
-         index < object_file.number_of_include_directories;
+         index < object_file.include_directories.number_of_directories;
          ++index)
    {
-      error = _jim_string_append(&command, "/I %s ", object_file.include_directories[index]);
+      error = _jim_string_append(&command, "/I %s ", object_file.include_directories.directories[index]);
       IF_ERROR_RETURN(error);
    }
    error = _jim_string_append(
          &command,
-         "/Fo%s%s %s%s",
-         object_file.directory,
-         object_file.name,
-         object_file.source_file_directory,
-         object_file.source_file
+         "/Fo%s %s",
+         object_file.target,
+         object_file.source
          );
    IF_ERROR_RETURN(error);
 
@@ -165,9 +167,8 @@ _jim_msvc_link(struct string command, struct jim_executable executable)
    {
       _jim_string_append(
             &command,
-            "%s%s ",
-            executable.object_files[index].directory,
-            executable.object_files[index].name);
+            "%s ",
+            executable.object_files[index].target);
    }
    for (u32 index = 0;
          index < executable.number_of_libraries;
@@ -188,19 +189,17 @@ _jim_clang_compile(
    IF_ERROR_RETURN(error);
 
    for (u32 index = 0;
-         index < object_file.number_of_include_directories;
+         index < object_file.include_directories.number_of_directories;
          ++index)
    {
-      error = _jim_string_append(&command, "-I %s ", object_file.include_directories[index]);
+      error = _jim_string_append(&command, "-I %s ", object_file.include_directories.directories[index]);
       IF_ERROR_RETURN(error);
    }
    error = _jim_string_append(
          &command,
-         "-o%s%s %s%s",
-         object_file.directory,
-         object_file.name,
-         object_file.source_file_directory,
-         object_file.source_file
+         "-o%s %s",
+         object_file.target,
+         object_file.source
          );
    IF_ERROR_RETURN(error);
 
@@ -217,19 +216,17 @@ _jim_gcc_compile(
    IF_ERROR_RETURN(error);
 
    for (u32 index = 0;
-         index < object_file.number_of_include_directories;
+         index < object_file.include_directories.number_of_directories;
          ++index)
    {
-      error = _jim_string_append(&command, "-I %s ", object_file.include_directories[index]);
+      error = _jim_string_append(&command, "-I %s ", object_file.include_directories.directories[index]);
       IF_ERROR_RETURN(error);
    }
    error = _jim_string_append(
          &command,
-         "-o%s%s %s%s",
-         object_file.directory,
-         object_file.name,
-         object_file.source_file_directory,
-         object_file.source_file
+         "-o%s %s",
+         object_file.target,
+         object_file.source
          );
    IF_ERROR_RETURN(error);
 
@@ -272,7 +269,7 @@ _jim_clang_link(struct string command, struct jim_executable executable)
          index < executable.number_of_object_files;
          ++index)
    {
-      _jim_string_append(&command, "%s%s ", executable.object_files[index].directory, executable.object_files[index].name);
+      _jim_string_append(&command, "%s ", executable.object_files[index].target);
    }
 
    for (u32 index = 0;
@@ -321,7 +318,7 @@ _jim_gcc_link(struct string command, struct jim_executable executable)
          index < executable.number_of_object_files;
          ++index)
    {
-      _jim_string_append(&command, "%s%s ", executable.object_files[index].directory, executable.object_files[index].name);
+      _jim_string_append(&command, "%s ", executable.object_files[index].target);
    }
 
    for (u32 index = 0;
@@ -351,9 +348,8 @@ _jim_clang_create_library(struct string command, struct jim_library library)
            ++index)
       {
          _jim_string_append(&command,
-                            "%s%s ",
-                            library.object_files[index].directory,
-                            library.object_files[index].name
+                            "%s ",
+                            library.object_files[index].target
                            );
       }
    }
@@ -370,9 +366,8 @@ _jim_clang_create_library(struct string command, struct jim_library library)
            ++index)
       {
          _jim_string_append(&command,
-                            "%s%s ",
-                            library.object_files[index].directory,
-                            library.object_files[index].name
+                            "%s ",
+                            library.object_files[index].target
                            );
       }
    }
@@ -394,9 +389,8 @@ _jim_gcc_create_library(struct string command, struct jim_library library)
          ++index)
    {
       _jim_string_append(&command,
-            "%s%s ",
-            library.object_files[index].directory,
-            library.object_files[index].name
+            "%s ",
+            library.object_files[index].target
             );
    }
 
@@ -417,9 +411,8 @@ _jim_msvc_create_library(struct string command, struct jim_library library)
          ++index)
    {
       _jim_string_append(&command,
-            "%s%s ",
-            library.object_files[index].directory,
-            library.object_files[index].name
+            "%s ",
+            library.object_files[index].target
             );
    }
 
@@ -797,14 +790,16 @@ void
 _jim_update_yourself(void)
 {
    char *include_directory = "./";
+   struct jim_include_directories include_directories =
+   {
+      .number_of_directories = 1,
+      .directories = &include_directory,
+   };
    struct jim_object_file self = {
-      .directory = "./",
-      .name = "jim.o",
+      .target = "jim.o",
       .debug = 0,
-      .source_file = jims_brain,
-      .source_file_directory = "./",
-      .number_of_include_directories = 1,
-      .include_directories = &include_directory,
+      .source = jims_brain,
+      .include_directories = include_directories,
    };
    jim_please_compile(self);
 
@@ -824,7 +819,7 @@ _jim_update_yourself(void)
       file_delete("old_jim.exe");
       file_move("jim.exe", "old_jim.exe");
       file_move("new_jim.exe", "jim.exe");
-      error = process_new("jim.exe", 0, 1);
+      error = process_new("jim.exe", 0, 0);
       if (error)
          printf("I couldn't call the new jim\n");
    }
@@ -837,7 +832,6 @@ char *_jim_default_compile_flags_txt
 
 char *_jim_default_jims_brain
     = ""
-      "#include \"wings/base/error_codes.c\"\n"
       "#include \"wings/jim/jim.c\"\n"
       "\n"
       "s32\n"
@@ -863,9 +857,8 @@ char *_jim_default_jims_brain
       "       \"0,\n"
       "       \"1,\n"
       "       \"&main\");\n"
-      "    jim_please_copy(\".build/main.exe\", \"executable/main.exe\");\n"
       "\n"
-      "    return (jim_did_we_win());\n"
+      "    jim_did_we_win();\n"
       "}\n";
 
 char *_jim_default_main_c
