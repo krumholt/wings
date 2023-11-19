@@ -1,18 +1,13 @@
 #ifndef WINGS_BASE_STRINGS_C_
 #define WINGS_BASE_STRINGS_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
+#include "wings/base/string_store.c"
 
 #include <stdio.h>
 #include <string.h>
-
-struct string
-{
-   char *first;
-   u64   length;
-};
 
 struct token
 {

@@ -1,9 +1,9 @@
-#ifndef PATHS_C_
-#define PATHS_C_
+#ifndef WINGS_BASE_PATHS_C_
+#define WINGS_BASE_PATHS_C_
 
+#include "wings/base/types.c"
 #include "wings/base/macros.c"
 #include "wings/base/strings.c"
-#include "wings/base/types.c"
 
 #ifndef MAX_PATH_SIZE
 #define MAX_PATH_SIZE 1024

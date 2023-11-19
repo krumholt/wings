@@ -1,9 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_MEMORY_C_
 #define WINGS_OS_WINDOWS_MEMORY_C_
 
-#include "../../base/types.c"
-#include "../../base/macros.c"
-#include "../../base/error_codes.c"
+#include "wings/base/types.c"
+#include "wings/base/macros.c"
+#include "wings/base/error_codes.c"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

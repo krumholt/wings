@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_ALLOCATORS_C_
 #define WINGS_BASE_ALLOCATORS_C_
 
-#include "types.c"
-#include "error_codes.c"
-#include "macros.c"
-#include "../os/memory.c"
+#include "wings/base/types.h"
+#include "wings/base/error_codes.c"
+#include "wings/base/macros.c"
+#include "wings/os/memory.c"
 
 struct memory_stack_node
 {
@@ -62,7 +62,7 @@ make_growing_linear_allocator(u64 block_size)
    };
    return (allocator);
 }
-#include <stdio.h>
+
 error
 linear_growing_allocator_allocate(u8 **memory, struct allocator *general_allocator, u64 size)
 {
@@ -136,15 +136,15 @@ linear_fixed_size_allocator_allocate(u8 **memory, struct allocator *allocator_, 
 {
    struct fixed_size_linear_allocator *allocator = &allocator_->fixed_size_linear_allocator;
 
-   size            = (size + allocator_->alignment - 1) & ~(allocator_->alignment - 1);
+   size = (size + allocator_->alignment - 1) & ~(allocator_->alignment - 1);
    u64 memory_left = allocator->buffer.size - allocator->buffer.used;
    if (memory_left < size)
-      return (1);
+      return (ec_base_allocators__no_space_left);
 
    *memory = allocator->buffer.base + allocator->buffer.used;
    allocator->buffer.used += size;
    allocator_->total_memory_used += size;
-   return (0);
+   return (ec__no_error);
 }
 
 #define allocate_struct(pointer, allocator, type) \
@@ -164,6 +164,22 @@ allocate(u8 **memory, struct allocator *allocator, u64 size)
       return linear_fixed_size_allocator_allocate(memory, allocator, size);
    }
    return (1);
+}
+
+error
+allocate_string(struct string *string, u64 size, struct allocator *allocator)
+{
+   if (!string)
+   {
+      error_code_set_message("allocate_string first parameter was 0");
+      return ec_base_allocators__illegal_parameter;
+   }
+   error error = allocate((u8 **)&string->first, allocator, size * sizeof(char));
+   if (error)
+      return error;
+   string->length = size;
+
+   return (ec__no_error);
 }
 
 error

@@ -14,6 +14,7 @@ typedef uint64_t      u64;
 typedef float         f32;
 typedef double        f64;
 
+typedef char     b8;
 typedef uint32_t b32;
 typedef uint32_t error;
 typedef error    merror;
@@ -28,7 +29,7 @@ struct buffer
 struct string
 {
    char  *first;
-   u64    size;
+   u64    length;
 };
 
 

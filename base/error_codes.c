@@ -13,9 +13,14 @@
    _(ec_os_memory__query_unknown_state)             \
    _(ec_os_memory__query_failed)                    \
                                                     \
+   _(ec_base_allocators__no_space_left)             \
+   _(ec_base_allocators__illegal_parameter)         \
+                                                    \
    _(ec_os_file__not_found)                         \
    _(ec_os_file__write_failed)                      \
    _(ec_os_file__access_denied)                     \
+                                                    \
+   _(ec_base_string_store__no_space_left)           \
                                                     \
    _(ec_os_process__failed_to_create_pipe)          \
    _(ec_os_process__command_not_found)              \

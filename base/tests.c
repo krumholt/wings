@@ -48,6 +48,10 @@ end_test(void)
              tests.test_asserts);
       printf("\n");
    }
+   else
+   {
+      printf("✅ %s\n",tests.name);
+   }
 }
 
 #define test(f)                                          \
@@ -56,14 +60,13 @@ end_test(void)
    {                                                     \
       if (!(f))                                          \
       {                                                  \
-         if (!tests.name_printed)                        \
-         {                                               \
-            print_header(tests.name);                    \
-            tests.name_printed = 1;                      \
-         }                                               \
+         printf("❌ %s\n",tests.name);                   \
          tests.test_failed_asserts += 1;                 \
          printf("%s:%d:0: error: ", __FILE__, __LINE__); \
-         printf("   (%s)\n", #f);                        \
+         printf("   (%s) failed\n", #f);                 \
+      }                                                  \
+      else                                               \
+      {                                                  \
       }                                                  \
    }                                                     \
    while (0)
