@@ -11,7 +11,7 @@
 #include <winuser.h>
 
 error
-run_command_at(char *command, char *directory, char *result_buffer, u32 result_buffer_size)
+run_command_at(char *command, char *directory, u32 result_buffer_size, char *result_buffer)
 {
    SECURITY_ATTRIBUTES pipe_security_attributes = { 0 };
    pipe_security_attributes.nLength             = sizeof(SECURITY_ATTRIBUTES);
@@ -23,7 +23,7 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
    HANDLE out_pipe_write = 0;
 
    error error   = 0;
-   s32   success = 1;
+   s32   success = 0;
 
    success = CreatePipe(&in_pipe_read,
                         &in_pipe_write,
@@ -52,7 +52,7 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
        0,
        0,
        TRUE,
-       CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+       CREATE_NO_WINDOW,
        0,
        directory,
        &startup_info,
@@ -67,41 +67,41 @@ run_command_at(char *command, char *directory, char *result_buffer, u32 result_b
       return (error);
    }
    DWORD chars_read = 0;
+   CloseHandle(in_pipe_write);
    CloseHandle(in_pipe_read);
    CloseHandle(out_pipe_write);
 
    for (;;)
    {
+      printf("reading\n");
       success = ReadFile(out_pipe_read,
                          result_buffer,
-                         result_buffer_size,
+                         result_buffer_size - 1,
                          &chars_read,
                          0);
-      if (chars_read == 0)
+      printf("%lu with: %d\n", chars_read, success);
+      if (!success || chars_read == 0)
          break;
-      if (!success)
-      {
-         return (ec_os_process__command_failed);
-      }
       result_buffer += chars_read;
       result_buffer_size -= chars_read;
    }
-   DWORD exit_code = 0;
-   GetExitCodeProcess(process_info.hProcess, &exit_code);
-   CloseHandle(in_pipe_write);
-   CloseHandle(out_pipe_read);
+   *result_buffer = 0;
    CloseHandle(process_info.hProcess);
    CloseHandle(process_info.hThread);
+   CloseHandle(out_pipe_read);
+   DWORD exit_code = 0;
+   GetExitCodeProcess(process_info.hProcess, &exit_code);
    if (exit_code != 0)
       return (ec_os_process__command_failed);
+   printf("done commanding %s\n", command);
 
    return (NO_ERROR);
 }
 
 error
-run_command(char *command, char *result_buffer, u32 result_buffer_size)
+run_command(char *command, u32 result_buffer_size, char *result_buffer)
 {
-   return (run_command_at(command, "./", result_buffer, result_buffer_size));
+   return (run_command_at(command, "./", result_buffer_size, result_buffer));
 }
 
 error

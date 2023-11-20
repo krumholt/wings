@@ -11,7 +11,6 @@ struct managed_string
    char  *cstring;
    u64    length;
    b8     writeable;
-   b8     readable;
 };
 
 struct string_store _managed_strings__string_store = {0};
@@ -34,7 +33,6 @@ managed_string__new(char *value)
    {
       .cstring = 0,
       .writeable = 1,
-      .readable = 1,
    };
    error error = string_store__store(
          &_managed_strings__string_store,
@@ -44,7 +42,6 @@ managed_string__new(char *value)
    {
       _managed_strings__error = error;
       result.writeable = 0;
-      result.readable = 0;
    }
    result.length = strlen(value);
 
@@ -52,13 +49,51 @@ managed_string__new(char *value)
 }
 
 struct managed_string
-managed_string__append(struct managed_string a,
-                       struct managed_string b)
+managed_string__append_cstring(struct managed_string a,
+                               char *b)
 {
+   if (!a.writeable)
+   {
+      return (struct managed_string){0};
+   }
+   u64 b_length = strlen(b);
    struct managed_string result =
    {
       .writeable = 1,
-      .readable  = 1,
+      .length    = a.length + b_length,
+   };
+   error error = string_store__store_size(
+         &_managed_strings__string_store,
+         &result.cstring,
+         result.length + 1
+         );
+   if (error)
+   {
+      _managed_strings__error = error;
+      result.writeable = 0;
+   }
+
+   for (u32 index = 0;
+        index < b_length;
+        ++index)
+   {
+      result.cstring[index + a.length] = b[index];
+   }
+
+   return (result);
+}
+struct managed_string
+managed_string__append(struct managed_string a,
+                       struct managed_string b)
+{
+   if (!(a.writeable && b.writeable))
+   {
+      _managed_strings__error = ec_base_managed_string__string_not_writeable;
+      return (struct managed_string){0};
+   }
+   struct managed_string result =
+   {
+      .writeable = 1,
       .length    = a.length + b.length,
    };
    error error = string_store__store_size(
@@ -70,7 +105,6 @@ managed_string__append(struct managed_string a,
    {
       _managed_strings__error = error;
       result.writeable = 0;
-      result.readable = 0;
    }
 
    for (u32 index = 0;

@@ -460,6 +460,12 @@ jim_please_use_msvc(void)
 }
 
 void
+_jim_reset_compilation_result()
+{
+   _jim.compilation_result.length = 4096 * 10;
+}
+
+void
 _jim_update_yourself(void);
 
 #define jim_please_listen() \
@@ -467,6 +473,7 @@ _jim_update_yourself(void);
 void
 _jim_please_listen(char *file, s32 line)
 {
+   file_create_directory(".jim");
    error error                        = 0;
    _jim.allocator                     = make_growing_linear_allocator(mebibytes(1));
 
@@ -482,6 +489,7 @@ _jim_please_listen(char *file, s32 line)
       _jim.error = error;
       return;
    }
+   _jim_reset_compilation_result();
    error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
    if (error)
    {
@@ -493,13 +501,17 @@ _jim_please_listen(char *file, s32 line)
    if (!_jim.default_compiler_set)
    {
       _jim.default_compiler = jim_gcc_compiler;
-      error = run_command("gcc --version", _jim.compilation_result.first, _jim.compilation_result.length);
+      _jim_reset_compilation_result();
+      error = run_command("gcc --version", _jim.compilation_result.length, _jim.compilation_result.first);
+      _jim.compilation_result.length = 0;
       if (error)
       {
-         error = run_command("cl", _jim.compilation_result.first, _jim.compilation_result.length);
+         _jim_reset_compilation_result();
+         error = run_command("cl", _jim.compilation_result.length, _jim.compilation_result.first);
          if (error)
          {
-            error = run_command("clang --version", _jim.compilation_result.first, _jim.compilation_result.length);
+            _jim_reset_compilation_result();
+            error = run_command("clang --version", _jim.compilation_result.length, _jim.compilation_result.first);
             if (error)
             {
                _jim.error = error;
@@ -526,15 +538,15 @@ _jim_please_listen(char *file, s32 line)
    {
       printf("I need to update myself\n");
       _jim_update_yourself();
-      if (file_exists("old_jim.exe"))
+      if (file_exists("./.jim/old_jim.exe"))
       {
-         file_delete("old_jim.exe");
+         file_delete("./.jim/old_jim.exe");
       }
       exit(0);
    }
-   if (file_exists("old_jim.exe"))
+   if (file_exists("./.jim/old_jim.exe"))
    {
-      file_delete("old_jim.exe");
+      file_delete("./.jim/old_jim.exe");
    }
 }
 
@@ -568,14 +580,15 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
    {
       printf("%s\n", command.first);
    }
-   error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
+   _jim_reset_compilation_result();
+   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("./%s:%d:0: error: \n\t%s\nFailed with %d\n\n\n%s",
+      _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %s\n%s",
                                     file, line,
                                     command.first,
-                                    error,
+                                    error_code_as_text[error],
                                     _jim.compilation_result.first);
       return;
    }
@@ -606,7 +619,8 @@ jim_please_link(struct jim_executable executable)
    {
       printf("%s\n", command.first);
    }
-   error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
+   _jim_reset_compilation_result();
+   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
       _jim.error = error;
@@ -659,11 +673,12 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    {
       printf("%s\n", command.first);
    }
-   error = run_command(command.first, _jim.compilation_result.first, _jim.compilation_result.length);
+   _jim_reset_compilation_result();
+   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("./%s:%d:0: error:\n\t%s\nFailed with %d\n\n\n%s",
+      _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %d\n\n\n%s",
                                     file,
                                     line,
                                     command.first,
@@ -789,6 +804,7 @@ jim_did_we_win(void)
 void
 _jim_update_yourself(void)
 {
+   file_create_directory(".jim/");
    char *include_directory = "./";
    struct jim_include_directories include_directories =
    {
@@ -796,7 +812,7 @@ _jim_update_yourself(void)
       .directories = &include_directory,
    };
    struct jim_object_file self = {
-      .target = "jim.o",
+      .target = "./.jim/jim.o",
       .debug = 0,
       .source = jims_brain,
       .include_directories = include_directories,
@@ -805,7 +821,7 @@ _jim_update_yourself(void)
 
    struct jim_executable jim_exe =
    {
-      .output_directory = "./",
+      .output_directory = "./.jim/",
       .output_file = "new_jim.exe",
       .number_of_libraries = 0,
       .libraries = 0,
@@ -816,10 +832,14 @@ _jim_update_yourself(void)
    error error = jim_did_we_win();
    if (!error)
    {
-      file_delete("old_jim.exe");
-      file_move("jim.exe", "old_jim.exe");
-      file_move("new_jim.exe", "jim.exe");
-      error = process_new("jim.exe", 0, 0);
+      file_delete("./.jim/old_jim.exe");
+      error = file_move("jim.exe", "./.jim/old_jim.exe");
+      if (error)
+         printf("I couldn't call the new jim\n");
+      error = file_move("./.jim/new_jim.exe", "jim.exe");
+      if (error)
+         printf("I couldn't call the new jim\n");
+      error = process_new("jim.exe", "./", 0);
       if (error)
          printf("I couldn't call the new jim\n");
    }

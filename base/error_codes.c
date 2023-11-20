@@ -22,6 +22,8 @@
                                                     \
    _(ec_base_string_store__no_space_left)           \
                                                     \
+   _(ec_base_managed_string__string_not_writeable)  \
+                                                    \
    _(ec_os_process__failed_to_create_pipe)          \
    _(ec_os_process__command_not_found)              \
    _(ec_os_process__creation_failed)                \
