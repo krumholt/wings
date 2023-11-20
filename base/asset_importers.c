@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_ASSET_IMPORTERS_C_
 #define WINGS_BASE_ASSET_IMPORTERS_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/colors.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"

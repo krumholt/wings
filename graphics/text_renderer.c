@@ -1,8 +1,8 @@
-#ifndef TEXT_RENDERER_C_
-#define TEXT_RENDERER_C_
+#ifndef WINGS_GRAPHICS_TEXT_RENDERER_C_
+#define WINGS_GRAPHICS_TEXT_RENDERER_C_
 
 #include "wings/base/macros.c"
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/math.c"
 #include "wings/base/shapes.c"
 #include "wings/graphics/bitmap_font.c"

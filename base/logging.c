@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_LOGGING_C_
 #define WINGS_BASE_LOGGING_C_
 
-#include "types.c"
-#include "error_codes.c"
+#include "wings/base/types.h"
+#include "wings/base/error_codes.c"
 
 #include <stdio.h>
 #include <stdarg.h>

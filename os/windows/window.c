@@ -1,7 +1,7 @@
 #ifndef WINGS_OS_WINDOWS_WINDOW_C_
 #define WINGS_OS_WINDOWS_WINDOW_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/input/keyboard.c"
 #include "wings/input/mouse.c"
 

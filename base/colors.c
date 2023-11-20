@@ -2,7 +2,7 @@
 #define WINGS_BASE_COLORS_C_
 
 #include "macros.c"
-#include "types.c"
+#include "types.h"
 #include "math.c"
 
 const struct v4 colors[] = {

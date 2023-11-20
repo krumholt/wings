@@ -1,7 +1,7 @@
 #ifndef WINGS_GRAPHICS_MODEL_C_
 #define WINGS_GRAPHICS_MODEL_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/allocators.c"
 #include "wings/base/math.c"
 #include "wings/graphics/mesh.c"

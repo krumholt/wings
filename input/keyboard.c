@@ -1,9 +1,7 @@
 #ifndef WINGS_INPUT_KEYBOARD_C_
 #define WINGS_INPUT_KEYBOARD_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
-#include "wings/base/types.c"
-#endif
+#include "wings/base/types.h"
 
 struct keyboard
 {

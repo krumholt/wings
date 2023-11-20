@@ -1,7 +1,7 @@
 #ifndef TEXT_3D_RENDERER_C_
 #define TEXT_3D_RENDERER_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/math.c"
 #include "wings/base/shapes.c"
 #include "wings/graphics/bitmap_font.c"

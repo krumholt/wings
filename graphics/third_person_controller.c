@@ -1,21 +1,11 @@
 #ifndef WINGS_INPUT_THIRD_PERSON_CONTROLLER_C_
 #define WINGS_INPUT_THIRD_PERSON_CONTROLLER_C_
 
-#if !defined(WINGS_BASE_TYPES_C_)
-#include "wings/base/types.c"
-#endif
-#if !defined(WINGS_BASE_MATH_C_)
+#include "wings/base/types.h"
 #include "wings/base/math.c"
-#endif
-#if !defined(WINGS_INPUT_KEYBOARD_C_)
 #include "wings/input/keyboard.c"
-#endif
-#if !defined(WINGS_INPUT_MOUSE_C_)
 #include "wings/input/mouse.c"
-#endif
-#if !defined(WINGS_GRAPHICS_CAMERA_C_)
 #include "wings/graphics/camera.c"
-#endif
 
 struct third_person_controller
 {
