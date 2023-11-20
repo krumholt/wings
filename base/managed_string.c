@@ -40,12 +40,50 @@ managed_strings__new(char *value)
          &_managed_strings__string_store,
          &result.cstring,
          value);
-   
    if (error)
    {
       _managed_strings__error = error;
       result.writeable = 0;
       result.readable = 0;
+   }
+   result.length = strlen(value);
+
+   return (result);
+}
+
+struct managed_string
+managed_strings__append(struct managed_string a,
+                        struct managed_string b)
+{
+   struct managed_string result =
+   {
+      .writeable = 1,
+      .readable  = 1,
+      .length    = a.length + b.length,
+   };
+   error error = string_store__store_size(
+         &_managed_strings__string_store,
+         &result.cstring,
+         result.length + 1
+         );
+   if (error)
+   {
+      _managed_strings__error = error;
+      result.writeable = 0;
+      result.readable = 0;
+   }
+
+   for (u32 index = 0;
+        index < a.length;
+        ++index)
+   {
+      result.cstring[index] = a.cstring[index];
+   }
+   for (u32 index = 0;
+        index < b.length;
+        ++index)
+   {
+      result.cstring[index + a.length] = b.cstring[index];
    }
 
    return (result);

@@ -1,9 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_PROCESS_C_
 #define WINGS_OS_WINDOWS_PROCESS_C_
 
+#include "wings/base/types.h"
 #include "wings/base/macros.c"
 #include "wings/base/error_codes.c"
-#include "wings/base/types.c"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

@@ -2,7 +2,7 @@
 #define WINGS_JIM_JIM_C_
 
 #include "wings/base/macros.c"
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/units.c"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"

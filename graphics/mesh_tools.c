@@ -1,10 +1,10 @@
 #ifndef WINGS_GRAPHICS_MESH_TOOLS_C_
 #define WINGS_GRAPHICS_MESH_TOOLS_C_
 
-#include "../base/types.c"
-#include "../base/error_codes.c"
-#include "../base/math.c"
-#include "mesh.c"
+#include "wings/base/types.h"
+#include "wings/base/error_codes.c"
+#include "wings/base/math.c"
+#include "wings/graphics/mesh.c"
 
 struct v3 unit_cube_positions[] = {
    {-1.0f,  -1.0f, 1.0f },

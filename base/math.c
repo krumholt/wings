@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_MATH_C_
 #define WINGS_BASE_MATH_C_
 
-#include "types.c"
+#include "types.h"
 #include "random.c"
 
 #include <float.h>

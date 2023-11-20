@@ -49,4 +49,20 @@ string_store__store(struct string_store *string_store,
    return (ec__no_error);
 }
 
+error
+string_store__store_size(struct string_store *string_store,
+                         char **out,
+                         u64 length)
+{
+
+   if (!string_has_room_for(length, string_store->next_free, string_store->strings))
+   {
+      return (ec_base_string_store__no_space_left);
+   }
+   *out = string_store->next_free;
+   string_store->next_free += length;
+
+   return (ec__no_error);
+}
+
 #endif

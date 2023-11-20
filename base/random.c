@@ -2,7 +2,7 @@
 #define WINGS_BASE_RANDOM_C_
 
 #include "macros.c"
-#include "types.c"
+#include "types.h"
 
 #include <limits.h>
 
