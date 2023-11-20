@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_PROFILER_C_
 #define WINGS_BASE_PROFILER_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/units.c"
 #include "wings/os/timer.c"
 

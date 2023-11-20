@@ -19,7 +19,7 @@ b32 _managed_strings__initialised = 0;
 error _managed_strings__error = 0;
 
 error
-managed_strings__initialise(u64 size, struct allocator *allocator)
+managed_string__initialise(u64 size, struct allocator *allocator)
 {
    ASSERT(!_managed_strings__initialised);
    _managed_strings__initialised = 1;
@@ -28,7 +28,7 @@ managed_strings__initialise(u64 size, struct allocator *allocator)
 }
 
 struct managed_string
-managed_strings__new(char *value)
+managed_string__new(char *value)
 {
    struct managed_string result =
    {
@@ -52,8 +52,8 @@ managed_strings__new(char *value)
 }
 
 struct managed_string
-managed_strings__append(struct managed_string a,
-                        struct managed_string b)
+managed_string__append(struct managed_string a,
+                       struct managed_string b)
 {
    struct managed_string result =
    {
