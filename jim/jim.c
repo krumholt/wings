@@ -462,7 +462,7 @@ jim_please_use_msvc(void)
 void
 _jim_reset_compilation_result()
 {
-   _jim.compilation_result.length = 4096 * 10;
+   //_jim.compilation_result.length = 4096 * 10;
 }
 
 void
@@ -474,8 +474,8 @@ void
 _jim_please_listen(char *file, s32 line)
 {
    file_create_directory(".jim");
-   error error                        = 0;
-   _jim.allocator                     = make_growing_linear_allocator(mebibytes(1));
+   error error = 0;
+   error = make_fixed_size_linear_allocator(&_jim.allocator, mebibytes(1));
 
 #ifdef _WIN32
    _jim.on_windows = 1;
@@ -491,6 +491,7 @@ _jim_please_listen(char *file, s32 line)
    }
    _jim_reset_compilation_result();
    error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
+   printf("I'm %llu long\n", _jim.compilation_result.length);
    if (error)
    {
       _jim.error = error;
@@ -502,10 +503,11 @@ _jim_please_listen(char *file, s32 line)
    {
       _jim.default_compiler = jim_gcc_compiler;
       _jim_reset_compilation_result();
+   printf("I'm %llu long\n", _jim.compilation_result.length);
       error = run_command("gcc --version", _jim.compilation_result.length, _jim.compilation_result.first);
-      _jim.compilation_result.length = 0;
       if (error)
       {
+   printf("2. I'm %llu long\n", _jim.compilation_result.length);
          _jim_reset_compilation_result();
          error = run_command("cl", _jim.compilation_result.length, _jim.compilation_result.first);
          if (error)
@@ -565,6 +567,7 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: Ran out of memory.", file, line);
+      return;
    }
 
    error = _jim.default_compiler.compile(
@@ -574,6 +577,7 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: Ran out of memory.", file, line);
+      return;
    }
 
    if (!_jim.silent)
@@ -592,6 +596,7 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
                                     _jim.compilation_result.first);
       return;
    }
+   printf("%s\n", _jim.compilation_result.first);
 }
 
 void
@@ -606,6 +611,7 @@ jim_please_link(struct jim_executable executable)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link(%s) ran out of memory.");
+      return;
    }
 
    error = _jim.default_compiler.link(command, executable);
@@ -613,6 +619,7 @@ jim_please_link(struct jim_executable executable)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+      return;
    }
 
    if (!_jim.silent)
@@ -658,6 +665,7 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: failed to allocate string command.", file, line);
+      return (struct jim_library){0};
    }
    error = _jim.default_compiler.create_library(command, library);
    if (error)
@@ -686,7 +694,6 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
                                     _jim.compilation_result.first);
       return (struct jim_library){0};
    }
-
    return (library);
 }
 
@@ -703,6 +710,7 @@ _jim_please_copy_if_newer(char *from, char *to, char *file, s32 line)
     {
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0 error: Failed to copy %s to %s: %s", file, line, from, to, error_code_as_text[error]);
+       return;
     }
 }
 
@@ -719,6 +727,7 @@ _jim_please_copy(char *from, char *to, char *file, s32 line)
     {
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0: error: Failed to copy %s to %s", file, line, from, to);
+       return;
     }
 }
 
@@ -735,6 +744,7 @@ _jim_please_move(char *from, char *to, char *file, s32 line)
     {
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0: error: Failed to move %s to %s", file, line, from, to);
+       return;
     }
 }
 
@@ -751,6 +761,7 @@ _jim_please_create_directory(char *name, char *file, s32 line)
     {
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0: error: Failed to create directory %s", file, line, name);
+       return;
     }
 }
 
@@ -768,25 +779,30 @@ _jim_please_delete(char *name, char *file, s32 line)
         if (error == ec_os_file__not_found) return;
        _jim.error = error;
        _jim_please_set_error_message("./%s:%d:0: error: Failed to delete %s", file, line, name);
+       return;
     }
 }
 
-#define jim_please_run(Command, Working_directory, New_console) \
-   _jim_please_run(Command, Working_directory, New_console, __FILE__, __LINE__)
+#define jim_please_run(Command, Working_directory) \
+   _jim_please_run(Command, Working_directory, __FILE__, __LINE__)
 
 void
-_jim_please_run(char *command, char *working_directory, b32 new_console, char *file, s32 line)
+_jim_please_run(char *command, char *working_directory, char *file, s32 line)
 {
    if (!_jim.silent)
       printf("%s\n", command);
    if (_jim.error)
       return;
-   error error = process_new(command, working_directory, new_console);
+   _jim_reset_compilation_result();
+   error error = run_command_at(command, working_directory,
+         _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s", file, line, command, working_directory);
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s with %s", file, line, command, working_directory, error_code_as_text[error]);
+      return;
    }
+   printf("%s", _jim.compilation_result.first);
 }
 
 s32
@@ -794,7 +810,6 @@ jim_did_we_win(void)
 {
    if (_jim.error)
    {
-      printf("I'm sorry sir. We failed because\n");
       printf("%s\n", _jim.error_message.first);
       return (_jim.error);
    }

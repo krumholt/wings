@@ -50,17 +50,19 @@ end_test(void)
    }
    else
    {
-      printf("✅ %s\n",tests.name);
+      //printf("✅ %s\n",tests.name);
+      printf("YES %s\n",tests.name);
    }
 }
 
+         //printf("❌ %s\n",tests.name);
 #define test(f)                                          \
    tests.test_asserts += 1;                              \
    do                                                    \
    {                                                     \
       if (!(f))                                          \
       {                                                  \
-         printf("❌ %s\n",tests.name);                   \
+         printf("NO %s\n",tests.name);                   \
          tests.test_failed_asserts += 1;                 \
          printf("%s:%d:0: error: ", __FILE__, __LINE__); \
          printf("   (%s) failed\n", #f);                 \
