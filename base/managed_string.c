@@ -10,7 +10,6 @@ struct managed_string
 {
    char  *cstring;
    u64    length;
-   b8     writeable;
 };
 
 struct string_store _managed_strings__string_store = {0};
@@ -27,12 +26,12 @@ managed_string__initialise(u64 size, struct allocator *allocator)
 }
 
 struct managed_string
-managed_string__new(char *value)
+managed_string__from_cstring(char *value)
 {
    struct managed_string result =
    {
       .cstring = 0,
-      .writeable = 1,
+      .length = 0,
    };
    error error = string_store__store(
          &_managed_strings__string_store,
@@ -41,7 +40,7 @@ managed_string__new(char *value)
    if (error)
    {
       _managed_strings__error = error;
-      result.writeable = 0;
+      return (result);
    }
    result.length = strlen(value);
 
@@ -49,18 +48,14 @@ managed_string__new(char *value)
 }
 
 struct managed_string
-managed_string__append_cstring(struct managed_string a,
+managed_string__join_cstring(struct managed_string a,
                                char *b)
 {
-   if (!a.writeable)
-   {
-      return (struct managed_string){0};
-   }
    u64 b_length = strlen(b);
    struct managed_string result =
    {
-      .writeable = 1,
-      .length    = a.length + b_length,
+      .cstring = 0,
+      .length  = a.length + b_length,
    };
    error error = string_store__store_size(
          &_managed_strings__string_store,
@@ -70,9 +65,16 @@ managed_string__append_cstring(struct managed_string a,
    if (error)
    {
       _managed_strings__error = error;
-      result.writeable = 0;
+      result.length = 0;
+      return result;
    }
 
+   for (u32 index = 0;
+        index < a.length;
+        ++index)
+   {
+      result.cstring[index] = a.cstring[index];
+   }
    for (u32 index = 0;
         index < b_length;
         ++index)
@@ -82,18 +84,13 @@ managed_string__append_cstring(struct managed_string a,
 
    return (result);
 }
+
 struct managed_string
-managed_string__append(struct managed_string a,
-                       struct managed_string b)
+managed_string__join(struct managed_string a,
+                     struct managed_string b)
 {
-   if (!(a.writeable && b.writeable))
-   {
-      _managed_strings__error = ec_base_managed_string__string_not_writeable;
-      return (struct managed_string){0};
-   }
    struct managed_string result =
    {
-      .writeable = 1,
       .length    = a.length + b.length,
    };
    error error = string_store__store_size(
@@ -104,7 +101,8 @@ managed_string__append(struct managed_string a,
    if (error)
    {
       _managed_strings__error = error;
-      result.writeable = 0;
+      result.length = 0;
+      return result;
    }
 
    for (u32 index = 0;
@@ -118,6 +116,160 @@ managed_string__append(struct managed_string a,
         ++index)
    {
       result.cstring[index + a.length] = b.cstring[index];
+   }
+
+   return (result);
+}
+
+struct managed_string
+managed_string__join_with_separator(
+      struct managed_string a,
+      struct managed_string b,
+      char *separator)
+{
+   u32 separator_length = strlen(separator);
+   struct managed_string result =
+   {
+      .length = a.length + b.length + separator_length,
+   };
+   error error = string_store__store_size(
+         &_managed_strings__string_store,
+         &result.cstring,
+         result.length + 1
+         );
+   if (error)
+   {
+      _managed_strings__error = error;
+      result.length = 0;
+      return result;
+   }
+
+   for (u32 index = 0;
+        index < a.length;
+        ++index)
+   {
+      result.cstring[index] = a.cstring[index];
+   }
+   char *source = separator;
+   char *target = result.cstring + a.length;
+   while(*source)
+   {
+      *target = *source;
+      source += 1;
+      target += 1;
+   }
+   for (u32 index = 0;
+        index < b.length;
+        ++index)
+   {
+      result.cstring[index + a.length + separator_length] = b.cstring[index];
+   }
+
+   return (result);
+}
+
+struct managed_string
+managed_string__join_with_separator_3(
+      struct managed_string a,
+      struct managed_string b,
+      struct managed_string c,
+      char *separator)
+{
+   u32 separator_length = strlen(separator);
+   struct managed_string result =
+   {
+      .length = a.length + b.length + separator_length + separator_length,
+   };
+   error error = string_store__store_size(
+         &_managed_strings__string_store,
+         &result.cstring,
+         result.length + 1
+         );
+   if (error)
+   {
+      _managed_strings__error = error;
+      result.length = 0;
+      return result;
+   }
+
+   for (u32 index = 0;
+        index < a.length;
+        ++index)
+   {
+      result.cstring[index] = a.cstring[index];
+   }
+   char *source = separator;
+   char *target = result.cstring + a.length;
+   while(*source)
+   {
+      *target = *source;
+      source += 1;
+      target += 1;
+   }
+   for (u32 index = 0;
+        index < b.length;
+        ++index)
+   {
+      result.cstring[index + a.length + separator_length] = b.cstring[index];
+   }
+
+   source = separator;
+   target = result.cstring + a.length + separator_length + b.length;
+   while(*source)
+   {
+      *target = *source;
+      source += 1;
+      target += 1;
+   }
+   for (u32 index = 0;
+        index < c.length;
+        ++index)
+   {
+      result.cstring[index + a.length + b.length + separator_length + separator_length] = c.cstring[index];
+   }
+
+   return (result);
+}
+
+struct managed_string
+managed_string__join_3(
+      struct managed_string a,
+      struct managed_string b,
+      struct managed_string c)
+{
+   struct managed_string result =
+   {
+      .length    = a.length + b.length + c.length,
+   };
+   error error = string_store__store_size(
+         &_managed_strings__string_store,
+         &result.cstring,
+         result.length + 1
+         );
+   if (error)
+   {
+      _managed_strings__error = error;
+      result.length = 0;
+      return result;
+   }
+
+   for (u32 index = 0;
+        index < a.length;
+        ++index)
+   {
+      result.cstring[index] = a.cstring[index];
+   }
+   for (u32 index = 0;
+        index < b.length;
+        ++index)
+   {
+      result.cstring[index + a.length] = b.cstring[index];
+   }
+   for (u32 index = 0;
+        index < c.length;
+        ++index)
+   {
+      result.cstring[index + a.length + b.length] = c.cstring[index];
    }
 
    return (result);

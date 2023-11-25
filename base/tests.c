@@ -50,19 +50,48 @@ end_test(void)
    }
    else
    {
-      //printf("✅ %s\n",tests.name);
-      printf("YES %s\n",tests.name);
+      printf("✅ %s\n",tests.name);
    }
 }
 
-         //printf("❌ %s\n",tests.name);
+#define assert_equal_cstrings(A, B)                      \
+   tests.test_asserts += 1;                              \
+   do                                                    \
+   {                                                     \
+      if (strcmp((A), (B)) != 0)\
+      {                                                  \
+         printf("❌ %s\n",tests.name);                   \
+         tests.test_failed_asserts += 1;                 \
+         printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+         printf("'%s' != '%s'\n", A, B);                 \
+      }                                                  \
+   }                                                     \
+   while (0)
+
+#define assert_equal(A, B)                               \
+   tests.test_asserts += 1;                              \
+   do                                                    \
+   {                                                     \
+      if (!((A) == (B)))                                 \
+      {                                                  \
+         printf("❌ %s\n",tests.name);                   \
+         tests.test_failed_asserts += 1;                 \
+         printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+         printf("%s != %s\n", #A, #B);                   \
+      }                                                  \
+      else                                               \
+      {                                                  \
+      }                                                  \
+   }                                                     \
+   while (0)
+
 #define test(f)                                          \
    tests.test_asserts += 1;                              \
    do                                                    \
    {                                                     \
       if (!(f))                                          \
       {                                                  \
-         printf("NO %s\n",tests.name);                   \
+         printf("❌ %s\n",tests.name);                   \
          tests.test_failed_asserts += 1;                 \
          printf("%s:%d:0: error: ", __FILE__, __LINE__); \
          printf("   (%s) failed\n", #f);                 \

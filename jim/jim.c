@@ -459,11 +459,6 @@ jim_please_use_msvc(void)
    _jim.default_compiler = jim_msvc_compiler;
 }
 
-void
-_jim_reset_compilation_result()
-{
-   //_jim.compilation_result.length = 4096 * 10;
-}
 
 void
 _jim_update_yourself(void);
@@ -489,9 +484,7 @@ _jim_please_listen(char *file, s32 line)
       _jim.error = error;
       return;
    }
-   _jim_reset_compilation_result();
    error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
-   printf("I'm %llu long\n", _jim.compilation_result.length);
    if (error)
    {
       _jim.error = error;
@@ -502,17 +495,12 @@ _jim_please_listen(char *file, s32 line)
    if (!_jim.default_compiler_set)
    {
       _jim.default_compiler = jim_gcc_compiler;
-      _jim_reset_compilation_result();
-   printf("I'm %llu long\n", _jim.compilation_result.length);
       error = run_command("gcc --version", _jim.compilation_result.length, _jim.compilation_result.first);
       if (error)
       {
-   printf("2. I'm %llu long\n", _jim.compilation_result.length);
-         _jim_reset_compilation_result();
          error = run_command("cl", _jim.compilation_result.length, _jim.compilation_result.first);
          if (error)
          {
-            _jim_reset_compilation_result();
             error = run_command("clang --version", _jim.compilation_result.length, _jim.compilation_result.first);
             if (error)
             {
@@ -582,9 +570,8 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
 
    if (!_jim.silent)
    {
-      printf("%s\n", command.first);
+      printf("jim:'%s'\n", command.first);
    }
-   _jim_reset_compilation_result();
    error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
@@ -596,7 +583,7 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
                                     _jim.compilation_result.first);
       return;
    }
-   printf("%s\n", _jim.compilation_result.first);
+   printf("%s", _jim.compilation_result.first);
 }
 
 void
@@ -624,9 +611,8 @@ jim_please_link(struct jim_executable executable)
 
    if (!_jim.silent)
    {
-      printf("%s\n", command.first);
+      printf("jim:'%s'\n", command.first);
    }
-   _jim_reset_compilation_result();
    error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
@@ -679,9 +665,8 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    }
    if (!_jim.silent)
    {
-      printf("%s\n", command.first);
+      printf("jim:'%s'\n", command.first);
    }
-   _jim_reset_compilation_result();
    error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)
    {
@@ -789,11 +774,12 @@ _jim_please_delete(char *name, char *file, s32 line)
 void
 _jim_please_run(char *command, char *working_directory, char *file, s32 line)
 {
-   if (!_jim.silent)
-      printf("%s\n", command);
    if (_jim.error)
       return;
-   _jim_reset_compilation_result();
+   if (!_jim.silent)
+   {
+      printf("jim:'%s'\n", command);
+   }
    error error = run_command_at(command, working_directory,
          _jim.compilation_result.length, _jim.compilation_result.first);
    if (error)

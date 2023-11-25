@@ -34,7 +34,7 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
    PROCESS_INFORMATION process_info = { 0 };
    startup_info.cb                  = sizeof(STARTUPINFO);
    startup_info.lpTitle             = 0;
-   startup_info.hStdError           = 0;//out_pipe_write;
+   startup_info.hStdError           = out_pipe_write;
    startup_info.hStdOutput          = out_pipe_write;
    startup_info.hStdInput           = 0;
    startup_info.dwFlags             = STARTF_USESTDHANDLES;
@@ -62,7 +62,6 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
    DWORD chars_read = 0;
    CloseHandle(out_pipe_write);
 
-   char *buffer_start = result_buffer;
    for (;;)
    {
       success = ReadFile(out_pipe_read,
@@ -70,11 +69,8 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
                          result_buffer_size - 1,
                          &chars_read,
                          0);
-      printf("readifying %d but got %lu\n", result_buffer_size - 1, chars_read);
       if (!success || chars_read == 0)
       {
-         DWORD last_error = GetLastError();
-         printf("success: %d, error: %lu\n", success, last_error);
          result_buffer += chars_read;
          result_buffer_size -= chars_read;
          break;
@@ -82,14 +78,15 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
       result_buffer += chars_read;
       result_buffer_size -= chars_read;
    }
-   printf("%s\n", buffer_start);
-   //*result_buffer = 0;
+   *result_buffer = 0;
    CloseHandle(out_pipe_read);
    DWORD exit_code = 0;
    GetExitCodeProcess(process_info.hProcess, &exit_code);
    CloseHandle(process_info.hProcess);
    CloseHandle(process_info.hThread);
 
+   if (exit_code)
+      return(ec_os_process__command_failed);
    return (NO_ERROR);
 }
 

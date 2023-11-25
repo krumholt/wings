@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_PATHS_C_
 #define WINGS_BASE_PATHS_C_
 
-#include "wings/base/types.c"
+#include "wings/base/types.h"
 #include "wings/base/macros.c"
 #include "wings/base/strings.c"
 
@@ -11,8 +11,8 @@
 
 struct path
 {
-   char string[MAX_PATH_SIZE];
-   u64  used;
+   char  *first;
+   u64    length;
 };
 
 struct path   make_path(char *string, u64 size);

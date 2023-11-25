@@ -159,20 +159,19 @@ _file_default_file_filter(char *file_name)
     return 1;
 }
 
-//@TODO: add list directory
-/*
 error
-file_list_directory(char                    *path,
-                    u32                      offset,
-                    struct file_description *file_list,
-                    u32                     *number_of_files,
-                    file_filter_function     file_filter,
-                    struct allocator temp_memory)
+file_list_directory(
+      char *path,
+      u32 offset,
+      struct file_description *file_list,
+      u32 *number_of_files,
+      file_filter_function file_filter,
+      struct allocator temp_memory)
 {
     if (!file_filter)
         file_filter = _file_default_file_filter;
-    HANDLE          find_handle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATA find_data   = { 0 };
+    HANDLE find_handle = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATA find_data = { 0 };
 
     char tmp_path[1024] = {0};
     snprintf(tmp_path, 1023, "%s\\*", path);
@@ -215,7 +214,6 @@ file_list_directory(char                    *path,
 
     return (file_index);
 }
-*/
 
 error
 file_create_directory(char *file_path)
