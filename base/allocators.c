@@ -50,6 +50,10 @@ struct allocator
    s32 alignment;
 };
 
+struct allocator _allocators__static = {0};
+struct allocator _allocators__temporary = {0};
+
+
 struct allocator
 make_growing_linear_allocator(u64 block_size)
 {
@@ -107,6 +111,28 @@ linear_growing_allocator_allocate(u8 **memory, struct allocator *general_allocat
    allocator->stack.top->buffer.used += size;
    general_allocator->total_memory_used += size;
    return (0);
+}
+
+struct allocator *
+allocators__get_global_static(void)
+{
+   if (_allocators__static.total_memory_allocated == 0)
+   {
+      _allocators__static = make_growing_linear_allocator(65536);
+   }
+
+   return &_allocators__static;
+}
+
+struct allocator *
+allocators__get_global_temporary(void)
+{
+   if (_allocators__temporary.total_memory_allocated == 0)
+   {
+      _allocators__temporary = make_growing_linear_allocator(65536);
+   }
+
+   return &_allocators__temporary;
 }
 
 error

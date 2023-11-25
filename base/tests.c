@@ -85,6 +85,23 @@ end_test(void)
    }                                                     \
    while (0)
 
+#define assert_greater(A, B)                             \
+   tests.test_asserts += 1;                              \
+   do                                                    \
+   {                                                     \
+      if (!((A) > (B)))                                  \
+      {                                                  \
+         printf("❌ %s\n",tests.name);                   \
+         tests.test_failed_asserts += 1;                 \
+         printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+         printf("%s <= %s\n", #A, #B);                   \
+      }                                                  \
+      else                                               \
+      {                                                  \
+      }                                                  \
+   }                                                     \
+   while (0)
+
 #define test(f)                                          \
    tests.test_asserts += 1;                              \
    do                                                    \
