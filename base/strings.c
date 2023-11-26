@@ -5,6 +5,7 @@
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
 #include "wings/base/string_store.c"
+#include "wings/base/cstrings.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -42,29 +43,9 @@ make_string(struct string *string, u32 length, struct allocator *allocator)
    return (error);
 }
 
-int
-is_digit(char c)
-{
-   return c >= '0' && c <= '9';
-}
-
-int
-is_whitespace(char c)
-{
-   return ((c >= 9 && c <= 13) || c == ' ');
-}
-
-char *
-cstring_end_pointer(char *s)
-{
-   char *tmp = s;
-   while (*tmp)
-      ++tmp;
-   return (tmp);
-}
 
 u32
-split_cstring(char *s, char c, struct string *left, struct string *right) // @TODO: this is wrong
+cstring__split(char *s, char c, struct string *left, struct string *right) // @TODO: this is wrong
 {
    u32 count       = 0;
    u32 left_length = 0;
@@ -89,6 +70,8 @@ split_cstring(char *s, char c, struct string *left, struct string *right) // @TO
    //   right->length = 0;
    return left_length;
 }
+
+
 
 b32
 compare_string_cstring(struct string a, char *b)
@@ -137,7 +120,7 @@ string_to_f64(char *string, s32 string_length, f64 *result)
          index += 1; // eat the dot
          break;
       }
-      if (!is_digit(c))
+      if (!cstring__is_digit(c))
          return string_to_f32_illegal_character;
       *result *= 10.0;
       *result += (c - '0');
@@ -147,7 +130,7 @@ string_to_f64(char *string, s32 string_length, f64 *result)
    for (; index < string_length; ++index)
    {
       char c = string[index];
-      if (!is_digit(c))
+      if (!cstring__is_digit(c))
          return string_to_f32_illegal_character;
       after_comma_result += (c - '0') * first;
       first *= 0.1;
@@ -182,7 +165,7 @@ string_to_f32(char *string, s32 string_length, f32 *result)
          index += 1; // eat the dot
          break;
       }
-      if (!is_digit(c))
+      if (!cstring__is_digit(c))
          return string_to_f32_illegal_character;
       *result *= 10.0f;
       *result += (c - '0');
@@ -192,7 +175,7 @@ string_to_f32(char *string, s32 string_length, f32 *result)
    for (; index < string_length; ++index)
    {
       char c = string[index];
-      if (!is_digit(c))
+      if (!cstring__is_digit(c))
          return string_to_f32_illegal_character;
       after_comma_result += (c - '0') * first;
       first *= 0.1f;
@@ -222,7 +205,7 @@ string_to_s32(char *string, s32 string_length, s32 *result)
    for (; index < string_length; ++index)
    {
       char c = string[index];
-      if (!is_digit(c))
+      if (!cstring__is_digit(c))
          return string_to_s32_illegal_character;
       *result *= 10;
       *result += c - '0';
@@ -232,57 +215,6 @@ string_to_s32(char *string, s32 string_length, s32 *result)
    return string_to_s32_no_error;
 }
 
-void
-cstring_replace(char *target, s32 length, char old_char, char new_char)
-{
-   for (s32 index = 0; index < length; ++index)
-   {
-      if (target[index] == old_char)
-         target[index] = new_char;
-   }
-}
-
-char
-cstring_is_one_of(char c, char *c_string)
-{
-   if (!c_string)
-      return 0;
-   while (*c_string)
-   {
-      if (*c_string == c)
-         return c;
-      ++c_string;
-   }
-   return 0;
-}
-
-b32
-cstring_ends_with(char *haystack, s32 haystack_length, char *needle, s32 needle_length)
-{
-   if (needle_length > haystack_length || needle_length == 0)
-      return 0;
-   while (needle_length)
-   {
-      --needle_length;
-      --haystack_length;
-      if (haystack[haystack_length] != needle[needle_length])
-         return 0;
-   }
-   return 1;
-}
-
-b32
-begins_with_cstring(char *a, u64 length_a, char *b, u64 length_b)
-{
-   u64 index = 0;
-   for (; index < length_a && index < length_b; index += 1)
-   {
-      if (a[index] != b[index])
-         return 0;
-   }
-   return index == length_b;
-}
-
 struct string
 next_word(struct string *context)
 {
@@ -290,11 +222,11 @@ next_word(struct string *context)
    word.length        = 0;
    for (u32 at = 0; at < context->length; ++at)
    {
-      if (is_whitespace(context->first[at]))
+      if (cstring__is_whitespace(context->first[at]))
       {
          context->length -= (word.length + 1);
          context->first += (word.length + 1);
-         while (context->length > 0 && is_whitespace(context->first[0]))
+         while (context->length > 0 && cstring__is_whitespace(context->first[0]))
          {
             context->length -= 1;
             context->first += 1;
@@ -444,7 +376,7 @@ next_token_with_separator(struct string *context, seperator_fn is_token_separato
       {
          contains_dot += 1;
       }
-      else if (!is_digit(context->first[at]))
+      else if (!cstring__is_digit(context->first[at]))
       {
          only_numbers = 0;
       }
@@ -469,7 +401,10 @@ next_token(struct string *context)
 }
 
 void
-ws_string_copy(char *target, s32 target_length, char *source, s32 source_length)
+ws_string_copy(char *target,
+               s32 target_length,
+               char *source,
+               s32 source_length)
 {
    while (*target && *source && target_length && source_length)
    {

@@ -1,25 +1,12 @@
 #ifndef WINGS_BASE_PATHS_C_
 #define WINGS_BASE_PATHS_C_
 
+#include "wings/base/paths.h"
 #include "wings/base/types.h"
 #include "wings/base/macros.c"
 #include "wings/base/strings.c"
 
-#ifndef MAX_PATH_SIZE
-#define MAX_PATH_SIZE 1024
-#endif
 
-struct path
-{
-   char  *first;
-   u64    length;
-};
-
-struct path   make_path(char *string, u64 size);
-void          copy_path(struct path *target, struct path source);
-void          append_path(struct path *path, char *string);
-struct string base_name(struct path path);
-void          set_to_parent(struct path *path);
 
 static b32
 _is_path_seperator(char c)
@@ -59,13 +46,14 @@ copy_path(struct path *target, struct path source)
    }
 }
 
-void
-append_path(struct path *path, char *string)
+error
+append_path(struct path *path, char *string, struct allocator *allocator)
 {
-   path->used -= 1; // put cursor on 0 terminator
+   path->string = string_append
+   u32 new_size = strlen(string) + path->string.length;
+   char *new_path = 0;
    while (*string)
    {
-      assert(path->used + 1 <= MAX_PATH_SIZE);
       path->string[path->used++] = *string;
       string += 1;
    }
