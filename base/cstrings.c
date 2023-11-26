@@ -2,6 +2,8 @@
 #define WINGS_BASE_CSTRINGS_C_
 
 #include "wings/base/types.h"
+#include "wings/base/error_codes.c"
+#include "wings/base/allocators.c"
 
 b32
 cstring__is_digit(char c)
@@ -24,8 +26,21 @@ cstring__pointer_to_trailing_zero(char *s)
    return (tmp);
 }
 
+error
+cstring__copy(char **target, u32 source_length, char *source, struct allocator *allocator)
+{
+   error error = allocate_array(target, allocator, source_length + 1, char);
+   IF_ERROR_RETURN(error);
+   if (source_length)
+   {
+      memcpy(*target, source, source_length);
+   }
+
+   return(0);
+}
+
 void
-cstring__replace(char *target, s32 length, char old_char, char new_char)
+cstring__replace(s32 length, char *target, char old_char, char new_char)
 {
    for (s32 index = 0; index < length; ++index)
    {
@@ -35,15 +50,15 @@ cstring__replace(char *target, s32 length, char old_char, char new_char)
 }
 
 char
-cstring__get_character_in_string(char c, char *c_string)
+cstring__get_character_in_string(char *haystack, char needle)
 {
-   if (!c_string)
+   if (!haystack)
       return 0;
-   while (*c_string)
+   while (*haystack)
    {
-      if (*c_string == c)
-         return c;
-      ++c_string;
+      if (*haystack == needle)
+         return needle;
+      ++haystack;
    }
    return 0;
 }
@@ -51,7 +66,7 @@ cstring__get_character_in_string(char c, char *c_string)
 b32
 cstring__ends_with(char *haystack, s32 haystack_length, char *needle, s32 needle_length)
 {
-   if (needle_length > haystack_length || needle_length == 0)
+   if (needle_length > haystack_length)
       return 0;
    while (needle_length)
    {

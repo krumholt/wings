@@ -50,7 +50,7 @@ end_test(void)
    }
    else
    {
-      printf("✅ %s\n",tests.name);
+      printf("✅ %s [%d asserts]\n",tests.name, tests.test_asserts);
    }
 }
 
@@ -58,12 +58,28 @@ end_test(void)
    tests.test_asserts += 1;                              \
    do                                                    \
    {                                                     \
-      if (strcmp((A), (B)) != 0)\
+      if (strcmp((A), (B)) != 0)                         \
       {                                                  \
          printf("❌ %s\n",tests.name);                   \
          tests.test_failed_asserts += 1;                 \
          printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+         printf("'%s' != '%s'\n", #A, #B);               \
          printf("'%s' != '%s'\n", A, B);                 \
+      }                                                  \
+   }                                                     \
+   while (0)
+
+#define assert_equal_int(A, B)                           \
+   tests.test_asserts += 1;                              \
+   do                                                    \
+   {                                                     \
+      if ((A) != (B))                                    \
+      {                                                  \
+         printf("❌ %s\n",tests.name);                   \
+         tests.test_failed_asserts += 1;                 \
+         printf("%s:%d:0: error: ", __FILE__, __LINE__); \
+         printf("'%s' != '%s'\n", #A, #B);               \
+         printf("'%d' != '%d'\n", A, B);                 \
       }                                                  \
    }                                                     \
    while (0)
@@ -102,7 +118,7 @@ end_test(void)
    }                                                     \
    while (0)
 
-#define test(f)                                          \
+#define assert_true(f)                                   \
    tests.test_asserts += 1;                              \
    do                                                    \
    {                                                     \
