@@ -1,17 +1,27 @@
 #ifndef WINGS_BASE_PATHS_C_
 #define WINGS_BASE_PATHS_C_
 
-#include "wings/base/paths.h"
 #include "wings/base/types.h"
+#include "wings/base/error_codes.c"
+#include "wings/base/cstrings.h"
 #include "wings/base/macros.c"
 #include "wings/base/strings.c"
-
+#include "wings/base/paths.h"
 
 
 static b32
 _is_path_seperator(char c)
 {
    return c == '\\' || c == '/';
+}
+
+error
+path__from_cstring(
+      struct path path,
+      char *string,
+      struct allocator *allocator)
+{
+   jk
 }
 
 struct path

@@ -5,14 +5,16 @@
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
 
-#ifndef PATHS__DEFAULT_PATH_SIZE
-#define PATHS__DEFAULT_PATH_SIZE 1024
-#endif
 
 struct path
 {
    struct string string;
 };
+
+error path__from_cstring(
+      struct path *path,
+      char *string,
+      struct allocator *allocator);
 
 struct path path__copy (
       struct path *target,
