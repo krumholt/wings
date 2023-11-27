@@ -9,25 +9,30 @@
 #include "wings/base/paths.h"
 
 
-/*
-static b32
-_is_path_seperator(char c)
-{
-   return c == '\\' || c == '/';
-}
-*/
-
 error
 path__from_cstring (struct path *path,
                     u64  cstring_length,
                     char *cstring,
                     struct allocator *allocator)
 {
-   error error = string__from_cstring(
-         &path->string,
-         cstring_length,
-         cstring,
-         allocator);
+   ASSERT(cstring);
+   error error = ec__no_error;
+   if (cstring_length == 0)
+   {
+      error = string__from_cstring(
+            &path->string,
+            2,
+            ".\\",
+            allocator);
+   }
+   else
+   {
+      error = string__from_cstring(
+            &path->string,
+            cstring_length,
+            cstring,
+            allocator);
+   }
    return (error);
 }
 
@@ -81,88 +86,34 @@ path__ensure_is_folder (struct path      *path,
    return (ec__no_error);
 }
 
-/*
-error
-path__ensure_is_folder (struct path      *path,
-                        struct allocator *allocator)
-{
-   // the -1 is correct because paths can not be 0 length
-   // the 'smallest' path is "."
-   //u64 last_character_index = path.string.length - 1;
-   //if (path.string.first[last_character_index] == '\\')
-   //   return ec__no_error;
-
-   //string_append path.string.length
-   //if (path.string.first[
-}
-*/
-
-/*
-struct path
-make_path(char *string, u64 size)
-{
-   ASSERT(size < MAX_PATH_SIZE);
-
-   struct path path = { 0 };
-   path.used        = 0;
-
-   if (string)
-   {
-      while (size)
-      {
-         path.string[path.used++] = *string;
-         string += 1;
-         size -= 1;
-      }
-   }
-   path.string[path.used++] = 0;
-
-   return (path);
-}
 
 void
-copy_path(struct path *target, struct path source)
+path__set_to_parent(struct path *path)
 {
-   target->used = source.used;
-   for (u32 index = 0; index < MAX_PATH_SIZE; ++index)
+   if (path->string.length <= 1)
+      return;
+   b32 removed_path_separator = 0;
+   if (path->string.first[path->string.length - 1] == '\\')
    {
-      target->string[index] = source.string[index];
+      path->string.length -= 1;
+      path->string.first[path->string.length] = 0;
+      removed_path_separator = 1;
    }
-}
-
-error
-append_path(struct path *path, char *string, struct allocator *allocator)
-{
-   path->string = string_append
-   u32 new_size = strlen(string) + path->string.length;
-   char *new_path = 0;
-   while (*string)
+   u64 last_index = 0;
+   error error = 0;
+   error = cstring__get_last_index(&last_index, path->string.first, '\\');
+   if (error)
    {
-      path->string[path->used++] = *string;
-      string += 1;
-   }
-   path->string[path->used++] = 0;
-}
-
-void
-set_to_parent(struct path *path)
-{
-   s32 last_character = path->used - 1;
-   assert(path->string[last_character] == 0);
-   last_character -= 1;
-   if (_is_path_seperator(path->string[last_character]))
-      last_character -= 1;
-   while (last_character >= 0)
-   {
-      if (_is_path_seperator(path->string[last_character]))
+      if (removed_path_separator)
       {
-         path->string[last_character + 1] = 0;
-         path->used                       = last_character + 2;
-         return;
+         path->string.first[path->string.length] = '\\';
+         path->string.length += 1;
+         path->string.first[path->string.length] = 0;
       }
-      last_character -= 1;
+      return;
    }
+   path->string.length = last_index + 1;
+   path->string.first[path->string.length] = 0;
 }
-*/
 
 #endif

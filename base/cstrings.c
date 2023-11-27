@@ -49,18 +49,49 @@ cstring__replace(s32 length, char *target, char old_char, char new_char)
    }
 }
 
-char
-cstring__get_character_in_string(char *haystack, char needle)
+error
+cstring__get_first_index(u64 *index, char *haystack, char needle)
 {
-   if (!haystack)
-      return 0;
+   ASSERT(index);
+   ASSERT(haystack);
+   char *haystack_start = haystack;
    while (*haystack)
    {
       if (*haystack == needle)
-         return needle;
+      {
+         *index = haystack - haystack_start;
+         return 0;
+      }
       ++haystack;
    }
-   return 0;
+   return ec_base_cstrings__not_found;
+}
+
+error
+cstring__get_last_index(u64 *index, char *haystack, char needle)
+{
+   ASSERT(index);
+   ASSERT(haystack);
+   char *haystack_start = haystack;
+   while (*haystack)
+   {
+      ++haystack;
+   };
+   while(haystack != haystack_start)
+   {
+      --haystack;
+      if (*haystack == needle)
+      {
+         *index = haystack - haystack_start;
+         return ec__no_error;
+      }
+   }
+   if (*haystack == needle)
+   {
+      *index = 0;
+      return ec__no_error;
+   }
+   return ec_base_cstrings__not_found;
 }
 
 b32

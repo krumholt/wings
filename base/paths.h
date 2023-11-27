@@ -32,7 +32,12 @@ path__ensure_is_folder (struct path      *path,
                         struct allocator *allocator);
 
 
-struct string path__base_name (struct path path);
-void path__set_to_parent (struct path *path);
+error
+path__base_name (struct string *base_name,
+                 struct path path,
+                 struct allocator *allocator);
+
+void
+path__set_to_parent (struct path *path);
 
 #endif
