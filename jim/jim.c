@@ -478,13 +478,13 @@ _jim_please_listen(char *file, s32 line)
    _jim.on_windows = 0;
 #endif
 
-   error = make_string(&_jim.error_message, 4096 * 10, &_jim.allocator);
+   error = string__new(&_jim.error_message, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
       return;
    }
-   error = make_string(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
+   error = string__new(&_jim.compilation_result, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
@@ -550,7 +550,7 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
       return;
 
    struct string command = {0};
-   error error = make_string(&command, 4096 * 10, &_jim.allocator);
+   error error = string__new(&command, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
@@ -593,7 +593,7 @@ jim_please_link(struct jim_executable executable)
       return;
 
    struct string command = {0};
-   error error = make_string(&command, 4096 * 10, &_jim.allocator);
+   error error = string__new(&command, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;
@@ -646,7 +646,7 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
 
 
    struct string command = {0};
-   error error = make_string(&command, 4096 * 10, &_jim.allocator);
+   error error = string__new(&command, 4096 * 10, &_jim.allocator);
    if (error)
    {
       _jim.error = error;

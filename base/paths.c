@@ -9,21 +9,95 @@
 #include "wings/base/paths.h"
 
 
+/*
 static b32
 _is_path_seperator(char c)
 {
    return c == '\\' || c == '/';
 }
+*/
 
 error
-path__from_cstring(
-      struct path path,
-      char *string,
-      struct allocator *allocator)
+path__from_cstring (struct path *path,
+                    u64  cstring_length,
+                    char *cstring,
+                    struct allocator *allocator)
 {
-   jk
+   error error = string__from_cstring(
+         &path->string,
+         cstring_length,
+         cstring,
+         allocator);
+   return (error);
 }
 
+error
+path__copy (struct path *target,
+            struct path source,
+            struct allocator *allocator)
+{
+   error error = string__from_cstring(
+         &target->string,
+         source.string.length,
+         source.string.first,
+         allocator);
+   return (error);
+}
+
+error
+path__append (struct path       *result,
+              char              *cstring,
+              struct allocator  *allocator)
+{
+   error error = 0;
+   error = string__join_cstring(
+         &result->string,
+         result->string,
+         strlen(cstring),
+         cstring,
+         allocator);
+
+   return error;
+}
+
+error
+path__ensure_is_folder (struct path      *path,
+                        struct allocator *allocator)
+{
+   // the -1 is correct because paths can not be 0 length
+   // the 'smallest' path is "."
+   u64 last_character_index = path->string.length - 1;
+   if (path->string.first[last_character_index] != '\\')
+   {
+      error error = string__join_cstring(
+            &path->string,
+            path->string,
+            1,
+            "\\",
+            allocator);
+      IF_ERROR_RETURN(error);
+   }
+
+   return (ec__no_error);
+}
+
+/*
+error
+path__ensure_is_folder (struct path      *path,
+                        struct allocator *allocator)
+{
+   // the -1 is correct because paths can not be 0 length
+   // the 'smallest' path is "."
+   //u64 last_character_index = path.string.length - 1;
+   //if (path.string.first[last_character_index] == '\\')
+   //   return ec__no_error;
+
+   //string_append path.string.length
+   //if (path.string.first[
+}
+*/
+
+/*
 struct path
 make_path(char *string, u64 size)
 {
@@ -89,5 +163,6 @@ set_to_parent(struct path *path)
       last_character -= 1;
    }
 }
+*/
 
 #endif
