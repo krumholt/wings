@@ -4,6 +4,7 @@
 #include "wings/base/types.h"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
+#include "wings/base/paths.h"
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN
@@ -159,8 +160,6 @@ _file_default_file_filter(char *file_name)
     return 1;
 }
 
-//@TODO: implement me
-/*
 error
 file_list_directory(
       char *path,
@@ -168,55 +167,64 @@ file_list_directory(
       struct file_description *file_list,
       u32 *number_of_files,
       file_filter_function file_filter,
-      struct allocator temp_memory)
+      struct allocator *static_memory,
+      struct allocator *temp_memory)
 {
-    if (!file_filter)
-        file_filter = _file_default_file_filter;
-    HANDLE find_handle = INVALID_HANDLE_VALUE;
-    WIN32_FIND_DATA find_data = { 0 };
+   if (!file_filter)
+      file_filter = _file_default_file_filter;
+   HANDLE find_handle = INVALID_HANDLE_VALUE;
+   WIN32_FIND_DATA find_data = { 0 };
 
-    char tmp_path[1024] = {0};
-    snprintf(tmp_path, 1023, "%s\\*", path);
-    find_handle = FindFirstFile(path, &find_data);
+   error error = 0;
+   struct path base_path = {0};
+   error = path__from_cstring(&base_path, strlen(path), path, temp_memory);
+   IF_ERROR_RETURN(error);
+   error = path__ensure_is_folder(&base_path, temp_memory);
+   IF_ERROR_RETURN(error);
+   struct path search_path = {0};
+   error = path__append(&search_path, base_path, "*", temp_memory);
+   IF_ERROR_RETURN(error);
+   find_handle = FindFirstFile(search_path.string.first, &find_data);
 
-    if (find_handle == INVALID_HANDLE_VALUE)
-    {
-        *number_of_files = 0;
-        return ec_os_file__not_found;
-    }
+   if (find_handle == INVALID_HANDLE_VALUE)
+   {
+      *number_of_files = 0;
+      return ec_os_file__not_found;
+   }
 
-    u32 file_count = 0;
-    u32 file_index = 0;
-    do
-    {
-        char *file_name        = find_data.cFileName;
-        u64   file_name_length = strlen(file_name);
-        b32   is_directory     = (b32)(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
-        if ((file_name_length == 1 && file_name[0] == '.')
+   u32 file_count = 0;
+   u32 file_index = 0;
+   do
+   {
+      char *file_name        = find_data.cFileName;
+      u64   file_name_length = strlen(file_name);
+      b32   is_directory     = (b32)(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+      if ((file_name_length == 1 && file_name[0] == '.')
             || (file_name_length == 2 && file_name[0] == '.' && file_name[1] == '.')
             || !file_filter(file_name))
-            continue;
-        if (file_index >= offset && file_count < *number_of_files)
-        {
-            copy_path(&file_list[file_count].file_path, path);
-            append_path(&file_list[file_count].file_path, file_name);
-            file_list[file_count].file_size       = (s32)(find_data.nFileSizeHigh * MAXDWORD + find_data.nFileSizeLow);
-            file_list[file_count].last_write_time = 0;
-            file_list[file_count].last_write_time += (u64)(find_data.ftLastWriteTime.dwHighDateTime) << 32;
-            file_list[file_count].last_write_time += find_data.ftLastWriteTime.dwLowDateTime;
-            file_list[file_count].is_directory = is_directory;
-            file_count++;
-        }
-        file_index++;
-    } while (FindNextFile(find_handle, &find_data) != 0);
+         continue;
+      if (file_index >= offset && file_count < *number_of_files)
+      {
+         struct path path_to_file = {0};
+         error = path__append(&path_to_file, base_path, file_name, static_memory);
+         IF_ERROR_RETURN(error);
+         file_list[file_count].file_path = path_to_file.string.first;
+         file_list[file_count].file_size = (s32)(find_data.nFileSizeHigh * MAXDWORD + find_data.nFileSizeLow);
+         file_list[file_count].last_write_time = 0;
+         file_list[file_count].last_write_time += (u64)(find_data.ftLastWriteTime.dwHighDateTime) << 32;
+         file_list[file_count].last_write_time += find_data.ftLastWriteTime.dwLowDateTime;
+         file_list[file_count].is_directory = is_directory;
+         file_count++;
+      }
+      file_index++;
+   } while (FindNextFile(find_handle, &find_data) != 0);
 
-    *number_of_files = file_count;
+   *number_of_files = file_count;
 
-    FindClose(find_handle);
+   FindClose(find_handle);
 
-    return (file_index);
+   return (0);
 }
-*/
 
 error
 file_create_directory(char *file_path)

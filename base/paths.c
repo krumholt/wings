@@ -51,10 +51,29 @@ path__copy (struct path *target,
 
 error
 path__append (struct path       *result,
+              struct path        path,
               char              *cstring,
               struct allocator  *allocator)
 {
    error error = 0;
+   error = string__join_cstring(
+         &result->string,
+         path.string,
+         strlen(cstring),
+         cstring,
+         allocator);
+
+   return error;
+}
+
+error
+path__set_to_child (struct path       *result,
+                    char              *cstring,
+                    struct allocator  *allocator)
+{
+   error error = 0;
+   error = path__ensure_is_folder(result, allocator);
+   IF_ERROR_RETURN(error);
    error = string__join_cstring(
          &result->string,
          result->string,

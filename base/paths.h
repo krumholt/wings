@@ -23,9 +23,15 @@ path__copy (struct path *target,
             struct allocator *allocator);
 
 error
-path__append (struct path       *path,
+path__append (struct path       *result,
+              struct path        path,
               char              *cstring,
               struct allocator  *allocator);
+
+error
+path__set_to_child (struct path       *path,
+                    char              *child,
+                    struct allocator  *allocator);
 
 error
 path__ensure_is_folder (struct path      *path,
