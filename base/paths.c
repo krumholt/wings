@@ -105,6 +105,48 @@ path__ensure_is_folder (struct path      *path,
    return (ec__no_error);
 }
 
+error
+path__base_name (struct string *base_name,
+                 struct path path,
+                 struct allocator *allocator)
+{
+   u64 index = 0;
+   error error = 0;
+   error = cstring__get_last_index(&index, path.string.first, '\\');
+   if (error)
+   {
+      base_name->length = path.string.length;
+      error = cstring__copy(&base_name->first, path.string.length, path.string.first, allocator);
+      return (error);
+   }
+   u64 length = path.string.length - index - 1;
+   error = cstring__copy(&base_name->first, length, path.string.first + index + 1, allocator);
+   base_name->length = length;
+   return(error);
+}
+
+error
+path__remove_file_extension (struct string *result,
+                             struct path path,
+                             struct allocator *allocator)
+{
+   u64 index = 0;
+   u64 last_separator_index = 0;
+   error error = 0;
+   error = cstring__get_last_index(&last_separator_index, path.string.first, '\\');
+   if (error) last_separator_index = 0;
+   error = cstring__get_last_index(&index, path.string.first, '.');
+   if (error || last_separator_index > index)
+   {
+      result->length = path.string.length;
+      error = cstring__copy(&result->first, path.string.length, path.string.first, allocator);
+      return (error);
+   }
+   u64 length = index;
+   error = cstring__copy(&result->first, length, path.string.first, allocator);
+   result->length = length;
+   return(error);
+}
 
 void
 path__set_to_parent(struct path *path)
