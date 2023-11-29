@@ -4,6 +4,7 @@
 #include "wings/base/types.h"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
+#include "wings/base/cstrings.h"
 
 b32
 cstring__is_digit(char c)
@@ -37,6 +38,25 @@ cstring__copy(char **target, u32 source_length, char *source, struct allocator *
    }
 
    return(0);
+}
+
+error
+cstring__base_name(char **result,
+                   u64 path_length,
+                   char *path,
+                   struct allocator *allocator)
+{
+   u64 index = 0;
+   error error = 0;
+   error = cstring__get_last_index(&index, path, '\\');
+   if (error)
+   {
+      error = cstring__copy(result, path_length, path, allocator);
+      return (error);
+   }
+   u64 length = path_length - index - 1;
+   error = cstring__copy(result, length, path + index + 1, allocator);
+   return(error);
 }
 
 void
