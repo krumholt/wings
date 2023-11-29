@@ -34,11 +34,37 @@ cstring__copy(char **target, u32 source_length, char *source, struct allocator *
    IF_ERROR_RETURN(error);
    if (source_length)
    {
-      memcpy(*target, source, source_length);
+      memmove(*target, source, source_length);
    }
 
    return(0);
 }
+
+error
+cstring__join(char **result,
+              u64 a_length,
+              char  *a,
+              u64 b_length,
+              char *b,
+              struct allocator *allocator)
+{
+   // make a local copy of a in case a == *result
+   char *local_a = a;
+   error error = allocate_array(result, allocator, a_length + b_length, char);
+   IF_ERROR_RETURN(error);
+
+   for (u64 index = 0; index < a_length; ++index)
+   {
+      (*result)[index] = local_a[index];
+   }
+   for (u64 index = 0; index < b_length; ++index)
+   {
+      (*result)[a_length + index] = b[index];
+   }
+
+   return (0);
+}
+
 
 error
 cstring__base_name(char **result,
@@ -59,6 +85,27 @@ cstring__base_name(char **result,
    return(error);
 }
 
+error
+cstring__remove_file_extension (char **result,
+                                char  *path,
+                                struct allocator *allocator)
+{
+   u64 index = 0;
+   u64 last_separator_index = 0;
+   error error = 0;
+   error = cstring__get_last_index(&last_separator_index, path, '\\');
+   if (error) last_separator_index = 0;
+   error = cstring__get_last_index(&index, path, '.');
+   if (error || last_separator_index > index)
+   {
+      error = cstring__copy(result, strlen(path), path, allocator);
+      return (error);
+   }
+   u64 length = index;
+   error = cstring__copy(result, length, path, allocator);
+   return(error);
+}
+
 void
 cstring__replace(s32 length, char *target, char old_char, char new_char)
 {
@@ -67,6 +114,14 @@ cstring__replace(s32 length, char *target, char old_char, char new_char)
       if (target[index] == old_char)
          target[index] = new_char;
    }
+}
+
+error
+cstring__get_first_index2(u64 *index, char *haystack, char needle) //@TODO: bench me vs cstring__get_first_index
+{
+   char *at = strchr(haystack, needle);
+   *index = at - haystack;
+   return ec_base_cstrings__not_found;
 }
 
 error

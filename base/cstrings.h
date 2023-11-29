@@ -23,6 +23,11 @@ cstring__base_name(char **result,
                    char *source,
                    struct allocator *allocator);
 
+error
+cstring__remove_file_extension (char **result,
+                                char  *path,
+                                struct allocator *allocator);
+
 void
 cstring__replace (s32 length, char *target, char old_char, char new_char);
 
