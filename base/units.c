@@ -18,7 +18,7 @@ mebibytes(u64 n)
 }
 
 u64
-gibibyte(u64 n)
+gibibytes(u64 n)
 {
    u64 size = { 1024 * 1024 * 1024 * n };
    return (size);
