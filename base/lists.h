@@ -28,8 +28,8 @@ cstring_list__add(struct cstring_list *list,
 void
 cstring_list__remove(struct cstring_list *list);
 
-void
-cstring_list__iterator(struct cstring_list *list);
+struct cstring_list_iterator
+cstring_list_iterator__new(struct cstring_list *list);
 
 struct cstring_list_node *
 cstring_list_iterator__next(struct cstring_list_iterator *iterator);

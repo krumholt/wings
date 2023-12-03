@@ -36,13 +36,10 @@ cstring_list__remove(struct cstring_list *list)
    }
 }
 
-void
-cstring_list__iterator(struct cstring_list *list)
+struct cstring_list_iterator
+cstring_list_iterator__new(struct cstring_list *list)
 {
-   if (list->head)
-   {
-      list->head = list->head->next;
-   }
+   return ((struct cstring_list_iterator){list->head});
 }
 
 struct cstring_list_node *
