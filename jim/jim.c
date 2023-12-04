@@ -786,6 +786,7 @@ _jim_please_run(char *command, char *working_directory, char *file, s32 line)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s with %s", file, line, command, working_directory, error_code_as_text[error]);
+      printf("%s", _jim.compilation_result.first);
       return;
    }
    printf("%s", _jim.compilation_result.first);
