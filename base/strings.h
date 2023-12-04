@@ -4,6 +4,14 @@
 #include "wings/base/types.h"
 #include "wings/base/allocators.c"
 
+
+struct string_view
+{
+   char *start;
+   u64   length;
+};
+
+
 error
 string__new (struct string     *string,
              u32                length,
