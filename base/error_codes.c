@@ -24,6 +24,10 @@
                                                     \
    _(ec_base_cstrings__not_found)                   \
                                                     \
+   _(ec_base_hashmap__null_value_not_allowed)       \
+   _(ec_base_hashmap__key_exists)                   \
+   _(ec_base_hashmap__full)                         \
+                                                    \
    _(ec_base_managed_string__string_not_writeable)  \
                                                     \
    _(ec_os_process__failed_to_create_pipe)          \

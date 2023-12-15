@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "wings/base/strings.h"
+
 
 error
 string__new(struct string *string, u32 length, struct allocator *allocator)
@@ -93,4 +95,15 @@ string__split (struct string      *left,
    }
    return (ec__no_error);
 }
+
+b32
+string_view__equals(struct string_view a, struct string_view b)
+{
+   if (a.length != b.length)
+   {
+      return(0);
+   }
+   return(strncmp(a.start, b.start, a.length) == 0);
+}
+
 #endif

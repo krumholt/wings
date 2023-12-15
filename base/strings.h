@@ -11,6 +11,8 @@ struct string_view
    u64   length;
 };
 
+b32
+string_view__equals(struct string_view a, struct string_view b);
 
 error
 string__new (struct string     *string,

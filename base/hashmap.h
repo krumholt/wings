@@ -12,6 +12,7 @@ struct hashmap_key_value
 
 struct hashmap
 {
+   u64                       collisions;
    u64                       capacity;
    u64                       used;
    struct hashmap_key_value *entries;
@@ -20,5 +21,7 @@ struct hashmap
 error
 hashmap__new (struct hashmap *map, u64 capacity, struct allocator *allocator);
 
+error
+hashmap__insert(struct hashmap *map, struct string_view key, void *value);
 
 #endif
