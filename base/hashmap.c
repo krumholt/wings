@@ -19,12 +19,14 @@ hashmap__new (struct hashmap *map, u64 capacity, struct allocator *allocator)
 u64
 hashmap__hash(u64 length, char *key)
 {
-   u64 result = 0;
+   //djb2
+   u64 hash = 5381;
+
    for (u64 index = 0; index < length; ++index)
    {
-      result += key[index];
+      hash = ((hash << 5) + hash) + key[index];
    }
-   return(result);
+   return(hash);
 }
 
 error
@@ -33,24 +35,28 @@ hashmap__insert_at(struct hashmap *map, u64 index, struct string_view key, void 
    if (map->used == map->capacity) return(ec_base_hashmap__full);
    u64 key_index = index % map->capacity;
    struct hashmap_key_value *entry = map->entries + key_index;
-   if (entry->value == 0)
+   for (u32 index = 0; index < map->capacity; ++index)
    {
-      entry->key = key;
-      entry->value = value;
-      map->used += 1;
-      return (ec__no_error);
-   }
-   else
-   {
-      if (string_view__equals(entry->key, key))
+      entry = map->entries + ((key_index + index) % map->capacity);
+      if (entry->value == 0)
       {
-         return(ec_base_hashmap__key_exists);
+         entry->key = key;
+         entry->value = value;
+         map->used += 1;
+         return (ec__no_error);
       }
-      map->collisions += 1;
-      error error = hashmap__insert_at(map, index + 1, key, value);
-      return error;
+      else
+      {
+         if (string_view__equals(entry->key, key))
+         {
+            return(ec_base_hashmap__key_exists);
+         }
+         map->collisions += 1;
+      }
    }
+   return(ec_base_hashmap__full);
 }
+
 void *
 hashmap__find(struct hashmap map, struct string_view key)
 {
@@ -58,7 +64,7 @@ hashmap__find(struct hashmap map, struct string_view key)
    struct hashmap_key_value *entry = map.entries + key_index;
    for (u32 index = 0; index < map.capacity; ++index)
    {
-      entry = map.entries + key_index;
+      entry = map.entries + ((key_index + index) % map.capacity);
       if (entry->value == 0) return(0);
       if (string_view__equals(key, entry->key))
       {
