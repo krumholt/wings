@@ -24,17 +24,17 @@
    do {                        \
       if ((Error))             \
       {                        \
-         return (Error);         \
+         return (Error);       \
       }                        \
    } while (0)
 
 #define IF_ERROR_RETURN_AND_LOG(Error, ...)   \
-   do {                                   \
+   do {                                       \
       if ((Error))                            \
-      {                                   \
-         error_code_set_message(__VA_ARGS__);  \
-         return (Error);                        \
-      }                                   \
+      {                                       \
+         error_code_set_message(__VA_ARGS__); \
+         return (Error);                      \
+      }                                       \
    } while (0)
 
 #define IF_ERROR_PRINT_AND_RETURN(x) \
