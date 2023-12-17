@@ -24,4 +24,7 @@ hashmap__new (struct hashmap *map, u64 capacity, struct allocator *allocator);
 error
 hashmap__insert(struct hashmap *map, struct string_view key, void *value);
 
+void *
+hashmap__find(struct hashmap map, struct string_view key);
+
 #endif
