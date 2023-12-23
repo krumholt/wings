@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef char          s8;
+typedef signed char   s8;
 typedef unsigned char u8;
 typedef int16_t       s16;
 typedef uint16_t      u16;
