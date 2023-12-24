@@ -14,6 +14,9 @@ struct string_view
 b32
 string_view__equals(struct string_view a, struct string_view b);
 
+struct string_view
+string_view__set_to_next_line(struct string_view *context);
+
 error
 string__new (struct string     *string,
              u32                length,
