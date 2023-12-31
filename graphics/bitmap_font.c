@@ -29,38 +29,38 @@ struct bitmap_font
 };
 
 error
-bitmap_font_from_text(struct bitmap_font *font, struct string text, struct allocator *allocator)
+bitmap_font_from_text(struct bitmap_font *font, struct string_view text, struct allocator *allocator)
 {
    s32 glyph_count = 0;
    u16 image_width = 0, image_height = 0;
 
-   struct string context = text;
+   struct string_view context = text;
    while (context.length)
    {
-      struct string line = next_line(&context);
-      if (begins_with_cstring(line.first, line.length, "common", 6))
+      struct string_view line = string_view__set_to_next_line(&context);
+      if (cstring__begins_with(line.start, line.length, "common", 6))
       {
          u16 unused;
          u16 line_height = 0, base_line = 0;
-         sscanf_s(line.first, "common lineHeight=%hu base=%hu scaleW=%hu scaleH=%hu pages=%hu packed=%hu alphaChnl=%hu redChnl=%hu greenChnl=%hu blueChnl=%hu",
+         sscanf_s(line.start, "common lineHeight=%hu base=%hu scaleW=%hu scaleH=%hu pages=%hu packed=%hu alphaChnl=%hu redChnl=%hu greenChnl=%hu blueChnl=%hu",
                   &line_height, &base_line, &image_width, &image_height, &unused, &unused, &unused, &unused, &unused, &unused);
 
          font->line_height      = line_height;
          font->base_line_height = base_line;
       }
-      else if (begins_with_cstring(line.first, line.length, "chars", 5))
+      else if (cstring__begins_with(line.start, line.length, "chars", 5))
       {
-         sscanf_s(line.first, "chars count=%d",
+         sscanf_s(line.start, "chars count=%d",
                   &font->number_of_glyphs);
          error error = allocate_array(&font->glyph, allocator, font->number_of_glyphs, struct glyph);
          ASSERT(error == 0);
       }
 
-      else if (begins_with_cstring(line.first, line.length, "page", 4))
+      else if (cstring__begins_with(line.start, line.length, "page", 4))
       {
          int id = 0;
          sscanf_s(
-             line.first,
+             line.start,
              "page id=%d file=\"%s",
              &id, font->image_name,
              1024);
@@ -70,12 +70,12 @@ bitmap_font_from_text(struct bitmap_font *font, struct string text, struct alloc
          tmp  = tmp - 1;
          *tmp = 0;
       }
-      else if (begins_with_cstring(line.first, line.length, "char", 4))
+      else if (cstring__begins_with(line.start, line.length, "char", 4))
       {
          if (!font->glyph)
             return (1);
          s16 Id, X, Y, Width, Height, x_offset, y_offset, XAdvance;
-         sscanf_s(line.first, "char id=%hd   x=%hd   y=%hd    width=%hd     height=%hd     xoffset=%hd     yoffset=%hd     xadvance=%hd",
+         sscanf_s(line.start, "char id=%hd   x=%hd   y=%hd    width=%hd     height=%hd     xoffset=%hd     yoffset=%hd     xadvance=%hd",
                   &Id, &X, &Y, &Width, &Height, &x_offset, &y_offset, &XAdvance);
 
          font->glyph[glyph_count].id       = Id;
@@ -100,7 +100,7 @@ load_bitmap_font(struct bitmap_font *font, char *path, struct allocator *allocat
    error                = file_read(&buffer, path, 1, allocator);
    if (error)
       return (error);
-   struct string text = { (char *)buffer.base, buffer.size - 1 };
+   struct string_view text = { .start = (char *)buffer.base, .length = buffer.size - 1 };
    bitmap_font_from_text(font, text, allocator);
 
    error = load_image(&font->image, font->image_name, allocator);

@@ -96,6 +96,39 @@ string__split (struct string      *left,
    return (ec__no_error);
 }
 
+struct string_view
+string_view__set_to_next_line(struct string_view *context)
+{
+   int line_length = 0;
+   struct string_view line = { 0 };
+   line.start = context->start;
+   while (context->length)
+   {
+      if (context->length >= 2
+          && ((context->start[0] == '\n' && context->start[1] == '\r') || (context->start[0] == '\r' && context->start[1] == '\n')))
+      {
+         line.length = line_length;
+         context->length -= 2;
+         context->start += 2;
+         return (line);
+      }
+      else if (context->length >= 1 && (context->start[0] == '\n' || context->start[0] == '\r'))
+      {
+         line.length = line_length;
+         context->length -= 1;
+         context->start += 1;
+         return (line);
+      }
+      context->length -= 1;
+      context->start += 1;
+      line_length += 1;
+   }
+   line.length = line_length;
+   context->start += line_length;
+   context->length = 0;
+   return (line);
+}
+
 b32
 string_view__equals(struct string_view a, struct string_view b)
 {
