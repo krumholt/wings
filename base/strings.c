@@ -129,6 +129,16 @@ string_view__set_to_next_line(struct string_view *context)
    return (line);
 }
 
+struct string_view
+make_string_view(char *text)
+{
+   struct string_view new_string = {
+      .start = text,
+      .length = strlen(text),
+   };
+   return(new_string);
+}
+
 b32
 string_view__equals(struct string_view a, struct string_view b)
 {

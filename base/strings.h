@@ -45,4 +45,6 @@ string__split (struct string      *left,
 b32
 string_view__equals(struct string_view a, struct string_view b);
 
+struct string_view
+make_string_view(char *text);
 #endif
