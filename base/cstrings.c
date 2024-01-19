@@ -27,6 +27,15 @@ cstring__pointer_to_trailing_zero(char *s)
    return (tmp);
 }
 
+void
+cstring__format(char *cstring, u64 size, char *format, ...)
+{
+   va_list arg_list;
+   va_start(arg_list, format);
+   vsnprintf(cstring, size - 1, format, arg_list);
+   va_end(arg_list);
+}
+
 error
 cstring__copy(char **target, u32 source_length, char *source, struct allocator *allocator)
 {

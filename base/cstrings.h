@@ -43,4 +43,7 @@ cstring__ends_with(char *haystack, s32 haystack_length, char *needle, s32 needle
 b32
 cstring__begins_with(char *haystack, u64 haystack_length, char *needle, u64 needle_length);
 
+void
+cstring__format(char *cstring, u64 size, char *format, ...);
+
 #endif

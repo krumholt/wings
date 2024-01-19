@@ -139,6 +139,21 @@ make_string_view(char *text)
    return(new_string);
 }
 
+error
+allocate_string_view(struct string_view *view, struct allocator *allocator, u64 size, char *format, ...)
+{
+   char *new_string;
+   error error = allocate_array(&new_string, allocator, size, char);
+   IF_ERROR_RETURN(error);
+   va_list arg_list;
+   va_start(arg_list, format);
+   vsnprintf(new_string, size - 1, format, arg_list);
+   va_end(arg_list);
+   view->start = new_string;
+   view->length = strlen(new_string);
+   return(0);
+}
+
 b32
 string_view__equals(struct string_view a, struct string_view b)
 {
