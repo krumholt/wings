@@ -28,6 +28,12 @@ cstring__pointer_to_trailing_zero(char *s)
 }
 
 void
+cstring__vformat(char *cstring, u64 size, char *format, va_list arg_list)
+{
+   vsnprintf(cstring, size - 1, format, arg_list);
+}
+
+void
 cstring__format(char *cstring, u64 size, char *format, ...)
 {
    va_list arg_list;

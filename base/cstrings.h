@@ -46,4 +46,7 @@ cstring__begins_with(char *haystack, u64 haystack_length, char *needle, u64 need
 void
 cstring__format(char *cstring, u64 size, char *format, ...);
 
+void
+cstring__vformat(char *cstring, u64 size, char *format, va_list arg_list);
+
 #endif
