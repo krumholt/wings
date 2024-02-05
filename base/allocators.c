@@ -233,6 +233,22 @@ linear_growing_allocator_clear(struct allocator *allocator_)
 }
 
 void
+linear_fixed_size_allocator_free(struct allocator *allocator_, void *pointer)
+{
+   UNUSED(allocator_);
+   UNUSED(pointer);
+   // do nothing for linear allocators
+}
+
+void
+linear_growing_allocator_free(struct allocator *allocator_, void *pointer)
+{
+   UNUSED(allocator_);
+   UNUSED(pointer);
+   // do nothing for linear allocators
+}
+
+void
 linear_fixed_size_allocator_clear(struct allocator *allocator_)
 {
    //@TODO: figure out if it is not cleaner to get new pages from the os
@@ -259,6 +275,27 @@ allocator_clear(struct allocator *allocator)
    case allocator_type_fixed_size_linear:
    {
       linear_fixed_size_allocator_clear(allocator);
+      return (ec__no_error);
+   }
+   break;
+   }
+   return (1);
+}
+
+error
+allocator_free(struct allocator *allocator, void *pointer)
+{
+   switch (allocator->type)
+   {
+   case allocator_type_growing_linear:
+   {
+      linear_growing_allocator_free(allocator, pointer);
+      return (ec__no_error);
+   }
+   break;
+   case allocator_type_fixed_size_linear:
+   {
+      linear_fixed_size_allocator_free(allocator, pointer);
       return (ec__no_error);
    }
    break;

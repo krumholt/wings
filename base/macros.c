@@ -81,7 +81,7 @@ Name##_array_make(s32 capacity)\
    ASSERT(array.array);\
    return(array);\
 }\
-void\
+void \
 Name##_array_append(struct Name##_array *array, struct Name value)\
 {\
    if (array->length == array->capacity)\
