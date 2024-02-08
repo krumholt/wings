@@ -2,6 +2,7 @@
 #define WINGS_BASE_PROFILER_C_
 
 #include "wings/base/types.h"
+#include "wings/base/macros.c"
 #include "wings/base/units.c"
 #include "wings/os/timer.c"
 
@@ -47,7 +48,7 @@ struct profiler
    .parent_index = 0,
 };
 
-#if PROFILING == 1
+#if NO_PROFILING == 0
 
 #define add_to_profiling_zone(name) \
    _start_profiling_zone(#name, name.anchor_index, &name)
