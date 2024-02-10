@@ -30,6 +30,12 @@ struct buffer
    u64   size;
 };
 
+struct tuple_s32
+{
+   s32  a;
+   s32  b;
+};
+
 struct string
 {
    char  *first;
