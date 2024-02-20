@@ -9,6 +9,37 @@
 #include <malloc.h>
 #include <string.h>
 
+struct i64_array
+i64_array_make(s32 capacity)
+{
+   struct i64_array array = {0};
+   array.capacity = capacity;
+   array.length = 0;
+   array.array = calloc(capacity, sizeof(i64));
+   ASSERT(array.array != 0);
+   return(array);
+}
+
+i64
+i64_array_append(struct i64_array *array, i64 value)
+{
+   if (array->length == array->capacity)
+   {
+      i64 *new_array = 0;
+      array->capacity = array->capacity * 2;
+      new_array = calloc(array->capacity, sizeof(i64));
+
+      ASSERT(new_array != 0);
+      memcpy(new_array, array->array, array->length * sizeof(i64));
+      free(array->array);
+      array->array = new_array;
+   }
+   i64 index = array->length;
+   array->length += 1;
+   array->array[index] = value;
+   return (index);
+}
+
 struct s32_array
 s32_array_make(s32 capacity)
 {
