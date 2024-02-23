@@ -1,3 +1,6 @@
+#ifndef WINGS_UTILS_WORDS_C_
+#define WINGS_UTILS_WORDS_C_
+
 char *adjectives[] = {
 "abandoned",
 "able",
@@ -7857,3 +7860,4 @@ char *verbs[] = {
 "zooming",
 };
 
+#endif
