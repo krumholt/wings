@@ -10,7 +10,7 @@
 #include <string.h>
 
 struct i64_array
-i64_array_make(s32 capacity)
+i64_array_make(u64 capacity)
 {
    struct i64_array array = {0};
    array.capacity = capacity;
@@ -35,6 +35,37 @@ i64_array_append(struct i64_array *array, i64 value)
       array->array = new_array;
    }
    i64 index = array->length;
+   array->length += 1;
+   array->array[index] = value;
+   return (index);
+}
+
+struct u64_array
+u64_array_make(u64 capacity)
+{
+   struct u64_array array = {0};
+   array.capacity = capacity;
+   array.length = 0;
+   array.array = calloc(capacity, sizeof(u64));
+   ASSERT(array.array != 0);
+   return(array);
+}
+
+u64
+u64_array_append(struct u64_array *array, u64 value)
+{
+   if (array->length == array->capacity)
+   {
+      u64 *new_array = 0;
+      array->capacity = array->capacity * 2;
+      new_array = calloc(array->capacity, sizeof(u64));
+
+      ASSERT(new_array != 0);
+      memcpy(new_array, array->array, array->length * sizeof(u64));
+      free(array->array);
+      array->array = new_array;
+   }
+   u64 index = array->length;
    array->length += 1;
    array->array[index] = value;
    return (index);
@@ -72,7 +103,7 @@ s32_array_append(struct s32_array *array, s32 value)
 }
 
 void
-s32_array_ordered_delete(struct s32_array *array, s32 index)
+s32_array_ordered_delete(struct s32_array *array, u64 index)
 {
    ASSERT(index < array->length);
    memmove(
@@ -83,7 +114,7 @@ s32_array_ordered_delete(struct s32_array *array, s32 index)
 }
 
 void
-s32_array_unordered_delete(struct s32_array *array, s32 index)
+s32_array_unordered_delete(struct s32_array *array, u64 index)
 {
    ASSERT(index < array->length);
    array->array[index] = array->array[array->length - 1];
@@ -123,7 +154,7 @@ tuple_s32_array_append(struct tuple_s32_array *array, struct tuple_s32 value)
 }
 
 void
-tuple_s32_array_ordered_delete(struct tuple_s32_array *array, s32 index)
+tuple_s32_array_ordered_delete(struct tuple_s32_array *array, u64 index)
 {
    ASSERT(index < array->length);
    memmove(
@@ -134,7 +165,7 @@ tuple_s32_array_ordered_delete(struct tuple_s32_array *array, s32 index)
 }
 
 void
-tuple_s32_array_unordered_delete(struct tuple_s32_array *array, s32 index)
+tuple_s32_array_unordered_delete(struct tuple_s32_array *array, u64 index)
 {
    ASSERT(index < array->length);
    array->array[index] = array->array[array->length - 1];
