@@ -5,11 +5,11 @@
 #include "wings/base/allocators.c"
 
 
-struct string_view
+typedef struct string_view
 {
    char *start;
    u64   length;
-};
+} String_view;
 
 b32
 string_view__equals(struct string_view a, struct string_view b);
