@@ -20,6 +20,7 @@ typedef double        f64;
 
 typedef char     b8;
 typedef uint32_t b32;
+typedef uint64_t b64;
 typedef uint32_t error;
 typedef error    merror;
 
