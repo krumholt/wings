@@ -3,6 +3,13 @@
 
 #include "wings/base/types.h"
 
+struct string_view_array
+{
+   u64 length;
+   u64 capacity;
+   struct string_view *array;
+};
+
 struct s32_array
 {
    u64   length;
@@ -42,6 +49,17 @@ u64_array_make(u64 capacity);
 
 u64
 u64_array_append(struct u64_array *array, u64 value);
+
+struct string_view_array
+string_view_array_make(u64 capacity);
+
+void
+string_view_array_free(struct string_view_array *array);
+
+u64
+string_view_array_append(
+      struct string_view_array *array,
+      struct string_view value);
 
 struct s32_array
 s32_array_make(s32 capacity);

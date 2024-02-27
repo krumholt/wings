@@ -3,11 +3,58 @@
 
 #include "wings/base/types.h"
 #include "wings/base/macros.c"
+#include "wings/base/strings.h"
 
 #include "wings/base/dynamic_arrays.h"
 
 #include <malloc.h>
 #include <string.h>
+
+struct string_view_array
+string_view_array_make(u64 capacity)
+{
+   struct string_view_array array = {0};
+   array.capacity = capacity;
+   array.length = 0;
+   array.array = calloc(capacity, sizeof(struct string_view));
+   ASSERT(array.array != 0);
+   return(array);
+}
+
+void
+string_view_array_free(struct string_view_array *array)
+{
+   if (array->array)
+   {
+      free(array->array);
+   }
+   array->length = 0;
+   array->capacity = 0;
+}
+
+u64
+string_view_array_append(struct string_view_array *array, struct string_view value)
+{
+   if (array->length == array->capacity)
+   {
+      struct string_view *new_array = 0;
+      if (array->capacity == 0) array->capacity = 8;
+      array->capacity = array->capacity * 2;
+      new_array = calloc(array->capacity, sizeof(struct string_view));
+
+      ASSERT(new_array != 0);
+      memcpy(new_array, array->array, array->length * sizeof(struct string_view));
+      if (array->array)
+      {
+         free(array->array);
+      }
+      array->array = new_array;
+   }
+   u64 index = array->length;
+   array->length += 1;
+   array->array[index] = value;
+   return (index);
+}
 
 struct i64_array
 i64_array_make(u64 capacity)
