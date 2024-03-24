@@ -43,6 +43,8 @@ struct mesh
    u32 va;
 };
 
+typedef struct mesh Mesh;
+
 b32
 mesh_has_attribute(struct mesh *mesh, enum mesh_attribute attribute)
 {

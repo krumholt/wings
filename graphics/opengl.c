@@ -1,8 +1,6 @@
 #ifndef WINGS_GRAPHICS_OPENGL_C_
 #define WINGS_GRAPHICS_OPENGL_C_
 
-#include "wings/base/macros.c"
-
 #if defined(OS_WINDOWS)
 #include "wings/graphics/windows/opengl.c"
 #elif defined(OS_LINUX)

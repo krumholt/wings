@@ -10,12 +10,16 @@ struct path
 {
    struct string string;
 };
+typedef struct path Path;
 
 error
 path__from_cstring (struct path *path,
                     u64  cstring_length,
                     char *cstring,
                     struct allocator *allocator);
+
+char *
+path__to_cstring(struct path path);
 
 error
 path__copy (struct path *target,

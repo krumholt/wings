@@ -18,6 +18,8 @@ struct image
    u8 *raw_data;
 };
 
+typedef struct image Image;
+
 error
 load_image_from_memory(struct image *image, struct buffer buffer)
 {
@@ -38,10 +40,10 @@ load_image(struct image *image, char *path, struct allocator *allocator)
    struct buffer buffer = { 0 };
 
    error = file_read(&buffer, path, 0, allocator);
-   IF_ERROR_RETURN_AND_LOG(error, "Failed to read file");
+   IF_ERROR_RETURN_AND_LOG(error, "Failed to read file \"%s\"", path);
 
    error = load_image_from_memory(image, buffer);
-   IF_ERROR_RETURN_AND_LOG(error, "Failed to load image");
+   IF_ERROR_RETURN_AND_LOG(error, "Failed to load image \"%s\"", path);
 
    return (0);
 }

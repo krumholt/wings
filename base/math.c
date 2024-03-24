@@ -67,6 +67,8 @@ struct ray_v3
    struct v3 origin, direction;
 };
 
+typedef struct v3 V3;
+
 struct ray_grid_march
 {
    s32 x;

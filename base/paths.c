@@ -36,6 +36,12 @@ path__from_cstring (struct path *path,
    return (error);
 }
 
+char *
+path__to_cstring(struct path path)
+{
+   return(path.string.first);
+}
+
 error
 path__copy (struct path *target,
             struct path source,
