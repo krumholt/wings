@@ -13,7 +13,7 @@
 
 struct dynamic_library
 {
-   char *path;
+   char *dll_path;
 };
 
 typedef struct dynamic_library dynamic_library;
@@ -21,7 +21,7 @@ typedef struct dynamic_library dynamic_library;
 error
 load_functions(dynamic_library lib, s32 number_of_functions, char **function_names, void **function_pointers)
 {
-   HMODULE module = LoadLibrary(lib.path);
+   HMODULE module = LoadLibrary(lib.dll_path);
    if (module == 0) {
       return ec_os_file__not_found;
    }
