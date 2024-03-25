@@ -19,6 +19,8 @@
    _(ec_os_file__not_found)                         \
    _(ec_os_file__write_failed)                      \
    _(ec_os_file__access_denied)                     \
+   _(ec_os_file__in_use)                            \
+   _(ec_os_file__unknown)                           \
                                                     \
    _(ec_base_string_store__no_space_left)           \
                                                     \
@@ -34,6 +36,8 @@
    _(ec_os_process__command_not_found)              \
    _(ec_os_process__creation_failed)                \
    _(ec_os_process__command_failed)                 \
+                                                    \
+   _(ec_os_dynamic_loader__free_library_failed)     \
                                                     \
    _(ec_base_asset_importers__failed_to_read_file)  \
    _(ec_base_asset_importers__failed_to_parse_file) \

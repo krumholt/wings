@@ -64,6 +64,7 @@ struct jim_compiler
    error (*compile)(struct string result, struct jim_object_file object_file);
    error (*link)(struct string result, struct jim_executable);
    error (*create_library)(struct string result, struct jim_library);
+   error (*link_dll)(struct string result, struct jim_executable);
 };
 
 
@@ -176,6 +177,55 @@ _jim_msvc_link(struct string command, struct jim_executable executable)
    {
       _jim_string_append(&command, "%s.lib ", executable.libraries[index].name);
    }
+   return (ec__no_error);
+}
+
+error
+_jim_clang_link_dll(struct string command, struct jim_executable executable)
+{
+   _jim_string_append(&command,
+         "clang -shared ");
+
+   if (executable.debug)
+   {
+      _jim_string_append(&command,
+            "-O0 -g "
+            );
+   }
+   else
+   {
+      _jim_string_append(&command,
+            "-O2 "
+            );
+   }
+
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      if (executable.libraries[index].directory)
+         _jim_string_append(&command, "-L%s ",  executable.libraries[index].directory);
+   }
+
+   _jim_string_append(&command,
+         "-o %s%s ",
+         executable.output_directory,
+         executable.output_file);
+
+   for (u32 index = 0;
+         index < executable.number_of_object_files;
+         ++index)
+   {
+      _jim_string_append(&command, "%s ", executable.object_files[index].target);
+   }
+
+   for (u32 index = 0;
+         index < executable.number_of_libraries;
+         ++index)
+   {
+      _jim_string_append(&command, "-l%s ",  executable.libraries[index].name);
+   }
+
    return (ec__no_error);
 }
 
@@ -437,6 +487,7 @@ struct jim_compiler jim_clang_compiler = {
    .compile        = _jim_clang_compile,
    .link           = _jim_clang_link,
    .create_library = _jim_clang_create_library,
+   .link_dll       = _jim_clang_link_dll,
 };
 
 // --------------------
@@ -618,6 +669,46 @@ jim_please_link(struct jim_executable executable)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link(%s):\n\t%s\nFailed with %d\n\n\n%s",
+                                    executable.output_file,
+                                    command.first,
+                                    error,
+                                    _jim.compilation_result.first);
+      return;
+   }
+}
+
+void
+jim_please_link_dll(struct jim_executable executable)
+{
+   if (_jim.error)
+      return;
+
+   struct string command = {0};
+   error error = string__new(&command, 4096 * 10, &_jim.allocator);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_link_dll(%s) ran out of memory.");
+      return;
+   }
+
+   error = _jim.default_compiler.link_dll(command, executable);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_build_object_file(%s) ran out of memory.");
+      return;
+   }
+
+   if (!_jim.silent)
+   {
+      printf("jim:'%s'\n", command.first);
+   }
+   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("[ERROR] jim_please_link_dll(%s):\n\t%s\nFailed with %d\n\n\n%s",
                                     executable.output_file,
                                     command.first,
                                     error,

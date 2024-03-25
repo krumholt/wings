@@ -49,4 +49,11 @@ cstring__format(char *cstring, u64 size, char *format, ...);
 void
 cstring__vformat(char *cstring, u64 size, char *format, va_list arg_list);
 
+error
+cstring__join(char **result,
+              u64 a_length,
+              char  *a,
+              u64 b_length,
+              char *b,
+              struct allocator *allocator);
 #endif

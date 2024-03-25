@@ -119,11 +119,13 @@ file_copy(char *from_file_name, char *to_file_name)
    if (!success)
    {
       DWORD last_error = GetLastError();
-      if (last_error == 2)
+      if (last_error == 0x2)
          return ec_os_file__not_found;
-      if (last_error == 5)
+      if (last_error == 0x5)
          return ec_os_file__access_denied;
-      return (ec_os_file__not_found);
+      if (last_error == 0x20)
+         return ec_os_file__in_use;
+      return (ec_os_file__unknown);
    }
    return (ec__no_error);
 }
@@ -136,7 +138,7 @@ file_get_last_write_time(u64 *time, char *file_path)
                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
    if (!file_handle)
    {
-      return (1);
+      return (ec_os_file__not_found);
    }
    u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
    u32 success = GetFileTime(
@@ -146,7 +148,7 @@ file_get_last_write_time(u64 *time, char *file_path)
        (FILETIME *)&last_write_time);
    if (!success)
    {
-      return (1);
+      return (ec_os_file__access_denied);
    }
    CloseHandle(file_handle);
    *time = last_write_time;
