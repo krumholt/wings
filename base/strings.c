@@ -4,7 +4,6 @@
 #include "wings/base/types.h"
 #include "wings/base/error_codes.c"
 #include "wings/base/allocators.c"
-#include "wings/base/string_store.c"
 #include "wings/base/cstrings.h"
 
 #include <stdio.h>
@@ -18,7 +17,7 @@ string__new(struct string *string, u32 length, struct allocator *allocator)
 {
    error error    = ec__no_error;
    string->length = length;
-   error          = allocate_array(&string->first, allocator, string->length + 1, char);
+   error          = allocate_array(&string->start, allocator, string->length + 1, char);
    return (error);
 }
 
@@ -33,7 +32,7 @@ string__from_cstring(
    IF_ERROR_RETURN(error);
    for (u64 index = 0; index < cstring_length; ++index)
    {
-      string->first[index] = cstring[index];
+      string->start[index] = cstring[index];
    }
    return (ec__no_error);
 }
@@ -52,11 +51,11 @@ string__join_cstring(struct string *target,
 
    for (u64 index = 0; index < local_a.length; ++index)
    {
-      target->first[index] = local_a.first[index];
+      target->start[index] = local_a.start[index];
    }
    for (u64 index = 0; index < b_length; ++index)
    {
-      target->first[local_a.length + index] = b[index];
+      target->start[local_a.length + index] = b[index];
    }
 
    return (0);
@@ -73,7 +72,7 @@ string__split (struct string      *left,
    b32 found = 0;
    for (; left_length < source.length; ++left_length)
    {
-      if (source.first[left_length] == c)
+      if (source.start[left_length] == c)
       {
          found = 1;
          break;
@@ -87,11 +86,11 @@ string__split (struct string      *left,
 
    for (u64 index = 0; index < left->length; ++index)
    {
-      left->first[index] = source.first[index];
+      left->start[index] = source.start[index];
    }
    for (u64 index = 0; index < right->length; ++index)
    {
-      right->first[index] = source.first[left_length + found + index];
+      right->start[index] = source.start[left_length + found + index];
    }
    return (ec__no_error);
 }

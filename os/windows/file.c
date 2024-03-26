@@ -186,7 +186,7 @@ file_list_directory(
    struct path search_path = {0};
    error = path__append(&search_path, base_path, "*", temp_memory);
    IF_ERROR_RETURN(error);
-   find_handle = FindFirstFile(search_path.string.first, &find_data);
+   find_handle = FindFirstFile(search_path.string.start, &find_data);
 
    if (find_handle == INVALID_HANDLE_VALUE)
    {
@@ -210,7 +210,7 @@ file_list_directory(
          struct path path_to_file = {0};
          error = path__append(&path_to_file, base_path, file_name, static_memory);
          IF_ERROR_RETURN(error);
-         file_list[file_count].file_path = path_to_file.string.first;
+         file_list[file_count].file_path = path_to_file.string.start;
          file_list[file_count].file_size = (s32)(find_data.nFileSizeHigh * MAXDWORD + find_data.nFileSizeLow);
          file_list[file_count].last_write_time = 0;
          file_list[file_count].last_write_time += (u64)(find_data.ftLastWriteTime.dwHighDateTime) << 32;

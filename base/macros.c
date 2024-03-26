@@ -1,6 +1,8 @@
 #ifndef WINGS_BASE_MACROS_C_
 #define WINGS_BASE_MACROS_C_
 
+#include "wings/base/errors.h"
+
 #if defined(_WIN32)
 #ifndef OS_WINDOWS
 #define OS_WINDOWS
@@ -40,7 +42,7 @@
 #define IF_ERROR_PRINT_AND_RETURN(x) \
    if ((x))       \
    {              \
-      printf("%s:%d:0: error: %s: %s\n", __FILE__, __LINE__, error_code_lookup(x), _ec__last_error_message);       \
+      make_error("%s:%d:0: error: %s\n", __FILE__, __LINE__, error_to_string_view(x).start);       \
       return (x); \
    }
 

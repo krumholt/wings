@@ -39,7 +39,7 @@ path__from_cstring (struct path *path,
 char *
 path__to_cstring(struct path path)
 {
-   return(path.string.first);
+   return(path.string.start);
 }
 
 error
@@ -50,7 +50,7 @@ path__copy (struct path *target,
    error error = string__from_cstring(
          &target->string,
          source.string.length,
-         source.string.first,
+         source.string.start,
          allocator);
    return (error);
 }
@@ -97,7 +97,7 @@ path__ensure_is_folder (struct path      *path,
    // the -1 is correct because paths can not be 0 length
    // the 'smallest' path is "."
    u64 last_character_index = path->string.length - 1;
-   if (path->string.first[last_character_index] != '\\')
+   if (path->string.start[last_character_index] != '\\')
    {
       error error = string__join_cstring(
             &path->string,
@@ -118,15 +118,15 @@ path__base_name (struct string *base_name,
 {
    u64 index = 0;
    error error = 0;
-   error = cstring__get_last_index(&index, path.string.first, '\\');
+   error = cstring__get_last_index(&index, path.string.start, '\\');
    if (error)
    {
       base_name->length = path.string.length;
-      error = cstring__copy(&base_name->first, path.string.length, path.string.first, allocator);
+      error = cstring__copy(&base_name->start, path.string.length, path.string.start, allocator);
       return (error);
    }
    u64 length = path.string.length - index - 1;
-   error = cstring__copy(&base_name->first, length, path.string.first + index + 1, allocator);
+   error = cstring__copy(&base_name->start, length, path.string.start + index + 1, allocator);
    base_name->length = length;
    return(error);
 }
@@ -139,17 +139,17 @@ path__remove_file_extension (struct string *result,
    u64 index = 0;
    u64 last_separator_index = 0;
    error error = 0;
-   error = cstring__get_last_index(&last_separator_index, path.string.first, '\\');
+   error = cstring__get_last_index(&last_separator_index, path.string.start, '\\');
    if (error) last_separator_index = 0;
-   error = cstring__get_last_index(&index, path.string.first, '.');
+   error = cstring__get_last_index(&index, path.string.start, '.');
    if (error || last_separator_index > index)
    {
       result->length = path.string.length;
-      error = cstring__copy(&result->first, path.string.length, path.string.first, allocator);
+      error = cstring__copy(&result->start, path.string.length, path.string.start, allocator);
       return (error);
    }
    u64 length = index;
-   error = cstring__copy(&result->first, length, path.string.first, allocator);
+   error = cstring__copy(&result->start, length, path.string.start, allocator);
    result->length = length;
    return(error);
 }
@@ -160,27 +160,27 @@ path__set_to_parent(struct path *path)
    if (path->string.length <= 1)
       return;
    b32 removed_path_separator = 0;
-   if (path->string.first[path->string.length - 1] == '\\')
+   if (path->string.start[path->string.length - 1] == '\\')
    {
       path->string.length -= 1;
-      path->string.first[path->string.length] = 0;
+      path->string.start[path->string.length] = 0;
       removed_path_separator = 1;
    }
    u64 last_index = 0;
    error error = 0;
-   error = cstring__get_last_index(&last_index, path->string.first, '\\');
+   error = cstring__get_last_index(&last_index, path->string.start, '\\');
    if (error)
    {
       if (removed_path_separator)
       {
-         path->string.first[path->string.length] = '\\';
+         path->string.start[path->string.length] = '\\';
          path->string.length += 1;
-         path->string.first[path->string.length] = 0;
+         path->string.start[path->string.length] = 0;
       }
       return;
    }
    path->string.length = last_index + 1;
-   path->string.first[path->string.length] = 0;
+   path->string.start[path->string.length] = 0;
 }
 
 #endif

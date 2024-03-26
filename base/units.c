@@ -57,7 +57,7 @@ set_to_closest_memory_unit(f64 *size)
    return units[unit_index];
 }
 
-char *
+const char *
 set_to_closest_time_unit(f64 *time_in_ns)
 {
    f64   time    = *time_in_ns;

@@ -74,7 +74,6 @@ s32_array_make(s32 capacity);
 s32
 s32_array_append(struct s32_array *array, s32 value);
 
-
 void
 s32_array_ordered_delete(struct s32_array *array, u64 index);
 

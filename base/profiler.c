@@ -133,7 +133,7 @@ end_profiling(void)
          profiler_print_anchor(anchor);
       }
    }
-   char *time_unit = set_to_closest_time_unit(&total_time);
+   const char *time_unit = set_to_closest_time_unit(&total_time);
    printf("Total time(%s): %f\n", time_unit, total_time);
 }
 #else

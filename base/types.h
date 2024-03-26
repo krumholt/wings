@@ -21,7 +21,7 @@ typedef double        f64;
 typedef char     b8;
 typedef uint32_t b32;
 typedef uint64_t b64;
-typedef uint32_t error;
+typedef uint64_t error;
 typedef error    merror;
 
 struct buffer
@@ -39,9 +39,18 @@ struct tuple_s32
 
 struct string
 {
-   char  *first;
+   char  *start;
    u64    length;
 };
+
+struct string_view
+{
+   char  *start;
+   u64    length;
+};
+
+typedef struct string string;
+typedef struct string_view string_view;
 
 
 #endif
