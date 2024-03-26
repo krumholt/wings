@@ -118,24 +118,13 @@ u64_array_append(struct u64_array *array, u64 value)
    return (index);
 }
 
-struct s32_array
-s32_array_make(s32 capacity)
-{
-   struct s32_array array = {0};
-   array.capacity = capacity;
-   array.length = 0;
-   array.array = calloc(capacity, sizeof(s32));
-   ASSERT(array.array != 0);
-   return(array);
-}
-
 s32
 s32_array_append(struct s32_array *array, s32 value)
 {
    if (array->length == array->capacity)
    {
       s32 *new_array = 0;
-      array->capacity = array->capacity * 2;
+      array->capacity = array->capacity ? array->capacity*2 : 8;
       new_array = calloc(array->capacity, sizeof(s32));
 
       ASSERT(new_array != 0);

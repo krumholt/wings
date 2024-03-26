@@ -17,6 +17,13 @@ struct s32_array
    s32  *array;
 };
 
+struct u32_array
+{
+   u64   length;
+   u64   capacity;
+   s32  *array;
+};
+
 struct i64_array
 {
    u64   length;
