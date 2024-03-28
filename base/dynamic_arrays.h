@@ -30,6 +30,9 @@ struct _array_header
       (Array)[array_header(Array)->length++] = (Value);\
    } while(0)
 
+void *
+_array_make(u64 capacity, u64 element_size);
+
 #define array_make(Type, Capacity)\
    (Type *)_array_make(Capacity, sizeof(Type))
 
