@@ -101,13 +101,16 @@ start_profiling(void)
 }
 
 void
-profiler_print_anchor(struct profiler_anchor *anchor)
+profiler_print_anchor(struct profiler_anchor *anchor, f64 time_total)
 {
    u64 total_ticks   = profiler.end_tick - profiler.start_tick;
    f64 percent_self  = 100.0 * (f64)anchor->ticks_self / (f64)total_ticks;
    f64 percent_total = 100.0 * (f64)anchor->ticks_total / (f64)total_ticks;
-   printf("%6.2f%% %s(%zu)",
+   const char *time_unit = set_to_closest_time_unit(&time_total);
+   printf("%6.2f%%(%.2f%s) %s(%zu)",
           percent_total,
+          time_total * (percent_self / 100.0),
+          time_unit,
           anchor->zone_id,
           anchor->ticks_total);
    if (anchor->ticks_total != anchor->ticks_self)
@@ -130,7 +133,7 @@ end_profiling(void)
       struct profiler_anchor *anchor = profiler.anchors + index;
       if (anchor->ticks_total)
       {
-         profiler_print_anchor(anchor);
+         profiler_print_anchor(anchor, total_time);
       }
    }
    const char *time_unit = set_to_closest_time_unit(&total_time);

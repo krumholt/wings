@@ -87,7 +87,7 @@ _jim_string_append_vaargs(
     va_list        arg_list)
 {
    s32 chars_written = vsnprintf(
-      string->first,
+      string->start,
       string->length - 1,
       format,
       arg_list);
@@ -98,7 +98,7 @@ _jim_string_append_vaargs(
       return (ec_jim__string_append_failed);
    }
    string->length -= chars_written;
-   string->first += chars_written;
+   string->start += chars_written;
 
    return (ec__no_error);
 }
@@ -499,7 +499,7 @@ _jim_please_set_error_message(char *format, ...)
 {
    va_list arg_list;
    va_start(arg_list, format);
-   vsnprintf(_jim.error_message.first, _jim.error_message.length - 1, format, arg_list);
+   vsnprintf(_jim.error_message.start, _jim.error_message.length - 1, format, arg_list);
    va_end(arg_list);
 }
 
@@ -546,13 +546,13 @@ _jim_please_listen(char *file, s32 line)
    if (!_jim.default_compiler_set)
    {
       _jim.default_compiler = jim_gcc_compiler;
-      error = run_command("gcc --version", _jim.compilation_result.length, _jim.compilation_result.first);
+      error = run_command("gcc --version", _jim.compilation_result.length, _jim.compilation_result.start);
       if (error)
       {
-         error = run_command("cl", _jim.compilation_result.length, _jim.compilation_result.first);
+         error = run_command("cl", _jim.compilation_result.length, _jim.compilation_result.start);
          if (error)
          {
-            error = run_command("clang --version", _jim.compilation_result.length, _jim.compilation_result.first);
+            error = run_command("clang --version", _jim.compilation_result.length, _jim.compilation_result.start);
             if (error)
             {
                _jim.error = error;
@@ -621,20 +621,20 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
 
    if (!_jim.silent)
    {
-      printf("jim:'%s'\n", command.first);
+      printf("jim:'%s'\n", command.start);
    }
-   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
+   error = run_command(command.start, _jim.compilation_result.length, _jim.compilation_result.start);
    if (error)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %s\n%s",
                                     file, line,
-                                    command.first,
+                                    command.start,
                                     error_code_as_text[error],
-                                    _jim.compilation_result.first);
+                                    _jim.compilation_result.start);
       return;
    }
-   printf("%s", _jim.compilation_result.first);
+   printf("%s", _jim.compilation_result.start);
 }
 
 void
@@ -662,17 +662,17 @@ jim_please_link(struct jim_executable executable)
 
    if (!_jim.silent)
    {
-      printf("jim:'%s'\n", command.first);
+      printf("jim:'%s'\n", command.start);
    }
-   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
+   error = run_command(command.start, _jim.compilation_result.length, _jim.compilation_result.start);
    if (error)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link(%s):\n\t%s\nFailed with %d\n\n\n%s",
                                     executable.output_file,
-                                    command.first,
+                                    command.start,
                                     error,
-                                    _jim.compilation_result.first);
+                                    _jim.compilation_result.start);
       return;
    }
 }
@@ -702,17 +702,17 @@ jim_please_link_dll(struct jim_executable executable)
 
    if (!_jim.silent)
    {
-      printf("jim:'%s'\n", command.first);
+      printf("jim:'%s'\n", command.start);
    }
-   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
+   error = run_command(command.start, _jim.compilation_result.length, _jim.compilation_result.start);
    if (error)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link_dll(%s):\n\t%s\nFailed with %d\n\n\n%s",
                                     executable.output_file,
-                                    command.first,
+                                    command.start,
                                     error,
-                                    _jim.compilation_result.first);
+                                    _jim.compilation_result.start);
       return;
    }
 }
@@ -756,18 +756,18 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    }
    if (!_jim.silent)
    {
-      printf("jim:'%s'\n", command.first);
+      printf("jim:'%s'\n", command.start);
    }
-   error = run_command(command.first, _jim.compilation_result.length, _jim.compilation_result.first);
+   error = run_command(command.start, _jim.compilation_result.length, _jim.compilation_result.start);
    if (error)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %d\n\n\n%s",
                                     file,
                                     line,
-                                    command.first,
+                                    command.start,
                                     error,
-                                    _jim.compilation_result.first);
+                                    _jim.compilation_result.start);
       return (struct jim_library){0};
    }
    return (library);
@@ -872,15 +872,15 @@ _jim_please_run(char *command, char *working_directory, char *file, s32 line)
       printf("jim:'%s'\n", command);
    }
    error error = run_command_at(command, working_directory,
-         _jim.compilation_result.length, _jim.compilation_result.first);
+         _jim.compilation_result.length, _jim.compilation_result.start);
    if (error)
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s with %s", file, line, command, working_directory, error_code_as_text[error]);
-      printf("%s", _jim.compilation_result.first);
+      printf("%s", _jim.compilation_result.start);
       return;
    }
-   printf("%s", _jim.compilation_result.first);
+   printf("%s", _jim.compilation_result.start);
 }
 
 s32
@@ -888,7 +888,7 @@ jim_did_we_win(void)
 {
    if (_jim.error)
    {
-      printf("%s\n", _jim.error_message.first);
+      printf("%s\n", _jim.error_message.start);
       return (_jim.error);
    }
    return (ec__no_error);
