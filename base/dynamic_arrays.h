@@ -3,93 +3,57 @@
 
 #include "wings/base/types.h"
 
-struct string_view_array
-{
-   u64 length;
-   u64 capacity;
-   struct string_view *array;
-};
-
-struct s32_array
-{
-   u64   length;
-   u64   capacity;
-   s32  *array;
-};
-
-struct u32_array
-{
-   u64   length;
-   u64   capacity;
-   s32  *array;
-};
-
-struct i64_array
-{
-   u64   length;
-   u64   capacity;
-   i64  *array;
-};
-
-struct u64_array
-{
-   u64   length;
-   u64   capacity;
-   u64  *array;
-};
-
-struct tuple_s32_array
+struct _array_header
 {
    u64  length;
    u64  capacity;
-   struct tuple_s32 *array;
+   u64  number_of_resizes;
 };
 
-struct i64_array
-i64_array_make(u64 capacity);
+#define array_header(Array) ((struct _array_header *) (Array) - 1)
+#define array_length(Array) (array_header(Array)->length)
 
-i64
-i64_array_append(struct i64_array *array, i64 value);
+#define array_maybe_grow(Array, N) \
+   do {\
+      if (array_header(Array)->length + (N) > array_header(Array)->capacity) \
+      { \
+         Array = array_grow(Array, sizeof(*Array), N); \
+      } \
+   }\
+   while (0)
 
-struct u64_array
-u64_array_make(u64 capacity);
+#define array_capacity(Array) array_header(Array)->capacity
 
-u64
-u64_array_append(struct u64_array *array, u64 value);
+#define array_append(Array, Value) \
+   do {\
+      array_maybe_grow(Array, 1);\
+      (Array)[array_header(Array)->length++] = (Value);\
+   } while(0)
 
-struct string_view_array
-string_view_array_make(u64 capacity);
+#define array_make(Type, Capacity)\
+   (Type *)_array_make(Capacity, sizeof(Type))
 
-void
-string_view_array_free(struct string_view_array *array);
+#define array_free(Array)\
+   free(array_header(Array))
+      
+void *
+array_grow(void *array, u64 element_size, u64 min_growth);
 
-u64
-string_view_array_append(
-      struct string_view_array *array,
-      struct string_view value);
+#define array_delete_unordered(Array, Index)\
+   do {\
+      u64 index = (Index);\
+      ASSERT((index) < array_length(Array));\
+      struct _array_header *header = array_header(Array);\
+      Array[(index)] = Array[header->length-1];\
+      header->length -= 1;\
+   } while(0)
 
-struct s32_array
-s32_array_make(s32 capacity);
-
-s32
-s32_array_append(struct s32_array *array, s32 value);
-
-void
-s32_array_ordered_delete(struct s32_array *array, u64 index);
-
-void
-s32_array_unordered_delete(struct s32_array *array, u64 index);
-
-struct tuple_s32_array
-tuple_s32_array_make(s32 capacity);
-
-s32
-tuple_s32_array_append(struct tuple_s32_array *array, struct tuple_s32 value);
-
-void
-tuple_s32_array_ordered_delete(struct tuple_s32_array *array, u64 index);
-
-void
-tuple_s32_array_unordered_delete(struct tuple_s32_array *array, u64 index);
+#define array_delete_ordered(Array, Index)\
+   do {\
+      u64 index = (Index);\
+      ASSERT((index) < array_length(Array));\
+      memmove((Array) + (index), (Array) + index + 1, (array_length(Array) - index - 1) * sizeof(*Array));\
+      array_header(Array)->length -= 1;\
+   } while(0)
 
 #endif

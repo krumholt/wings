@@ -3,208 +3,61 @@
 
 #include "wings/base/types.h"
 #include "wings/base/macros.c"
-#include "wings/base/strings.h"
 
-#include "wings/base/dynamic_arrays.h"
+#include "dynamic_arrays.h"
 
 #include <malloc.h>
-#include <string.h>
 
-struct string_view_array
-string_view_array_make(u64 capacity)
+void *
+_array_make(u64 capacity, u64 element_size)
 {
-   struct string_view_array array = {0};
-   array.capacity = capacity;
-   array.length = 0;
-   array.array = calloc(capacity, sizeof(struct string_view));
-   ASSERT(array.array != 0);
-   return(array);
+   struct _array_header *result = calloc(1, capacity * element_size + sizeof(struct _array_header));
+   result->capacity = capacity;
+   return(((u8 *)result) + sizeof(struct _array_header));
 }
 
-void
-string_view_array_free(struct string_view_array *array)
+#define array_make(Type, Capacity)\
+   (Type *)_array_make(Capacity, sizeof(Type))
+
+#define array_free(Array)\
+   free(array_header(Array))
+      
+
+
+void *
+array_grow(void *array, u64 element_size, u64 min_growth)
 {
-   if (array->array)
-   {
-      free(array->array);
-   }
-   array->length = 0;
-   array->capacity = 0;
+   u64 capacity = array_capacity(array);
+   u64 new_capacity = capacity + min_growth;
+   if (new_capacity < 2 * capacity)
+      new_capacity = 2 * capacity;
+   else if (new_capacity < 8)
+      new_capacity = 8;
+
+   void *pointer = array_header(array);
+   array = realloc(pointer, new_capacity * element_size + sizeof(struct _array_header));
+   ASSERT(array); // there is not much we can do if we don't get memory
+   array += sizeof(struct _array_header);
+   array_header(array)->capacity = new_capacity;
+   array_header(array)->number_of_resizes += 1;
+   return array;
 }
 
-u64
-string_view_array_append(struct string_view_array *array, struct string_view value)
-{
-   if (array->length == array->capacity)
-   {
-      struct string_view *new_array = 0;
-      if (array->capacity == 0) array->capacity = 8;
-      array->capacity = array->capacity * 2;
-      new_array = calloc(array->capacity, sizeof(struct string_view));
+#define array_delete_unordered(Array, Index)\
+   do {\
+      u64 index = (Index);\
+      ASSERT((index) < array_length(Array));\
+      struct _array_header *header = array_header(Array);\
+      Array[(index)] = Array[header->length-1];\
+      header->length -= 1;\
+   } while(0)
 
-      ASSERT(new_array != 0);
-      memcpy(new_array, array->array, array->length * sizeof(struct string_view));
-      if (array->array)
-      {
-         free(array->array);
-      }
-      array->array = new_array;
-   }
-   u64 index = array->length;
-   array->length += 1;
-   array->array[index] = value;
-   return (index);
-}
+#define array_delete_ordered(Array, Index)\
+   do {\
+      u64 index = (Index);\
+      ASSERT((index) < array_length(Array));\
+      memmove((Array) + (index), (Array) + index + 1, (array_length(Array) - index - 1) * sizeof(*Array));\
+      array_header(Array)->length -= 1;\
+   } while(0)
 
-struct i64_array
-i64_array_make(u64 capacity)
-{
-   struct i64_array array = {0};
-   array.capacity = capacity;
-   array.length = 0;
-   array.array = calloc(capacity, sizeof(i64));
-   ASSERT(array.array != 0);
-   return(array);
-}
-
-i64
-i64_array_append(struct i64_array *array, i64 value)
-{
-   if (array->length == array->capacity)
-   {
-      i64 *new_array = 0;
-      array->capacity = array->capacity * 2;
-      new_array = calloc(array->capacity, sizeof(i64));
-
-      ASSERT(new_array != 0);
-      memcpy(new_array, array->array, array->length * sizeof(i64));
-      free(array->array);
-      array->array = new_array;
-   }
-   i64 index = array->length;
-   array->length += 1;
-   array->array[index] = value;
-   return (index);
-}
-
-struct u64_array
-u64_array_make(u64 capacity)
-{
-   struct u64_array array = {0};
-   array.capacity = capacity;
-   array.length = 0;
-   array.array = calloc(capacity, sizeof(u64));
-   ASSERT(array.array != 0);
-   return(array);
-}
-
-u64
-u64_array_append(struct u64_array *array, u64 value)
-{
-   if (array->length == array->capacity)
-   {
-      u64 *new_array = 0;
-      array->capacity = array->capacity * 2;
-      new_array = calloc(array->capacity, sizeof(u64));
-
-      ASSERT(new_array != 0);
-      memcpy(new_array, array->array, array->length * sizeof(u64));
-      free(array->array);
-      array->array = new_array;
-   }
-   u64 index = array->length;
-   array->length += 1;
-   array->array[index] = value;
-   return (index);
-}
-
-s32
-s32_array_append(struct s32_array *array, s32 value)
-{
-   if (array->length == array->capacity)
-   {
-      s32 *new_array = 0;
-      array->capacity = array->capacity ? array->capacity*2 : 8;
-      new_array = calloc(array->capacity, sizeof(s32));
-
-      ASSERT(new_array != 0);
-      memcpy(new_array, array->array, array->length * sizeof(s32));
-      free(array->array);
-      array->array = new_array;
-   }
-   s32 index = array->length;
-   array->length += 1;
-   array->array[index] = value;
-   return (index);
-}
-
-void
-s32_array_ordered_delete(struct s32_array *array, u64 index)
-{
-   ASSERT(index < array->length);
-   memmove(
-         array->array + index,
-         array->array + index + 1,
-         (array->length - index - 1) * sizeof(s32));
-   array->length -= 1;
-}
-
-void
-s32_array_unordered_delete(struct s32_array *array, u64 index)
-{
-   ASSERT(index < array->length);
-   array->array[index] = array->array[array->length - 1];
-   array->length -= 1;
-}
-
-
-struct tuple_s32_array
-tuple_s32_array_make(s32 capacity)
-{
-   struct tuple_s32_array array = {0};
-   array.capacity = capacity;
-   array.length = 0;
-   array.array = calloc(capacity, sizeof(struct tuple_s32));
-   ASSERT(array.array != 0);
-   return(array);
-}
-
-s32
-tuple_s32_array_append(struct tuple_s32_array *array, struct tuple_s32 value)
-{
-   if (array->length == array->capacity)
-   {
-      struct tuple_s32 *new_array = 0;
-      array->capacity = array->capacity * 2;
-      new_array = calloc(array->capacity, sizeof(struct tuple_s32));
-
-      ASSERT(new_array != 0);
-      memcpy(new_array, array->array, array->length * sizeof(struct tuple_s32));
-      free(array->array);
-      array->array = new_array;
-   }
-   s32 index = array->length;
-   array->length += 1;
-   array->array[index] = value;
-   return (index);
-}
-
-void
-tuple_s32_array_ordered_delete(struct tuple_s32_array *array, u64 index)
-{
-   ASSERT(index < array->length);
-   memmove(
-         array->array + index,
-         array->array + index + 1,
-         (array->length - index - 1) * sizeof(struct tuple_s32));
-   array->length -= 1;
-}
-
-void
-tuple_s32_array_unordered_delete(struct tuple_s32_array *array, u64 index)
-{
-   ASSERT(index < array->length);
-   array->array[index] = array->array[array->length - 1];
-   array->length -= 1;
-}
 #endif
