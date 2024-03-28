@@ -1,8 +1,10 @@
 #ifndef WINGS_OS_FILE_C_
 #define WINGS_OS_FILE_C_
 
-#include "base/macros.h"
 
+#if !defined(OS_WINDOWS) && !defined(OS_LINUX)
+#define OS_WINDOWS
+#endif
 #if defined(OS_WINDOWS)
 #include "windows/file.c"
 #elif defined(OS_LINUX)

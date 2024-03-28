@@ -1,30 +1,27 @@
 #ifndef WINGS_OS_WINDOWS_FILE_C_
 #define WINGS_OS_WINDOWS_FILE_C_
 
+
 #include "base/types.h"
 #include "base/errors.h"
 #include "base/allocators.h"
 #include "base/paths.h"
+
+#include "os/file.h"
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN
 #endif
 #include <Windows.h>
 
-struct file_description
-{
-    char *file_path;
-    u64   last_write_time;
-    s32   file_size;
-    s32   is_directory;
-};
-
-typedef b32 file_filter_function(char *path);
 
 
 error
-file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
-          struct allocator *allocator)
+file_read(
+      struct buffer *buffer,
+      const char *file_path,
+      b32 zero_terminate,
+      struct allocator *allocator)
 {
    HANDLE file_handle = { 0 };
    file_handle        = CreateFile(file_path, GENERIC_READ, FILE_SHARE_READ, 0,
@@ -55,9 +52,12 @@ file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
 }
 
 error
-file_write(struct buffer buffer, char *file_path, b32 create)
+file_write(
+      struct buffer buffer,
+      char *file_path,
+      b32 create)
 {
-   u32    create_flags = create ? CREATE_ALWAYS : OPEN_EXISTING;
+   u32 create_flags = create ? CREATE_ALWAYS : OPEN_EXISTING;
    PSTR   filename     = file_path;
    HANDLE hFile;
 
@@ -155,7 +155,7 @@ file_get_last_write_time(u64 *time, char *file_path)
    return (0);
 }
 
-b32
+static b32
 _file_default_file_filter(char *file_name)
 {
     UNUSED(file_name);

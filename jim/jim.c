@@ -720,6 +720,7 @@ jim_please_link_dll(struct jim_executable executable)
 }
 
 
+//@TODO: Directory without / or \\ at the end doesn't work
 #define jim_please_build_library(Name, Directory, Number_of_object_files, Object_files) \
    _jim_please_build_library(Name, Directory, Number_of_object_files, Object_files, __FILE__, __LINE__)
 

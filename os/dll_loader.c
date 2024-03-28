@@ -1,11 +1,11 @@
 #ifndef WINGS_OS_DLL_LOADER_C_
 #define WINGS_OS_DLL_LOADER_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/cstrings.h"
-#include "wings/os/file.c"
-#include "wings/os/timer.c"
+#include "base/types.h"
+#include "base/errors.c"
+#include "base/cstrings.h"
+#include "file.c"
+#include "timer.c"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -48,7 +48,7 @@ dll_reload(dynamic_library *lib)
    {
       lib->loaded = 0;
       BOOL result = FreeLibrary(lib->handle);
-      if (result == 0) return ec_os_dynamic_loader__free_library_failed;
+      if (result == 0) return make_error("Freeing library %s failed", lib->dll_path);
    }
    f64 timeout_s = 2.0;
    f64 time_used_s = 0.0;
@@ -65,7 +65,7 @@ dll_reload(dynamic_library *lib)
    }
    lib->loaded = 1;
    error = file_get_last_write_time(&lib->last_load_time, lib->dll_path);
-   return(ec__no_error);
+   return(0);
 }
 
 error
@@ -91,7 +91,7 @@ dll_make(dynamic_library *lib,
    IF_ERROR_RETURN(error);
    error = dll_reload(lib);
    IF_ERROR_RETURN(error);
-   return(ec__no_error);
+   return(0);
 }
 
 #endif
