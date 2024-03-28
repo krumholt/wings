@@ -388,7 +388,7 @@ _jim_clang_create_library(struct string command, struct jim_library library)
    if(_jim.on_windows)
    {
       _jim_string_append(&command,
-            "lib /OUT:%s%s.lib ",
+            "llvm-lib /OUT:%s%s.lib ",
             library.directory,
             library.name
             );
