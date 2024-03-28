@@ -167,7 +167,6 @@ path__set_to_parent(struct path *path)
       removed_path_separator = 1;
    }
    u64 last_index = 0;
-   error error = 0;
    b32 found = cstring__get_last_index(&last_index, path->string.start, '\\');
    if (!found)
    {

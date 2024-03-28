@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_HASHMAP_H_
 #define WINGS_BASE_HASHMAP_H_
 
-#include "wings/base/strings.h"
-#include "wings/base/allocators.c"
+#include "strings.h"
+#include "allocators.h"
 
 struct hashmap_key_value
 {

@@ -1,9 +1,9 @@
 #ifndef WINGS_BASE_WINGS_FILE_READER_C_
 #define WINGS_BASE_WINGS_FILE_READER_C_
 
-#include "wings/base/types.h"
-#include "wings/base/math.c"
-#include "wings/base/allocators.c"
+#include "types.h"
+#include "allocators.h"
+#include "math.c"
 
 struct wings_file_header
 {

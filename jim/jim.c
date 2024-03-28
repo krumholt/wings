@@ -902,7 +902,7 @@ jim_did_we_win(void)
 _jim_update_yourself(void)
 {
    file_create_directory(".jim/");
-   char *include_directory = "./";
+   char *include_directory = "wings/";
    struct jim_include_directories include_directories =
    {
       .number_of_directories = 1,

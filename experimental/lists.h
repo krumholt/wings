@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_LISTS_H_
 #define WINGS_BASE_LISTS_H_
 
-#include "wings/base/macros.c"
-#include "wings/base/allocators.c"
+#include "macros.h"
+#include "allocators.h"
 
 struct cstring_list_node
 {

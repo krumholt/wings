@@ -1,13 +1,13 @@
 #ifndef WINGS_BASE_ASSET_IMPORTERS_C_
 #define WINGS_BASE_ASSET_IMPORTERS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/colors.c"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/wings_file_reader.c"
-#include "wings/os/file.c"
-#include "wings/graphics/mesh.c"
+#include "types.h"
+#include "colors.h"
+#include "errors.h"
+#include "allocators.h"
+#include "wings_file_reader.c"
+#include "os/file.c"
+#include "graphics/mesh.c"
 
 error
 load_mesh(struct mesh *mesh, const char *filename, struct allocator *allocator)

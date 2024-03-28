@@ -2,7 +2,7 @@
 #define WINGS_GRAPHICS_OPENGL_C_
 
 #if defined(OS_WINDOWS)
-#include "wings/graphics/windows/opengl.c"
+#include "windows/opengl.c"
 #elif defined(OS_LINUX)
 #include "wings/graphics/linux/opengl.c"
 #else

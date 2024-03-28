@@ -6,6 +6,8 @@
 #include "allocators.h"
 #include "cstrings.h"
 
+#include <stdio.h>
+
 b32
 cstring__is_digit(char c)
 {

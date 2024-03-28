@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_HASHMAP_C_
 #define WINGS_BASE_HASHMAP_C_
 
-#include "wings/base/types.h"
-#include "wings/base/macros.c"
+#include "types.h"
+#include "macros.h"
 
-#include "wings/base/hashmap.h"
+#include "hashmap.h"
 
 error
 hashmap__new (struct hashmap *map, u64 capacity, struct allocator *allocator)
@@ -13,7 +13,7 @@ hashmap__new (struct hashmap *map, u64 capacity, struct allocator *allocator)
    IF_ERROR_RETURN(error);
    map->capacity = capacity;
    map->used = 0;
-   return (ec__no_error);
+   return (0);
 }
 
 u64
@@ -32,7 +32,7 @@ hashmap__hash(u64 length, char *key)
 error
 hashmap__insert_at(struct hashmap *map, u64 index, struct string_view key, void *value)
 {
-   if (map->used == map->capacity) return(ec_base_hashmap__full);
+   if (map->used == map->capacity) return(make_error("Hashmap full"));
    u64 key_index = index % map->capacity;
    struct hashmap_key_value *entry = map->entries + key_index;
    for (u32 index = 0; index < map->capacity; ++index)
@@ -43,18 +43,18 @@ hashmap__insert_at(struct hashmap *map, u64 index, struct string_view key, void 
          entry->key = key;
          entry->value = value;
          map->used += 1;
-         return (ec__no_error);
+         return (0);
       }
       else
       {
          if (string_view__equals(entry->key, key))
          {
-            return(ec_base_hashmap__key_exists);
+            return(make_error("Key %.*s exists", (int)key.length, key.start));
          }
          map->collisions += 1;
       }
    }
-   return(ec_base_hashmap__full);
+   return(make_error("Hashmap full"));
 }
 
 void *
@@ -77,8 +77,8 @@ hashmap__find(struct hashmap map, struct string_view key)
 error
 hashmap__insert(struct hashmap *map, struct string_view key, void *value)
 {
-   if (map->used == map->capacity) return(ec_base_hashmap__full);
-   if (!value) return(ec_base_hashmap__null_value_not_allowed);
+   if (map->used == map->capacity) return(make_error("Hashmap full"));
+   if (!value) return(make_error("Null not allowed in hashmap"));
    u64 key_index = hashmap__hash(key.length, key.start) % map->capacity;
 
    error error = hashmap__insert_at(map, key_index, key, value);
