@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_DYNAMIC_ARRAYS_C_
 #define WINGS_BASE_DYNAMIC_ARRAYS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/macros.c"
+#include "types.h"
+#include "macros.h"
 
 #include "dynamic_arrays.h"
 

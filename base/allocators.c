@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_ALLOCATORS_C_
 #define WINGS_BASE_ALLOCATORS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/macros.c"
-#include "wings/os/memory.c"
+#include "types.h"
+#include "errors.h"
+#include "macros.h"
+#include "os/memory.c"
 
 #include "allocators.h"
 
@@ -97,12 +97,12 @@ linear_fixed_size_allocator_allocate(u8 **memory, struct allocator *allocator_, 
    size = (size + allocator_->alignment - 1) & ~(allocator_->alignment - 1);
    u64 memory_left = allocator->buffer.size - allocator->buffer.used;
    if (memory_left < size)
-      return (ec_base_allocators__no_space_left);
+      return (make_error("Failed to allocate. Memory left %llu. Memory requested %llu", memory_left, size));
 
    *memory = allocator->buffer.base + allocator->buffer.used;
    allocator->buffer.used += size;
    allocator_->total_memory_used += size;
-   return (ec__no_error);
+   return (0);
 }
 
 error
@@ -140,7 +140,7 @@ linear_growing_allocator_clear(struct allocator *allocator_)
       node = previous;
    }
    allocator->stack.number_of_nodes = 0;
-   return (ec__no_error);
+   return (0);
 }
 
 static void
@@ -170,7 +170,7 @@ allocator_clear(struct allocator *allocator)
    case allocator_type_fixed_size_linear:
    {
       linear_fixed_size_allocator_clear(allocator);
-      return (ec__no_error);
+      return (0);
    }
    break;
    }

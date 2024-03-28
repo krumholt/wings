@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_CSTRINGS_H_
 #define WINGS_BASE_CSTRINGS_H_
 
-#include "wings/base/types.h"
-#include "wings/base/allocators.c"
+#include "types.h"
+#include "allocators.h"
 
 
 b32
@@ -31,10 +31,10 @@ cstring__remove_file_extension (char **result,
 void
 cstring__replace (s32 length, char *target, char old_char, char new_char);
 
-error
-cstring__get_first_index (u64 *index, char *haystack, char needle);
+b32
+cstring__get_first_index(u64 *index, char *haystack, char needle);
 
-error
+b32
 cstring__get_last_index(u64 *index, char *haystack, char needle);
 
 b32

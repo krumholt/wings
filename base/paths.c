@@ -1,12 +1,12 @@
 #ifndef WINGS_BASE_PATHS_C_
 #define WINGS_BASE_PATHS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/cstrings.h"
-#include "wings/base/macros.c"
-#include "wings/base/strings.c"
-#include "wings/base/paths.h"
+#include "types.h"
+#include "errors.h"
+#include "cstrings.h"
+#include "macros.h"
+#include "strings.h"
+#include "paths.h"
 
 
 error
@@ -16,7 +16,7 @@ path__from_cstring (struct path *path,
                     struct allocator *allocator)
 {
    ASSERT(cstring);
-   error error = ec__no_error;
+   error error = 0;
    if (cstring_length == 0)
    {
       error = string__from_cstring(
@@ -108,7 +108,7 @@ path__ensure_is_folder (struct path      *path,
       IF_ERROR_RETURN(error);
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
 error
@@ -118,8 +118,8 @@ path__base_name (struct string *base_name,
 {
    u64 index = 0;
    error error = 0;
-   error = cstring__get_last_index(&index, path.string.start, '\\');
-   if (error)
+   b32 found = cstring__get_last_index(&index, path.string.start, '\\');
+   if (!found)
    {
       base_name->length = path.string.length;
       error = cstring__copy(&base_name->start, path.string.length, path.string.start, allocator);
@@ -139,10 +139,10 @@ path__remove_file_extension (struct string *result,
    u64 index = 0;
    u64 last_separator_index = 0;
    error error = 0;
-   error = cstring__get_last_index(&last_separator_index, path.string.start, '\\');
-   if (error) last_separator_index = 0;
-   error = cstring__get_last_index(&index, path.string.start, '.');
-   if (error || last_separator_index > index)
+   b32 found = cstring__get_last_index(&last_separator_index, path.string.start, '\\');
+   if (!found) last_separator_index = 0;
+   found = cstring__get_last_index(&index, path.string.start, '.');
+   if (!found || last_separator_index > index)
    {
       result->length = path.string.length;
       error = cstring__copy(&result->start, path.string.length, path.string.start, allocator);
@@ -168,8 +168,8 @@ path__set_to_parent(struct path *path)
    }
    u64 last_index = 0;
    error error = 0;
-   error = cstring__get_last_index(&last_index, path->string.start, '\\');
-   if (error)
+   b32 found = cstring__get_last_index(&last_index, path->string.start, '\\');
+   if (!found)
    {
       if (removed_path_separator)
       {

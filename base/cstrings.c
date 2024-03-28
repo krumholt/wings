@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_CSTRINGS_C_
 #define WINGS_BASE_CSTRINGS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/cstrings.h"
+#include "types.h"
+#include "errors.h"
+#include "allocators.h"
+#include "cstrings.h"
 
 b32
 cstring__is_digit(char c)
@@ -131,15 +131,15 @@ cstring__replace(s32 length, char *target, char old_char, char new_char)
    }
 }
 
-error
+b32
 cstring__get_first_index2(u64 *index, char *haystack, char needle) //@TODO: bench me vs cstring__get_first_index
 {
    char *at = strchr(haystack, needle);
    *index = at - haystack;
-   return ec_base_cstrings__not_found;
+   return at != 0;
 }
 
-error
+b32
 cstring__get_first_index(u64 *index, char *haystack, char needle)
 {
    ASSERT(index);
@@ -150,14 +150,14 @@ cstring__get_first_index(u64 *index, char *haystack, char needle)
       if (*haystack == needle)
       {
          *index = haystack - haystack_start;
-         return 0;
+         return 1;
       }
       ++haystack;
    }
-   return ec_base_cstrings__not_found;
+   return 0;
 }
 
-error
+b32
 cstring__get_last_index(u64 *index, char *haystack, char needle)
 {
    ASSERT(index);
@@ -173,15 +173,15 @@ cstring__get_last_index(u64 *index, char *haystack, char needle)
       if (*haystack == needle)
       {
          *index = haystack - haystack_start;
-         return ec__no_error;
+         return 1;
       }
    }
    if (*haystack == needle)
    {
       *index = 0;
-      return ec__no_error;
+      return 1;
    }
-   return ec_base_cstrings__not_found;
+   return 0;
 }
 
 b32

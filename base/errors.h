@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_ERRORS_H_
 #define WINGS_BASE_ERRORS_H_
 
-#include "wings/base/types.h"
+#include "types.h"
 #define ERROR_LOG_STRING_LENGTH 1024
 
 struct error_log

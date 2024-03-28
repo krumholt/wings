@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_RANDOM_C_
 #define WINGS_BASE_RANDOM_C_
 
-#include "macros.c"
+#include "macros.h"
 #include "types.h"
 
 #include <limits.h>

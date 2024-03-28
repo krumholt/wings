@@ -1,9 +1,9 @@
 #ifndef WINGS_BASE_PATHS_H_
 #define WINGS_BASE_PATHS_H_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
+#include "types.h"
+#include "errors.h"
+#include "allocators.h"
 
 
 struct path

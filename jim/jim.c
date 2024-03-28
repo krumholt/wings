@@ -1,14 +1,14 @@
 #ifndef WINGS_JIM_JIM_C_
 #define WINGS_JIM_JIM_C_
 
-#include "wings/base/macros.c"
-#include "wings/base/types.h"
-#include "wings/base/units.c"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/strings.c"
-#include "wings/os/process.c"
-#include "wings/os/file.c"
+#include "base/macros.h"
+#include "base/types.h"
+#include "base/units.h"
+#include "base/errors.h"
+#include "base/allocators.h"
+#include "base/strings.h"
+#include "os/process.c"
+#include "os/file.c"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +34,7 @@ struct jim_object_file
    char  *target;
    char  *source;
    struct jim_include_directories
-          include_directories;
+      include_directories;
    b32    compiled;
    b32    debug;
 };
@@ -80,30 +80,30 @@ struct jim
    b32                     on_windows;
 } _jim = { 0 };
 
-error
+   error
 _jim_string_append_vaargs(
-    struct string *string,
-    char          *format,
-    va_list        arg_list)
+      struct string *string,
+      char          *format,
+      va_list        arg_list)
 {
    s32 chars_written = vsnprintf(
-      string->start,
-      string->length - 1,
-      format,
-      arg_list);
+         string->start,
+         string->length - 1,
+         format,
+         arg_list);
    if (chars_written < 0)
-      return (ec_jim__string_append_failed);
+      return (make_error("Failed to append to string"));
    if ((u32)chars_written > string->length)
    {
-      return (ec_jim__string_append_failed);
+      return (make_error("Failed to append to string"));
    }
    string->length -= chars_written;
    string->start += chars_written;
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_string_append(struct string *string, char *format, ...)
 {
    va_list arg_list;
@@ -113,7 +113,7 @@ _jim_string_append(struct string *string, char *format, ...)
    return (error);
 }
 
-error
+   error
 _jim_msvc_compile(
       struct string command,
       struct jim_object_file object_file)
@@ -137,10 +137,10 @@ _jim_msvc_compile(
          );
    IF_ERROR_RETURN(error);
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_msvc_link(struct string command, struct jim_executable executable)
 {
    _jim_string_append(&command,
@@ -177,10 +177,10 @@ _jim_msvc_link(struct string command, struct jim_executable executable)
    {
       _jim_string_append(&command, "%s.lib ", executable.libraries[index].name);
    }
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_clang_link_dll(struct string command, struct jim_executable executable)
 {
    _jim_string_append(&command,
@@ -226,10 +226,10 @@ _jim_clang_link_dll(struct string command, struct jim_executable executable)
       _jim_string_append(&command, "-l%s ",  executable.libraries[index].name);
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_clang_compile(
       struct string command,
       struct jim_object_file object_file)
@@ -253,10 +253,10 @@ _jim_clang_compile(
          );
    IF_ERROR_RETURN(error);
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_gcc_compile(
       struct string command,
       struct jim_object_file object_file)
@@ -280,10 +280,10 @@ _jim_gcc_compile(
          );
    IF_ERROR_RETURN(error);
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_clang_link(struct string command, struct jim_executable executable)
 {
    _jim_string_append(&command,
@@ -329,10 +329,10 @@ _jim_clang_link(struct string command, struct jim_executable executable)
       _jim_string_append(&command, "-l%s ",  executable.libraries[index].name);
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_gcc_link(struct string command, struct jim_executable executable)
 {
    _jim_string_append(&command,
@@ -378,54 +378,54 @@ _jim_gcc_link(struct string command, struct jim_executable executable)
       _jim_string_append(&command, "-l%s ",  executable.libraries[index].name);
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
 
-error
+   error
 _jim_clang_create_library(struct string command, struct jim_library library)
 {
    if(_jim.on_windows)
    {
       _jim_string_append(&command,
-                         "lib /OUT:%s%s.lib ",
-                         library.directory,
-                         library.name
-                        );
+            "lib /OUT:%s%s.lib ",
+            library.directory,
+            library.name
+            );
 
       for (u32 index = 0;
-           index < library.number_of_object_files;
-           ++index)
+            index < library.number_of_object_files;
+            ++index)
       {
          _jim_string_append(&command,
-                            "%s ",
-                            library.object_files[index].target
-                           );
+               "%s ",
+               library.object_files[index].target
+               );
       }
    }
    else
    {
       _jim_string_append(&command,
-                         "ar rcs %s%s.lib ",
-                         library.directory,
-                         library.name
-                        );
+            "ar rcs %s%s.lib ",
+            library.directory,
+            library.name
+            );
 
       for (u32 index = 0;
-           index < library.number_of_object_files;
-           ++index)
+            index < library.number_of_object_files;
+            ++index)
       {
          _jim_string_append(&command,
-                            "%s ",
-                            library.object_files[index].target
-                           );
+               "%s ",
+               library.object_files[index].target
+               );
       }
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_gcc_create_library(struct string command, struct jim_library library)
 {
    _jim_string_append(&command,
@@ -444,10 +444,10 @@ _jim_gcc_create_library(struct string command, struct jim_library library)
             );
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
-error
+   error
 _jim_msvc_create_library(struct string command, struct jim_library library)
 {
    _jim_string_append(&command,
@@ -466,7 +466,7 @@ _jim_msvc_create_library(struct string command, struct jim_library library)
             );
    }
 
-   return (ec__no_error);
+   return (0);
 }
 
 
@@ -494,7 +494,7 @@ struct jim_compiler jim_clang_compiler = {
 // jim please api
 // --------------------
 
-void
+   void
 _jim_please_set_error_message(char *format, ...)
 {
    va_list arg_list;
@@ -503,7 +503,7 @@ _jim_please_set_error_message(char *format, ...)
    va_end(arg_list);
 }
 
-void
+   void
 jim_please_use_msvc(void)
 {
    _jim.default_compiler_set = 1;
@@ -516,7 +516,7 @@ _jim_update_yourself(void);
 
 #define jim_please_listen() \
    _jim_please_listen(__FILE__, __LINE__);
-void
+   void
 _jim_please_listen(char *file, s32 line)
 {
    file_create_directory(".jim");
@@ -594,7 +594,7 @@ _jim_please_listen(char *file, s32 line)
 #define jim_please_compile(Object_file)\
    _jim_please_compile(Object_file, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
 {
    if (_jim.error)
@@ -627,17 +627,19 @@ _jim_please_compile(struct jim_object_file object_file, char *file, s32 line)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %s\n%s",
-                                    file, line,
-                                    command.start,
-                                    error_code_as_text[error],
-                                    _jim.compilation_result.start);
+      string_view error_message = error_to_string_view(error);
+      _jim_please_set_error_message("./%s:%d:0: error: %s\n%.*s\n%s",
+            file, line,
+            command.start,
+            (int)error_message.length,
+            error_message.start,
+            _jim.compilation_result.start);
       return;
    }
    printf("%s", _jim.compilation_result.start);
 }
 
-void
+   void
 jim_please_link(struct jim_executable executable)
 {
    if (_jim.error)
@@ -669,15 +671,15 @@ jim_please_link(struct jim_executable executable)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link(%s):\n\t%s\nFailed with %d\n\n\n%s",
-                                    executable.output_file,
-                                    command.start,
-                                    error,
-                                    _jim.compilation_result.start);
+            executable.output_file,
+            command.start,
+            error,
+            _jim.compilation_result.start);
       return;
    }
 }
 
-void
+   void
 jim_please_link_dll(struct jim_executable executable)
 {
    if (_jim.error)
@@ -709,10 +711,10 @@ jim_please_link_dll(struct jim_executable executable)
    {
       _jim.error = error;
       _jim_please_set_error_message("[ERROR] jim_please_link_dll(%s):\n\t%s\nFailed with %d\n\n\n%s",
-                                    executable.output_file,
-                                    command.start,
-                                    error,
-                                    _jim.compilation_result.start);
+            executable.output_file,
+            command.start,
+            error,
+            _jim.compilation_result.start);
       return;
    }
 }
@@ -721,7 +723,7 @@ jim_please_link_dll(struct jim_executable executable)
 #define jim_please_build_library(Name, Directory, Number_of_object_files, Object_files) \
    _jim_please_build_library(Name, Directory, Number_of_object_files, Object_files, __FILE__, __LINE__)
 
-struct jim_library
+   struct jim_library
 _jim_please_build_library(char *name, char *directory, u32 number_of_object_files, struct jim_object_file *object_files, char *file, s32 line)
 {
    if (_jim.error)
@@ -749,9 +751,9 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: Was unable to build library with %d",
-                                    file,
-                                    line,
-                                    error);
+            file,
+            line,
+            error);
       return (struct jim_library){0};
    }
    if (!_jim.silent)
@@ -763,11 +765,11 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
    {
       _jim.error = error;
       _jim_please_set_error_message("./%s:%d:0: error: %s\nFailed with %d\n\n\n%s",
-                                    file,
-                                    line,
-                                    command.start,
-                                    error,
-                                    _jim.compilation_result.start);
+            file,
+            line,
+            command.start,
+            error,
+            _jim.compilation_result.start);
       return (struct jim_library){0};
    }
    return (library);
@@ -776,93 +778,94 @@ _jim_please_build_library(char *name, char *directory, u32 number_of_object_file
 #define jim_please_copy_if_newer(From, To) \
    _jim_please_copy_if_newer(From, To, __FILE__, __LINE__);
 
-void
+   void
 _jim_please_copy_if_newer(char *from, char *to, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_copy_if_newer(from, to);
-    if (error)
-    {
-       _jim.error = error;
-       _jim_please_set_error_message("./%s:%d:0 error: Failed to copy %s to %s: %s", file, line, from, to, error_code_as_text[error]);
-       return;
-    }
+   error error = file_copy_if_newer(from, to);
+   if (error)
+   {
+      _jim.error = error;
+      string_view error_message = error_to_string_view(error);
+      _jim_please_set_error_message("./%s:%d:0 error: Failed to copy %s to %s: %s", file, line, from, to, (int)error_message.length, error_message.start);
+      return;
+   }
 }
 
 #define jim_please_copy(From, To) \
    _jim_please_copy(From, To, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_copy(char *from, char *to, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_copy(from, to);
-    if (error)
-    {
-       _jim.error = error;
-       _jim_please_set_error_message("./%s:%d:0: error: Failed to copy %s to %s", file, line, from, to);
-       return;
-    }
+   error error = file_copy(from, to);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to copy %s to %s", file, line, from, to);
+      return;
+   }
 }
 
 #define jim_please_move(From, To) \
    _jim_please_move(From, To, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_move(char *from, char *to, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_move(from, to);
-    if (error)
-    {
-       _jim.error = error;
-       _jim_please_set_error_message("./%s:%d:0: error: Failed to move %s to %s", file, line, from, to);
-       return;
-    }
+   error error = file_move(from, to);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to move %s to %s", file, line, from, to);
+      return;
+   }
 }
 
 #define jim_please_create_directory(Name) \
    _jim_please_create_directory(Name, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_create_directory(char *name, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_create_directory(name);
-    if (error)
-    {
-       _jim.error = error;
-       _jim_please_set_error_message("./%s:%d:0: error: Failed to create directory %s", file, line, name);
-       return;
-    }
+   error error = file_create_directory(name);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to create directory %s", file, line, name);
+      return;
+   }
 }
 
 #define jim_please_delete(Name) \
    _jim_please_delete(Name, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_delete(char *name, char *file, s32 line)
 {
    if (_jim.error)
       return;
-    error error = file_delete(name);
-    if (error)
-    {
-        if (error == ec_os_file__not_found) return;
-       _jim.error = error;
-       _jim_please_set_error_message("./%s:%d:0: error: Failed to delete %s", file, line, name);
-       return;
-    }
+   if (!file_exists(name)) return;
+   error error = file_delete(name);
+   if (error)
+   {
+      _jim.error = error;
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to delete %s", file, line, name);
+      return;
+   }
 }
 
 #define jim_please_run(Command, Working_directory) \
    _jim_please_run(Command, Working_directory, __FILE__, __LINE__)
 
-void
+   void
 _jim_please_run(char *command, char *working_directory, char *file, s32 line)
 {
    if (_jim.error)
@@ -876,14 +879,15 @@ _jim_please_run(char *command, char *working_directory, char *file, s32 line)
    if (error)
    {
       _jim.error = error;
-      _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s with %s", file, line, command, working_directory, error_code_as_text[error]);
+      string_view error_message = error_to_string_view(error);
+      _jim_please_set_error_message("./%s:%d:0: error: Failed to run %s in directory %s with %.*s", file, line, command, working_directory, (int)error_message.length, error_message.start);
       printf("%s", _jim.compilation_result.start);
       return;
    }
    printf("%s", _jim.compilation_result.start);
 }
 
-s32
+   s32
 jim_did_we_win(void)
 {
    if (_jim.error)
@@ -891,10 +895,10 @@ jim_did_we_win(void)
       printf("%s\n", _jim.error_message.start);
       return (_jim.error);
    }
-   return (ec__no_error);
+   return (0);
 }
 
-void
+   void
 _jim_update_yourself(void)
 {
    file_create_directory(".jim/");
@@ -939,62 +943,62 @@ _jim_update_yourself(void)
 }
 
 char *_jim_default_compile_flags_txt
-    = ""
-      "-Isource\n"
-      "-I./\n";
+= ""
+"-Isource\n"
+"-I./\n";
 
 char *_jim_default_jims_brain
-    = ""
-      "#include \"wings/jim/jim.c\"\n"
-      "\n"
-      "s32\n"
-      "main(void)\n"
-      "{\n"
-      "    jim_please_listen();\n"
-      "\n"
-      "char *include_directories[] = { \"./\" };\n"
-      "struct jim_object_file main =\n"
-      "{\n"
-      "   .name = \"main.o\",\n"
-      "   .directory = \".build/\",\n"
-      "   .source_file = \"main.c\",\n"
-      "   .source_file_directory = \"source/\",\n"
-      "   .number_of_include_directories = ARRAY_LENGTH(include_directories),\n"
-      "   .include_directories = include_directories,\n"
-      "};\n"
-      "    jim_please_compile(main);\n"
-      "    jim_please_link(\n"
-      "       \".build/\",\n"
-      "       \"main.exe\",\n"
-      "       \"0\",\n"
-      "       \"0,\n"
-      "       \"1,\n"
-      "       \"&main\");\n"
-      "\n"
-      "    jim_did_we_win();\n"
-      "}\n";
+= ""
+"#include \"wings/jim/jim.c\"\n"
+"\n"
+"s32\n"
+"main(void)\n"
+"{\n"
+"    jim_please_listen();\n"
+"\n"
+"char *include_directories[] = { \"./\" };\n"
+"struct jim_object_file main =\n"
+"{\n"
+"   .name = \"main.o\",\n"
+"   .directory = \".build/\",\n"
+"   .source_file = \"main.c\",\n"
+"   .source_file_directory = \"source/\",\n"
+"   .number_of_include_directories = ARRAY_LENGTH(include_directories),\n"
+"   .include_directories = include_directories,\n"
+"};\n"
+"    jim_please_compile(main);\n"
+"    jim_please_link(\n"
+"       \".build/\",\n"
+"       \"main.exe\",\n"
+"       \"0\",\n"
+"       \"0,\n"
+"       \"1,\n"
+"       \"&main\");\n"
+"\n"
+"    jim_did_we_win();\n"
+"}\n";
 
 char *_jim_default_main_c
-    = ""
-      "#include <stdio.h>\n"
-      "\n"
-      "int\n"
-      "main(void)\n"
-      "{\n"
-      "    printf(\"Hello, worlor\\n\");\n"
-      "    return (0);\n"
-      "}\n";
+= ""
+"#include <stdio.h>\n"
+"\n"
+"int\n"
+"main(void)\n"
+"{\n"
+"    printf(\"Hello, worlor\\n\");\n"
+"    return (0);\n"
+"}\n";
 
 #define jim_please_setup_a_new_project() \
    do                                    \
-   {                                     \
-      jims_brain = __FILE__;             \
-      printf("%s\n", jims_brain);        \
-      _jim_please_setup_a_new_project(); \
-   }                                     \
-   while (0)
+{                                     \
+   jims_brain = __FILE__;             \
+   printf("%s\n", jims_brain);        \
+   _jim_please_setup_a_new_project(); \
+}                                     \
+while (0)
 
-void
+   void
 _jim_please_setup_a_new_project(void)
 {
    printf("\n");

@@ -1,10 +1,10 @@
 #ifndef WINGS_BASE_PROFILER_C_
 #define WINGS_BASE_PROFILER_C_
 
-#include "wings/base/types.h"
-#include "wings/base/macros.c"
-#include "wings/base/units.c"
-#include "wings/os/timer.c"
+#include "types.h"
+#include "macros.h"
+#include "units.h"
+#include "os/timer.c"
 
 #include <assert.h>
 #include <stdio.h>

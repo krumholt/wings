@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_DYNAMIC_ARRAYS_H_
 #define WINGS_BASE_DYNAMIC_ARRAYS_H_
 
-#include "wings/base/types.h"
+#include "base/types.h"
 
 struct _array_header
 {

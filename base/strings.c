@@ -1,21 +1,21 @@
 #ifndef WINGS_BASE_STRINGS_C_
 #define WINGS_BASE_STRINGS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/cstrings.h"
+#include "types.h"
+#include "errors.h"
+#include "allocators.h"
+#include "cstrings.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#include "wings/base/strings.h"
+#include "strings.h"
 
 
 error
 string__new(struct string *string, u32 length, struct allocator *allocator)
 {
-   error error    = ec__no_error;
+   error error    = 0;
    string->length = length;
    error          = allocate_array(&string->start, allocator, string->length + 1, char);
    return (error);
@@ -34,7 +34,7 @@ string__from_cstring(
    {
       string->start[index] = cstring[index];
    }
-   return (ec__no_error);
+   return (0);
 }
 
 error
@@ -92,7 +92,7 @@ string__split (struct string      *left,
    {
       right->start[index] = source.start[left_length + found + index];
    }
-   return (ec__no_error);
+   return (0);
 }
 
 struct string_view

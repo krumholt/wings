@@ -1,9 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_PROCESS_C_
 #define WINGS_OS_WINDOWS_PROCESS_C_
 
-#include "wings/base/types.h"
-#include "wings/base/macros.c"
-#include "wings/base/error_codes.c"
+#include "base/types.h"
+#include "base/macros.h"
+#include "base/errors.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -28,7 +28,7 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
                         &pipe_security_attributes,
                         0);
    if (!success)
-      return (ec_os_process__failed_to_create_pipe);
+      return (make_error("Failed to create pipe"));
 
    STARTUPINFO         startup_info = { 0 };
    PROCESS_INFORMATION process_info = { 0 };
@@ -54,9 +54,9 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
    {
       s32 last_error = GetLastError();
       if (last_error == 2)
-         error = ec_os_process__command_not_found;
+         error = make_error("Command %s not found", command);
       else
-         error = ec_os_process__creation_failed;
+         error = make_error("Failed to create process with windows error code %d", last_error);
       return (error);
    }
    DWORD chars_read = 0;
@@ -86,8 +86,8 @@ run_command_at(char *command, char *directory, u32 result_buffer_size, char *res
    CloseHandle(process_info.hThread);
 
    if (exit_code)
-      return(ec_os_process__command_failed);
-   return (NO_ERROR);
+      return(make_error("Command %s failed with exit code %d", command, exit_code));
+   return (0);
 }
 
 error
@@ -99,7 +99,7 @@ run_command(char *command, u32 result_buffer_size, char *result_buffer)
 error
 process_new(char *command, char *path, b32 new_console)
 {
-   error error = ec__no_error;
+   error error = 0;
 
    STARTUPINFO         startup_info = { 0 };
    PROCESS_INFORMATION process_info = { 0 };
@@ -121,15 +121,15 @@ process_new(char *command, char *path, b32 new_console)
    {
       s32 last_error = GetLastError();
       if (last_error == 2)
-         error = ec_os_process__command_not_found;
+         error = make_error("Command %s not found", command);
       else
-         error = ec_os_process__creation_failed;
+         error = make_error("Failed to create process with windows error code %d", last_error);
       return (error);
    }
    CloseHandle(process_info.hProcess);
    CloseHandle(process_info.hThread);
 
-   return (NO_ERROR);
+   return (0);
 }
 
 #endif

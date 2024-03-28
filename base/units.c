@@ -1,7 +1,7 @@
 #ifndef WINGS_BASE_UNITS_C_
 #define WINGS_BASE_UNITS_C_
 
-#include "wings/base/types.h"
+#include "types.h"
 
 u64
 kibibytes(u64 n)

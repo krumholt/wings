@@ -1,7 +1,7 @@
 #ifndef WINGS_OS_FILE_C_
 #define WINGS_OS_FILE_C_
 
-#include "wings/base/macros.c"
+#include "base/macros.h"
 
 #if defined(OS_WINDOWS)
 #include "windows/file.c"

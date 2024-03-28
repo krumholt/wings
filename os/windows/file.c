@@ -1,10 +1,10 @@
 #ifndef WINGS_OS_WINDOWS_FILE_C_
 #define WINGS_OS_WINDOWS_FILE_C_
 
-#include "wings/base/types.h"
-#include "wings/base/error_codes.c"
-#include "wings/base/allocators.c"
-#include "wings/base/paths.h"
+#include "base/types.h"
+#include "base/errors.h"
+#include "base/allocators.h"
+#include "base/paths.h"
 
 #ifndef WIN32_MEAN_AND_LEAN
 #define WIN32_MEAN_AND_LEAN
@@ -31,7 +31,7 @@ file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
    if (file_handle == INVALID_HANDLE_VALUE)
-      return (ec_os_file__not_found);
+      return (make_error("File %s not found", file_path));
 
    u32 size_on_disk = GetFileSize(file_handle, 0);
 
@@ -47,7 +47,7 @@ file_read(struct buffer *buffer, const char *file_path, b32 zero_terminate,
    if (!success || (buffer->size != size_read + (zero_terminate ? 1 : 0)))
    {
       CloseHandle(file_handle);
-      return (ec_os_file__not_found);
+      return (make_error("Unable to read file %s", file_path));
    }
    CloseHandle(file_handle);
 
@@ -67,7 +67,7 @@ file_write(struct buffer buffer, char *file_path, b32 create)
    if (hFile == INVALID_HANDLE_VALUE)
    {
       CloseHandle(hFile);
-      return (ec_os_file__not_found);
+      return (make_error("File %s not found", file_path));
    }
 
    DWORD size_written = 0;
@@ -75,7 +75,7 @@ file_write(struct buffer buffer, char *file_path, b32 create)
    if (!success)
    {
       CloseHandle(hFile);
-      return (ec_os_file__write_failed);
+      return (make_error("Writing to %s failed", file_path));
    }
 
    CloseHandle(hFile);
@@ -83,51 +83,51 @@ file_write(struct buffer buffer, char *file_path, b32 create)
 }
 
 error
-file_delete(char *file_name)
+file_delete(char *file_path)
 {
-   u32 success = DeleteFile(file_name);
+   u32 success = DeleteFile(file_path);
    if (!success)
    {
       DWORD last_error = GetLastError();
       if (last_error == 2)
-         return ec_os_file__not_found;
+         return (make_error("File %s not found", file_path));
       if (last_error == 5)
-         return ec_os_file__access_denied;
+         return (make_error("Access to %s denied", file_path));
    }
    return (!success);
 }
 
 error
-file_move(char *from_file_name, char *to_file_name)
+file_move(char *from_file_path, char *to_file_path)
 {
-   u32 success = MoveFile(from_file_name, to_file_name);
+   u32 success = MoveFile(from_file_path, to_file_path);
    if (!success)
    {
       DWORD last_error = GetLastError();
       if (last_error == 2)
-         return ec_os_file__not_found;
+         return (make_error("File %s not found", from_file_path));
       if (last_error == 5)
-         return ec_os_file__access_denied;
+         return (make_error("Access to %s or %s denied", to_file_path, from_file_path));
    }
    return (!success);
 }
 
 error
-file_copy(char *from_file_name, char *to_file_name)
+file_copy(char *from_file_path, char *to_file_path)
 {
-   u32 success = CopyFile(from_file_name, to_file_name, 0);
+   u32 success = CopyFile(from_file_path, to_file_path, 0);
    if (!success)
    {
       DWORD last_error = GetLastError();
       if (last_error == 0x2)
-         return ec_os_file__not_found;
+         return (make_error("File %s not found", from_file_path));
       if (last_error == 0x5)
-         return ec_os_file__access_denied;
+         return (make_error("Access to %s or %s denied", to_file_path, from_file_path));
       if (last_error == 0x20)
-         return ec_os_file__in_use;
-      return (ec_os_file__unknown);
+         return (make_error("File %s or %s in use", to_file_path, from_file_path));
+      return (make_error("Copying %s to %s resulted in windows system error %d", to_file_path, from_file_path, last_error));
    }
-   return (ec__no_error);
+   return (0);
 }
 
 error
@@ -138,7 +138,7 @@ file_get_last_write_time(u64 *time, char *file_path)
                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
    if (!file_handle)
    {
-      return (ec_os_file__not_found);
+      return (make_error("File %s not found", file_path));
    }
    u64 creation_time = 0, last_access_time = 0, last_write_time = 0;
    u32 success = GetFileTime(
@@ -148,7 +148,7 @@ file_get_last_write_time(u64 *time, char *file_path)
        (FILETIME *)&last_write_time);
    if (!success)
    {
-      return (ec_os_file__access_denied);
+      return (make_error("File %s access denied", file_path));
    }
    CloseHandle(file_handle);
    *time = last_write_time;
@@ -191,7 +191,7 @@ file_list_directory(
    if (find_handle == INVALID_HANDLE_VALUE)
    {
       *number_of_files = 0;
-      return ec_os_file__not_found;
+      return (make_error("Directory %s not found", path));
    }
 
    u32 file_count = 0;
@@ -235,7 +235,7 @@ file_create_directory(char *file_path)
    if (result == ERROR_ALREADY_EXISTS)
       return (0);
    if (result == ERROR_PATH_NOT_FOUND)
-      return (ec_os_file__not_found);
+      return (make_error("File %s not found", file_path));
    return (0);
 }
 
@@ -245,7 +245,7 @@ file_exists(char *file_path)
    DWORD result = GetFileAttributes(file_path);
    if (result == INVALID_FILE_ATTRIBUTES)
       return (0);
-   return (1);
+   return (make_error("File %s already exists", file_path));
 }
 
 error
@@ -263,7 +263,7 @@ file_copy_if_newer(char *from_file_name, char *to_file_name)
    {
       return (file_copy(from_file_name, to_file_name));
    }
-   return (ec__no_error);
+   return (0);
 }
 
 #endif

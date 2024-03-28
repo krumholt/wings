@@ -1,10 +1,10 @@
 #ifndef WINGS_OS_PROCESS_C_
 #define WINGS_OS_PROCESS_C_
 
-#include "wings/base/macros.c"
+#include "base/macros.h"
 
 #if defined(OS_WINDOWS)
-#include "wings/os/windows/process.c"
+#include "windows/process.c"
 #elif defined(OS_LINUX)
 #include "wings/os/linux/process.c"
 #else

@@ -1,9 +1,9 @@
 #ifndef WINGS_OS_WINDOWS_MEMORY_C_
 #define WINGS_OS_WINDOWS_MEMORY_C_
 
-#include "wings/base/types.h"
-#include "wings/base/macros.c"
-#include "wings/base/error_codes.c"
+#include "base/types.h"
+#include "base/macros.h"
+#include "base/errors.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -47,7 +47,7 @@ os_reserve_memory(struct os_allocation *block, u64 size)
                                             MEM_RESERVE,
                                             PAGE_READWRITE);
    if (block->base == 0)
-      return (ec_os_memory__failed_to_allocate);
+      return (make_error("Failed to reserve memory of size %llu\n", size));
    block->size = actual_size;
 
    return (NO_ERROR);
@@ -60,7 +60,7 @@ os_commit_memory(struct os_allocation block)
                                block.size,
                                MEM_COMMIT,
                                PAGE_READWRITE);
-   return (block.base == result ? NO_ERROR : ec_os_memory__failed_to_allocate);
+   return (block.base == result ? 0 : make_error("os_commit_memory failed"));
 }
 
 error
@@ -82,14 +82,14 @@ error
 os_release_memory(struct os_allocation block)
 {
    b32 result = VirtualFree(block.base, 0, MEM_RELEASE);
-   return (result == 0 ? ec_os_memory__failed_to_allocate : NO_ERROR);
+   return (result == 0 ? make_error("os_release_memory failed") : 0);
 }
 
 error
 os_decommit_memory(struct os_allocation block)
 {
    b32 result = VirtualFree(block.base, block.size, MEM_DECOMMIT);
-   return (result == 0 ? ec_os_memory__failed_to_allocate : NO_ERROR);
+   return (result == 0 ? make_error("os_decommit_memory failed") : 0);
 }
 
 u64
@@ -117,7 +117,7 @@ os_get_memory_info(struct memory_info *info, struct os_allocation block)
 
    u64 query_size = VirtualQuery(block.base, &basic_info, sizeof(MEMORY_BASIC_INFORMATION));
    if (query_size != sizeof(MEMORY_BASIC_INFORMATION))
-      return (ec_os_memory__query_failed);
+      return (make_error("memory query failed"));
 
    enum memory_state state = memory_state_free;
    switch (basic_info.State)
@@ -132,7 +132,7 @@ os_get_memory_info(struct memory_info *info, struct os_allocation block)
       state = memory_state_commited;
       break;
    default:
-      return (ec_os_memory__query_unknown_state);
+      return (make_error("Unknown memory state"));
    }
    info->state             = state;
    info->base_adress       = basic_info.BaseAddress;

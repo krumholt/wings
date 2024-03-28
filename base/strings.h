@@ -1,8 +1,8 @@
 #ifndef WINGS_BASE_STRINGS_H_
 #define WINGS_BASE_STRINGS_H_
 
-#include "wings/base/types.h"
-#include "wings/base/allocators.c"
+#include "types.h"
+#include "allocators.h"
 
 
 b32
