@@ -6,10 +6,7 @@
 
 #include <limits.h>
 
-struct wings_base_random_xorshiftstar_state
-{
-   u64 value;
-};
+#include "random.h"
 
 struct wings_base_random_xorshiftstar_state _wings_base_random_xorshiftstar_state = { 0x391838921 };
 
